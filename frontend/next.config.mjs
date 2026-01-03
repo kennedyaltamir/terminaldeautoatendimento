@@ -1,14 +1,18 @@
+import { withSentryConfig } from "@sentry/nextjs";
+import withPWAInit from "@ducanh2912/next-pwa";
+
+const withPWA = withPWAInit({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  register: true,
+  skipWaiting: true,
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
   
-  // Removido typedRoutes para evitar erros de string template no Windows/Next 14
-  // experimental: {
-  //   typedRoutes: true,
-  // },
-
-  // Headers de segurança e CORS para API
   async headers() {
     return [
       {
@@ -16,7 +20,6 @@ const nextConfig = {
         headers: [
           { key: "Access-Control-Allow-Origin", value: "*" },
           { key: "Access-Control-Allow-Methods", value: "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
-          { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" },
         ],
       },
     ];
@@ -32,4 +35,20 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+// Encadeamento de Plugins: Sentry(PWA(Config))
+export default withSentryConfig(
+  withPWA(nextConfig),
+  {
+    // Opções do Sentry
+    silent: true, // Suprime logs de upload
+    org: "mesaflow",
+    project: "mesaflow-frontend",
+  },
+  {
+    // Opções de Upload de Source Maps
+    widenClientFileUpload: true,
+    transpileClientSDK: true,
+    hideSourceMaps: true,
+    disableLogger: true,
+  }
+);

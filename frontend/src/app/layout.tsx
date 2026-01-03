@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Providers from "@/components/Providers";
-import NetworkStatus from "@/components/ui/NetworkStatus"; // NOVO
+import NetworkStatus from "@/components/ui/NetworkStatus";
 
 export const metadata: Metadata = {
   title: "MesaFlow",
@@ -29,11 +29,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
+    // suppressHydrationWarning é vital para evitar erros de console com next-themes
+    <html lang="pt-BR" suppressHydrationWarning>
       <body className="antialiased bg-gray-50">
         <Providers>
           {children}
-          <NetworkStatus /> {/* Componente Global */}
+          <NetworkStatus />
         </Providers>
       </body>
     </html>

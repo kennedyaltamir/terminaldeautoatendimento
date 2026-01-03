@@ -1,3 +1,4 @@
+#app/models.py
 import uuid
 from enum import Enum
 
@@ -14,13 +15,20 @@ from app.database import Base
 class PlanTier(str, Enum):
     FREE = "free"
     PRO = "pro"
-    SCALE = "scale"
+    ENTERPRISE = "enterprise"
+
+class CompanySegment(str, Enum):
+    GASTRO = "gastro"
+    EVENT = "event"
+    HOTEL = "hotel"
+    CORP = "corp"
 
 class OrderStatus(str, Enum):
     PENDING = "pending"
     ACCEPTED = "accepted"
     PREPARING = "preparing"
     READY = "ready"
+    DELIVERING = "delivering"
     DELIVERED = "delivered"
     CANCELED = "canceled"
 
@@ -65,6 +73,20 @@ class UserRole(str, Enum):
     MANAGER = "manager"
     CASHIER = "cashier"
     KITCHEN = "kitchen"
+    DRIVER = "driver"
+
+class AuditAction(str, Enum):
+    CREATE = "create"
+    UPDATE = "update"
+    DELETE = "delete"
+    LOGIN = "login"
+
+class FiscalStatus(str, Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    EMITTED = "emitted"
+    ERROR = "error"
+    CANCELED = "canceled"
 
 product_recommendations = SQLTable(
     'product_recommendations',
@@ -78,10 +100,23 @@ class Company(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False)
     slug = Column(String(255), nullable=False, unique=True, index=True)
+    
+    # White Label
+    custom_domain = Column(String(255), unique=True, nullable=True, index=True)
+    
     owner_email = Column(String(255), nullable=False, index=True)
+    owner_phone = Column(String(20), nullable=True)
+    owner_role = Column(String(50), nullable=True)
     password_hash = Column(String(255), nullable=True)
+    
     plan_tier = Column(SQLEnum(PlanTier), default=PlanTier.FREE, nullable=False)
+    segment = Column(SQLEnum(CompanySegment), default=CompanySegment.GASTRO, nullable=False)
+    trial_ends_at = Column(DateTime(timezone=True), nullable=True)
     is_active = Column(Boolean, default=True)
+    
+    stripe_customer_id = Column(String(100), nullable=True, index=True)
+    stripe_subscription_id = Column(String(100), nullable=True)
+    subscription_status = Column(String(50), nullable=True)
     
     logo_url = Column(String(500), nullable=True)
     primary_color = Column(String(7), default="#ea580c")
@@ -96,7 +131,16 @@ class Company(Base):
     mp_access_token = Column(String(255), nullable=True)
     mp_user_id = Column(String(50), nullable=True)
     marketplace_fee_percentage = Column(Numeric(5, 2), default=0.0)
+    pending_commission_balance = Column(Numeric(10, 2), default=0.00)
     loyalty_percentage = Column(Numeric(5, 2), default=0.0)
+    
+    service_fee_percentage = Column(Numeric(5, 2), default=10.0)
+
+    cnpj = Column(String(20), nullable=True)
+    inscricao_estadual = Column(String(20), nullable=True)
+    fiscal_token = Column(String(255), nullable=True)
+    csc_token = Column(String(100), nullable=True)
+    csc_id = Column(String(10), nullable=True)
 
     opens_at = Column(Time, nullable=True)
     closes_at = Column(Time, nullable=True)
@@ -109,6 +153,9 @@ class Company(Base):
     wallets = relationship("CustomerWallet", back_populates="company", cascade="all, delete-orphan")
     ingredients = relationship("Ingredient", back_populates="company", cascade="all, delete-orphan")
     employees = relationship("Employee", back_populates="company", cascade="all, delete-orphan")
+    suppliers = relationship("Supplier", back_populates="company", cascade="all, delete-orphan")
+    audit_logs = relationship("AuditLog", back_populates="company", cascade="all, delete-orphan")
+    service_ledger = relationship("ServiceFeeLedger", back_populates="company", cascade="all, delete-orphan")
 
 class Employee(Base):
     __tablename__ = "employees"
@@ -122,6 +169,8 @@ class Employee(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     company = relationship("Company", back_populates="employees")
+    deliveries = relationship("Order", back_populates="driver")
+    tips = relationship("ServiceFeeLedger", back_populates="employee")
     __table_args__ = (Index("idx_employee_email", "email", unique=True),)
 
 class Table(Base):
@@ -162,15 +211,17 @@ class Product(Base):
     price = Column(Numeric(10, 2), nullable=False)
     image_url = Column(String(500))
     is_available = Column(Boolean, default=True)
-    
+    short_code = Column(String(10), nullable=True, index=True)
     track_stock = Column(Boolean, default=False)
     stock_quantity = Column(Integer, default=0)
     station = Column(SQLEnum(ProductStation), default=ProductStation.KITCHEN, nullable=False)
     tags = Column(JSON, default=[])
     
+    ncm = Column(String(10), default="21069090")
+    cfop = Column(String(5), default="5102")
+    
     category = relationship("Category", back_populates="products")
     option_groups = relationship("OptionGroup", back_populates="product", cascade="all, delete-orphan")
-    
     recipe_items = relationship("ProductRecipe", back_populates="product", cascade="all, delete-orphan")
     
     recommendations = relationship(
@@ -181,10 +232,23 @@ class Product(Base):
         backref="recommended_by"
     )
 
+class Supplier(Base):
+    __tablename__ = "suppliers"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    name = Column(String(255), nullable=False)
+    contact_name = Column(String(100), nullable=True)
+    phone = Column(String(20), nullable=True)
+    email = Column(String(255), nullable=True)
+    
+    company = relationship("Company", back_populates="suppliers")
+    ingredients = relationship("Ingredient", back_populates="supplier")
+
 class Ingredient(Base):
     __tablename__ = "ingredients"
     id = Column(Integer, primary_key=True, autoincrement=True)
     company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    supplier_id = Column(Integer, ForeignKey("suppliers.id"), nullable=True)
     name = Column(String(255), nullable=False)
     unit = Column(SQLEnum(UnitOfMeasure), default=UnitOfMeasure.UN, nullable=False)
     current_stock = Column(Numeric(10, 3), default=0.000)
@@ -192,6 +256,7 @@ class Ingredient(Base):
     cost_per_unit = Column(Numeric(10, 2), default=0.00)
     
     company = relationship("Company", back_populates="ingredients")
+    supplier = relationship("Supplier", back_populates="ingredients")
     product_links = relationship("ProductRecipe", back_populates="ingredient")
 
 class ProductRecipe(Base):
@@ -229,6 +294,8 @@ class TableSession(Base):
     company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
     table_id = Column(Integer, ForeignKey("tables.id", ondelete="CASCADE"), nullable=False)
     
+    opened_by_employee_id = Column(Integer, ForeignKey("employees.id"), nullable=True)
+    
     customer_name = Column(String(100), nullable=False)
     customer_phone = Column(String(20), nullable=True)
     session_token = Column(String(64), nullable=False, unique=True, index=True)
@@ -241,6 +308,7 @@ class TableSession(Base):
     company = relationship("Company")
     table = relationship("Table", back_populates="sessions")
     orders = relationship("Order", back_populates="session")
+    opener = relationship("Employee")
 
 class Order(Base):
     __tablename__ = "orders"
@@ -248,6 +316,7 @@ class Order(Base):
     company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
     table_id = Column(Integer, ForeignKey("tables.id"), nullable=True)
     session_id = Column(Integer, ForeignKey("table_sessions.id"), nullable=True)
+    driver_id = Column(Integer, ForeignKey("employees.id"), nullable=True)
     
     order_type = Column(SQLEnum(OrderType), default=OrderType.DINE_IN, nullable=False)
     customer_phone = Column(String(20), nullable=True)
@@ -257,6 +326,8 @@ class Order(Base):
     discount_amount = Column(Numeric(10, 2), default=0.0)
     cashback_earned = Column(Numeric(10, 2), default=0.0)
     
+    service_fee = Column(Numeric(10, 2), default=0.0)
+    
     status = Column(SQLEnum(OrderStatus), default=OrderStatus.PENDING, nullable=False)
     payment_method = Column(SQLEnum(PaymentMethod), default=PaymentMethod.CASH)
     payment_status = Column(SQLEnum(PaymentStatus), default=PaymentStatus.PENDING)
@@ -264,6 +335,13 @@ class Order(Base):
     mp_payment_id = Column(String(100), nullable=True, index=True)
     mp_qr_code = Column(Text, nullable=True)
     mp_qr_code_base64 = Column(Text, nullable=True)
+    
+    fiscal_status = Column(String(50), default="pending")
+    fiscal_reference_id = Column(String(100), nullable=True, index=True)
+    
+    nfe_key = Column(String(100), nullable=True)
+    nfe_url_xml = Column(String(500), nullable=True)
+    nfe_url_pdf = Column(String(500), nullable=True)
     
     customer_name = Column(String(100))
     total_amount = Column(Numeric(10, 2), nullable=False)
@@ -275,6 +353,7 @@ class Order(Base):
     table = relationship("Table", back_populates="orders")
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
     session = relationship("TableSession", back_populates="orders")
+    driver = relationship("Employee", back_populates="deliveries")
 
 class OrderItem(Base):
     __tablename__ = "order_items"
@@ -321,3 +400,33 @@ class CustomerWallet(Base):
     
     company = relationship("Company", back_populates="wallets")
     __table_args__ = (Index("idx_wallet_unique", "company_id", "customer_phone", unique=True),)
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    user_name = Column(String(100), nullable=False)
+    user_role = Column(String(50), nullable=False)
+    
+    action = Column(SQLEnum(AuditAction), nullable=False)
+    resource = Column(String(50), nullable=False)
+    resource_id = Column(String(100), nullable=True)
+    
+    details = Column(JSON, nullable=True)
+    ip_address = Column(String(50), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    company = relationship("Company", back_populates="audit_logs")
+
+class ServiceFeeLedger(Base):
+    __tablename__ = "service_fee_ledger"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    employee_id = Column(Integer, ForeignKey("employees.id"), nullable=False)
+    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=True)
+    
+    amount = Column(Numeric(10, 2), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    company = relationship("Company", back_populates="service_ledger")
+    employee = relationship("Employee", back_populates="tips")

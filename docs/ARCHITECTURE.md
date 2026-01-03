@@ -35,3 +35,18 @@ Utilizamos **Isolamento Lógico (Row-Level)**.
 *   Toda query obrigatoriamente filtra por `company_id`.
 *   **Motivo:** Custo-benefício. Criar um banco por cliente (Isolamento Físico) seria inviável financeiramente para o plano Free.
 ```
+# 🏗️ Arquitetura Técnica MesaFlow
+
+## Stack Tecnológica
+- **Backend:** Python 3.11+, FastAPI, SQLAlchemy (Async), PostgreSQL.
+- **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, Framer Motion.
+- **Real-time:** WebSockets para sincronização KDS/Garçom.
+- **Pagamentos:** Stripe (SaaS Billing) e Mercado Pago (Split/Direct).
+- **Mensageria:** WhatsApp via Evolution API / Twilio.
+- **Infra:** Background Tasks para processamento assíncrono (Estoque/Notificações).
+
+## Padrões de Projeto
+- **Standard Headers:** Todo arquivo deve iniciar com `#caminho/do/arquivo.ext`.
+- **Clean Code:** Código auto-explicativo, sem comentários redundantes.
+- **Integridade:** Cálculos financeiros usando `Decimal`, nunca `float`.
+- **Segurança:** Rate Limiting via SlowAPI e isolamento de Tenant via `company_id`.

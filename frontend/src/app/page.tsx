@@ -19,8 +19,9 @@ import FloatingWidget from "@/components/landing/FloatingWidget";
 import CustomCursor from "@/components/ui/CustomCursor";
 import BeforeAfter from "@/components/landing/BeforeAfter";
 import LiveTicker from "@/components/landing/LiveTicker";
-import CookieBanner from "@/components/ui/CookieBanner"; // Novo Import
+import CookieBanner from "@/components/ui/CookieBanner";
 import ScrollReveal from "@/components/ui/ScrollReveal";
+import LeadCapture from "@/components/landing/LeadCapture"; // NOVO
 
 export default function LandingPage() {
   const jsonLd = {
@@ -114,7 +115,8 @@ export default function LandingPage() {
       <Footer />
       <FloatingWidget />
       <LiveTicker />
-      <CookieBanner /> {/* Novo Componente */}
+      <CookieBanner />
+      <LeadCapture /> {/* NOVO: Popup de Captura */}
     </div>
   );
 }

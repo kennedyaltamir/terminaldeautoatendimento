@@ -1,48 +1,112 @@
-# =====================
-# ENV & SECRETS
-# =====================
+# =======================================================
+# 🔐 SEGURANÇA & AMBIENTE (NUNCA COMMITE ISSO)
+# =======================================================
 .env
-.env.*
-frontend.env.local
+.env.local
+.env.*.local
+frontend/.env.local
+frontend/.env.production.local
+frontend/.env.development.local
 
-# =====================
-# Python
-# =====================
+# =======================================================
+# 🐍 PYTHON / BACKEND
+# =======================================================
 __pycache__/
-*.pyc
-.pytest_cache/
-pytest.ini
-
-# =====================
-# Node / Next.js
-# =====================
-node_modules/
-.next/
-out/
-
-# =====================
-# Build / Cache
-# =====================
-dist/
+*.py[cod]
+*$py.class
+*.so
+.Python
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# =====================
-# Áudio / Binários
-# =====================
-*.wav
-*.mp3
+# Virtual Environments
+venv/
+.venv/
+env/
+.env/
+
+# Testes & Qualidade (Python)
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# =======================================================
+# ⚛️ NODE.JS / NEXT.JS / FRONTEND
+# =======================================================
+node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+out/
+frontend/out/
+build/
+dist/
+
+# Logs de gerenciadores de pacote
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =======================================================
+# 🎭 PLAYWRIGHT (TESTES E2E)
+# =======================================================
+test-results/
+frontend/test-results/
+playwright-report/
+frontend/playwright-report/
+blob-report/
+frontend/blob-report/
+
+# =======================================================
+# 🛠️ ARQUIVOS ESPECÍFICOS DO PROJETO (MESAFLOW)
+# =======================================================
+# Pasta de backup criada pelo script atualizar.py
+Copy/
+
+# Arquivos de contexto para IA (Pesados/Temporários)
+todososarquivos.txt
+resposta.txt
+docs/Prompts/
+
+# Binários e Executáveis locais
 *.exe
 ngrok.exe
+ngrok
+
+# Assets gerados localmente
 output_sounds/
+*.wav
+*.mp3
+*.mp4
 
-# =====================
-# Logs & temp
-# =====================
-*.log
-*.tmp
-
-# =====================
-# OS
-# =====================
+# =======================================================
+# 💻 IDE & SISTEMA OPERACIONAL
+# =======================================================
+.idea/
+.vscode/
+*.swp
+*.swo
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db

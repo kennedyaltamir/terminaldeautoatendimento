@@ -10,17 +10,30 @@ from app.core.security import get_password_hash
 router = APIRouter()
 
 def require_admin(current_user: any = Depends(get_current_user)):
-    if current_user.role not in ["owner", "manager"]:
-        raise HTTPException(status_code=403, detail="Acesso restrito a administradores")
-    return current_user
+    # Verifica se é um objeto Company (Dono) ou Employee com cargo de gerente
+    if isinstance(current_user, Company):
+        return current_user
+    
+    if isinstance(current_user, Employee) and current_user.role in [UserRole.OWNER, UserRole.MANAGER]:
+        return current_user
+        
+    raise HTTPException(status_code=403, detail="Acesso restrito a administradores")
 
 @router.get("", response_model=List[EmployeeResponse])
 def get_employees(
+    role: str = None,
     db: Session = Depends(get_db),
     current_user: any = Depends(require_admin)
 ):
-    # current_user.id aqui é o company_id (devido ao hack no auth.py)
-    return db.query(Employee).filter(Employee.company_id == current_user.id).all()
+    # Se for Company, usa o ID dela. Se for Employee, usa o company_id dele.
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    
+    query = db.query(Employee).filter(Employee.company_id == company_id)
+    
+    if role:
+        query = query.filter(Employee.role == role)
+        
+    return query.all()
 
 @router.post("", response_model=EmployeeResponse, status_code=201)
 def create_employee(
@@ -28,13 +41,15 @@ def create_employee(
     db: Session = Depends(get_db),
     current_user: any = Depends(require_admin)
 ):
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+
     # Verificar se email já existe
     if db.query(Employee).filter(Employee.email == data.email).first() or \
        db.query(Company).filter(Company.owner_email == data.email).first():
         raise HTTPException(status_code=400, detail="Email já cadastrado")
 
     new_employee = Employee(
-        company_id=current_user.id,
+        company_id=company_id,
         name=data.name,
         email=data.email,
         password_hash=get_password_hash(data.password),
@@ -45,41 +60,17 @@ def create_employee(
     db.refresh(new_employee)
     return new_employee
 
-@router.patch("/{employee_id}", response_model=EmployeeResponse)
-def update_employee(
-    employee_id: int,
-    data: EmployeeUpdate,
-    db: Session = Depends(get_db),
-    current_user: any = Depends(require_admin)
-):
-    employee = db.query(Employee).filter(
-        Employee.id == employee_id,
-        Employee.company_id == current_user.id
-    ).first()
-    
-    if not employee:
-        raise HTTPException(status_code=404, detail="Funcionário não encontrado")
-    
-    update_data = data.model_dump(exclude_unset=True)
-    if "password" in update_data:
-        update_data["password_hash"] = get_password_hash(update_data.pop("password"))
-        
-    for key, value in update_data.items():
-        setattr(employee, key, value)
-    
-    db.commit()
-    db.refresh(employee)
-    return employee
-
 @router.delete("/{employee_id}", status_code=204)
 def delete_employee(
     employee_id: int,
     db: Session = Depends(get_db),
     current_user: any = Depends(require_admin)
 ):
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    
     employee = db.query(Employee).filter(
         Employee.id == employee_id,
-        Employee.company_id == current_user.id
+        Employee.company_id == company_id
     ).first()
     
     if not employee:

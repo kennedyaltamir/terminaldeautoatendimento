@@ -6,139 +6,120 @@ import os
 
 ARQUIVO_SAIDA = "todososarquivos.txt"
 
+# Arquivos que devem aparecer no início do TXT (Ordem de leitura da IA)
+PRIORIDADE_ARQUIVOS = [
+    "communication.xml",
+    "docs/ROADMAP.md",
+    "readme.md",
+    "app/models.py",
+    "app/schemas.py",
+    "app/main.py"
+]
+
 IGNORAR_PASTAS = {
-    ".git",
-    ".venv",
-    "venv",
-    "__pycache__",
-    "node_modules",
-    ".idea",
-    ".vscode",
-    "dist",
-    "build"
+    ".git", ".venv", "venv", "__pycache__", "node_modules", 
+    ".idea", ".vscode", "dist", "build", ".next", "Copy"
 }
 
 IGNORAR_EXTENSOES = {
-    ".pyc",
-    ".exe",
-    ".dll",
-    ".so",
-    ".zip",
-    ".tar",
-    ".gz",
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".gif",
-    ".webp",
-    ".ico",
-    ".pdf",
-    ".mp4",
-    ".wav",
-    ".mp3"
+    ".pyc", ".exe", ".dll", ".so", ".zip", ".tar", ".gz", 
+    ".jpg", ".jpeg", ".png", ".gif", ".webp", ".ico", 
+    ".pdf", ".mp4", ".wav", ".mp3", ".svg", ".woff", ".woff2", ".ttf"
 }
 
 IGNORAR_ARQUIVOS_EXATOS = {
     ARQUIVO_SAIDA,
-    ".env",
-    ".env.local",
-    ".env.dev",
-    ".env.prod"
+    "package-lock.json",
+    "package.json",
+    "tsconfig.json",
+    "next.config.mjs",
+    "postcss.config.mjs",
+    "tailwind.config.ts",
+    "eslint.config.mjs",
+    "next-env.d.ts",
+    ".gitignore",
+    "pytest.ini"
 }
 
-# 🔥 Caminhos absolutos a serem ignorados
 BASE_DIR = os.path.normpath(os.getcwd())
-
-IGNORAR_CAMINHOS_ABSOLUTOS = {
-    os.path.normpath(os.path.join(BASE_DIR, "docs", "Prompts")),
-    os.path.normpath(os.path.join(BASE_DIR, "frontend", ".next")),
-}
 
 # ================================
 # FUNÇÕES
 # ================================
 
 def deve_ignorar(caminho_relativo: str) -> bool:
-    caminho_absoluto = os.path.normpath(os.path.abspath(caminho_relativo))
-
-    # Ignorar caminhos absolutos específicos
-    for caminho_ignorado in IGNORAR_CAMINHOS_ABSOLUTOS:
-        if caminho_absoluto.startswith(caminho_ignorado):
-            return True
-
     partes = caminho_relativo.split(os.sep)
-
-    # Ignorar pastas por nome
-    for parte in partes:
-        if parte in IGNORAR_PASTAS:
-            return True
+    
+    # Ignorar pastas
+    if any(p in IGNORAR_PASTAS for p in partes):
+        return True
 
     nome_arquivo = os.path.basename(caminho_relativo)
 
-    # Ignorar arquivos exatos
-    if nome_arquivo in IGNORAR_ARQUIVOS_EXATOS:
+    # Ignorar arquivos sensíveis ou exatos
+    if nome_arquivo in IGNORAR_ARQUIVOS_EXATOS or nome_arquivo.startswith(".env"):
         return True
 
-    # Ignorar qualquer arquivo .env*
-    if nome_arquivo.startswith(".env"):
-        return True
-
+    # Ignorar extensões
     _, ext = os.path.splitext(nome_arquivo)
     return ext.lower() in IGNORAR_EXTENSOES
 
+def coletar_arquivos():
+    arquivos_prioridade = []
+    arquivos_comuns = []
+
+    for root, dirs, files in os.walk("."):
+        # Modifica dirs in-place para não entrar em pastas ignoradas
+        dirs[:] = [d for d in dirs if d not in IGNORAR_PASTAS]
+
+        for file in files:
+            caminho = os.path.join(root, file)
+            caminho_relativo = os.path.relpath(caminho, ".")
+            caminho_normalizado = caminho_relativo.replace("\\", "/")
+
+            if deve_ignorar(caminho_relativo):
+                continue
+
+            if caminho_normalizado in PRIORIDADE_ARQUIVOS:
+                arquivos_prioridade.append(caminho_relativo)
+            else:
+                arquivos_comuns.append(caminho_relativo)
+
+    # Ordena os arquivos de prioridade conforme a lista definida
+    arquivos_prioridade.sort(key=lambda x: PRIORIDADE_ARQUIVOS.index(x.replace("\\", "/")))
+    # Ordena os comuns alfabeticamente
+    arquivos_comuns.sort()
+
+    return arquivos_prioridade + arquivos_comuns
 
 def main():
-    # Remove versão anterior
     if os.path.exists(ARQUIVO_SAIDA):
         os.remove(ARQUIVO_SAIDA)
 
+    lista_final = coletar_arquivos()
+    
+    print(f"🔍 Coletando {len(lista_final)} arquivos...")
+
     with open(ARQUIVO_SAIDA, "w", encoding="utf-8") as saida:
-        for root, dirs, files in os.walk("."):
-            root_abs = os.path.normpath(os.path.abspath(root))
+        for caminho in lista_final:
+            try:
+                with open(caminho, "r", encoding="utf-8", errors="ignore") as f:
+                    conteudo = f.read()
+                
+                ext = os.path.splitext(caminho)[1].replace(".", "")
+                if not ext: ext = "txt"
 
-            # Remove pastas ignoradas por nome
-            dirs[:] = [d for d in dirs if d not in IGNORAR_PASTAS]
-
-            # Remove pastas ignoradas por caminho absoluto
-            dirs[:] = [
-                d for d in dirs
-                if not any(
-                    os.path.normpath(os.path.join(root_abs, d)).startswith(caminho)
-                    for caminho in IGNORAR_CAMINHOS_ABSOLUTOS
-                )
-            ]
-
-            for file in files:
-                caminho = os.path.join(root, file)
-                caminho_relativo = os.path.relpath(caminho, ".")
-
-                if deve_ignorar(caminho_relativo):
-                    continue
-
-                try:
-                    with open(caminho, "r", encoding="utf-8", errors="ignore") as f:
-                        conteudo = f.read()
-                except Exception:
-                    continue
-
-                ext = os.path.splitext(file)[1].replace(".", "")
-
-                saida.write("\n---\n\n")
-                saida.write(f"## 📄 Arquivo: {caminho_relativo}\n\n")
-                saida.write(f"```{ext}\n")
+                saida.write(f"\n# {caminho.replace('\\', '/')}\n")
+                saida.write("```" + ext + "\n")
                 saida.write(conteudo)
                 if not conteudo.endswith("\n"):
                     saida.write("\n")
                 saida.write("```\n")
+                print(f" ✅ Incluído: {caminho}")
+            except Exception as e:
+                print(f" ❌ Erro ao ler {caminho}: {e}")
 
-        saida.write("\n---\n")
-
-    print(f"✅ Contexto gerado com sucesso em '{ARQUIVO_SAIDA}'")
-
-
-# ================================
-# ENTRYPOINT
-# ================================
+    print(f"\n🚀 Contexto gerado com sucesso em '{ARQUIVO_SAIDA}'")
 
 if __name__ == "__main__":
     main()

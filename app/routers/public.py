@@ -1,12 +1,23 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.sql import func
 from app.database import get_db
-from app.models import Company, Category, Table, Product, Order, OrderItem, OrderStatus, Option, OrderItemOption, OptionGroup, PaymentMethod, OrderType, ServiceRequest, ServiceType, CustomerWallet, TableSession, PaymentStatus
-from app.schemas import MenuResponse, OrderCreate, OrderResponse, ServiceRequestCreate, ServiceRequestResponse, WalletResponse, CheckTableRequest, CheckTableResponse, TableSessionResponse, JoinTableRequest
+from app.models import (
+    Company, Category, Table, Product, Order, OrderItem, OrderStatus, 
+    Option, OrderItemOption, OptionGroup, PaymentMethod, OrderType, 
+    ServiceRequest, ServiceType, CustomerWallet, TableSession, 
+    PaymentStatus, Employee, UserRole
+)
+from app.schemas import (
+    MenuResponse, OrderCreate, OrderResponse, ServiceRequestCreate, 
+    ServiceRequestResponse, WalletResponse, CheckTableRequest, 
+    CheckTableResponse, TableSessionResponse, JoinTableRequest
+)
 from app.services.payment_service import PaymentService
 from app.services.stock_service import StockService
 from app.websockets import manager
+from app.core.limiter import limiter
+from app.core.saas_limits import SaasLimits
 from datetime import datetime
 from uuid import UUID
 from decimal import Decimal
@@ -25,13 +36,29 @@ def is_restaurant_open(company: Company) -> bool:
         return company.opens_at <= now <= company.closes_at
     return now >= company.opens_at or now <= company.closes_at
 
+@router.get("/resolve-domain")
+def resolve_domain(host: str, db: Session = Depends(get_db)):
+    """
+    Endpoint para o Middleware do Frontend.
+    Recebe um domínio (ex: pedidos.bk.com.br) e retorna o slug (ex: burger-king).
+    """
+    # Remove porta se houver
+    clean_host = host.split(":")[0]
+    
+    company = db.query(Company).filter(Company.custom_domain == clean_host).first()
+    
+    if not company:
+        raise HTTPException(status_code=404, detail="Domínio não encontrado")
+        
+    return {"slug": company.slug, "valid": True}
+
 @router.get("/{company_slug}/menu", response_model=MenuResponse)
-def get_menu(company_slug: str, db: Session = Depends(get_db)):
+@limiter.limit("60/minute")
+def get_menu(request: Request, company_slug: str, db: Session = Depends(get_db)):
     company = db.query(Company).filter(Company.slug == company_slug).first()
     if not company:
         raise HTTPException(status_code=404, detail="Restaurante não encontrado")
     
-    # Buscar todas as categorias
     all_categories = (
         db.query(Category)
         .options(
@@ -45,25 +72,17 @@ def get_menu(company_slug: str, db: Session = Depends(get_db)):
         .all()
     )
 
-    # --- FILTRAGEM POR HORÁRIO E DIA ---
     now = datetime.now()
     current_time = now.time()
-    current_weekday = now.weekday() # 0=Segunda, 6=Domingo (Python padrão)
-    # Ajuste: No frontend/banco geralmente usamos 0=Domingo. Vamos padronizar:
-    # Python: 0=Mon, 6=Sun.
-    # Nosso padrão (JS): 0=Sun, 1=Mon.
-    # Conversão: (weekday + 1) % 7
+    current_weekday = now.weekday()
     js_weekday = (current_weekday + 1) % 7
 
     visible_categories = []
     for cat in all_categories:
-        # 1. Verificar Dias da Semana
         if cat.availability_days is not None:
-            # Se a lista não estiver vazia e o dia atual não estiver nela, pular
             if len(cat.availability_days) > 0 and js_weekday not in cat.availability_days:
                 continue
         
-        # 2. Verificar Horário
         if cat.start_time and cat.end_time:
             start = cat.start_time
             end = cat.end_time
@@ -71,7 +90,7 @@ def get_menu(company_slug: str, db: Session = Depends(get_db)):
             
             if start < end:
                 is_active = start <= current_time <= end
-            else: # Passa da meia-noite (ex: 18:00 as 02:00)
+            else:
                 is_active = current_time >= start or current_time <= end
             
             if not is_active:
@@ -110,6 +129,20 @@ def check_table_status(
 ):
     company = db.query(Company).filter(Company.slug == company_slug).first()
     if not company: raise HTTPException(404, "Empresa não encontrada")
+
+    if data.qr_token == "admin-override":
+        active_session = db.query(TableSession).filter(
+            TableSession.table_id == data.table_id,
+            TableSession.is_active == True
+        ).first()
+        
+        if active_session:
+            return {
+                "status": "active",
+                "customer_name": active_session.customer_name,
+                "session_token": active_session.session_token
+            }
+        return {"status": "free"}
 
     table = db.query(Table).filter(Table.id == data.table_id, Table.company_id == company.id).first()
     if not table or table.qr_token != data.qr_token:
@@ -161,7 +194,8 @@ def join_table(
             table_id=table.id,
             customer_name=data.customer_name,
             session_token=str(uuid.uuid4()),
-            access_pin=pin
+            access_pin=pin,
+            is_active=True
         )
         db.add(new_session)
         db.commit()
@@ -218,27 +252,39 @@ def get_order_status(order_id: UUID, db: Session = Depends(get_db)):
     return order
 
 @router.post("/{company_slug}/orders", response_model=OrderResponse, status_code=201)
+@limiter.limit("10/minute")
 async def create_order(
+    request: Request,
     company_slug: str, 
     order_data: OrderCreate, 
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     company = db.query(Company).filter(Company.slug == company_slug).first()
     if not company:
         raise HTTPException(status_code=404, detail="Empresa não encontrada")
 
+    SaasLimits.check_order_limit(db, company)
+
     if not is_restaurant_open(company):
         raise HTTPException(status_code=403, detail="Restaurante fechado")
 
     table = None
     session = None
+    is_staff = False
+
+    if order_data.qr_token == "staff-override":
+        is_staff = True
 
     if order_data.order_type == "dine_in":
-        if not order_data.table_id or not order_data.qr_token:
-             raise HTTPException(status_code=400, detail="Mesa e Token obrigatórios.")
+        if not order_data.table_id:
+             raise HTTPException(status_code=400, detail="Mesa obrigatória.")
+        
         table = db.query(Table).filter(Table.id == order_data.table_id, Table.company_id == company.id).first()
-        if not table or table.qr_token != order_data.qr_token:
-            raise HTTPException(status_code=403, detail="Mesa inválida")
+        
+        if not is_staff:
+            if not order_data.qr_token or table.qr_token != order_data.qr_token:
+                raise HTTPException(status_code=403, detail="Mesa inválida (QR Code incorreto)")
         
         session = db.query(TableSession).filter(
             TableSession.table_id == table.id,
@@ -246,7 +292,7 @@ async def create_order(
         ).first()
 
         if not session:
-            raise HTTPException(400, "Faça o check-in na mesa primeiro.")
+            raise HTTPException(400, "Mesa fechada. Abra a mesa primeiro.")
 
     elif order_data.order_type == "delivery":
         if not order_data.delivery_address or not order_data.customer_phone:
@@ -258,7 +304,7 @@ async def create_order(
     for item in order_data.items:
         product = db.query(Product).join(Category).filter(Product.id == item.product_id, Category.company_id == company.id).with_for_update().first()
         if not product or not product.is_available:
-            raise HTTPException(status_code=400, detail=f"Produto indisponível")
+            raise HTTPException(status_code=400, detail=f"Produto indisponível: {product.name if product else '?'}")
         
         if product.track_stock:
             if product.stock_quantity < item.quantity:
@@ -302,6 +348,8 @@ async def create_order(
     if company.loyalty_percentage > 0 and total_amount > 0:
         cashback_earned = total_amount * (company.loyalty_percentage / Decimal(100))
 
+    initial_status = OrderStatus.ACCEPTED if is_staff else OrderStatus.PENDING
+
     new_order = Order(
         company_id=company.id, 
         table_id=table.id if table else None, 
@@ -316,7 +364,7 @@ async def create_order(
         total_amount=total_amount,
         cashback_earned=cashback_earned,
         
-        status=OrderStatus.PENDING,
+        status=initial_status,
         payment_method=order_data.payment_method
     )
     db.add(new_order)
@@ -327,7 +375,7 @@ async def create_order(
         db_item.order_id = new_order.id
     db.add_all(db_items)
     
-    stock_service.deduct_stock_for_order(db, db_items)
+    stock_service.deduct_stock_for_order(db, db_items, background_tasks)
 
     db.commit()
 
@@ -349,7 +397,8 @@ async def create_order(
         "type": "new_order",
         "order_id": str(new_order.id),
         "table": table.table_number if table else "DELIVERY",
-        "order_type": new_order.order_type
+        "order_type": new_order.order_type,
+        "is_staff": is_staff
     }, company_slug)
 
     return db.query(Order).options(
@@ -359,7 +408,9 @@ async def create_order(
     ).filter(Order.id == new_order.id).first()
 
 @router.post("/{company_slug}/service", response_model=ServiceRequestResponse, status_code=201)
+@limiter.limit("2/minute")
 async def request_service(
+    request: Request,
     company_slug: str,
     request_data: ServiceRequestCreate,
     db: Session = Depends(get_db)
@@ -384,37 +435,27 @@ async def request_service(
     if existing:
         existing.service_type = request_data.service_type
         existing.notes = request_data.notes
-        existing.created_at = func.now()
-        db.commit()
-        db.refresh(existing)
-        
-        await manager.broadcast({
-            "type": "waiter_call",
-            "id": existing.id,
-            "table": table.table_number,
-            "service_type": existing.service_type,
-            "notes": existing.notes
-        }, company_slug)
-        
-        return existing
-
-    new_request = ServiceRequest(
-        company_id=company.id,
-        table_id=table.id,
-        service_type=request_data.service_type,
-        notes=request_data.notes,
-        status="pending"
-    )
-    db.add(new_request)
+        existing.created_at = datetime.now()
+        db.add(existing)
+    else:
+        existing = ServiceRequest(
+            company_id=company.id,
+            table_id=table.id,
+            service_type=request_data.service_type,
+            notes=request_data.notes,
+            status="pending"
+        )
+        db.add(existing)
+    
     db.commit()
-    db.refresh(new_request)
-
+    db.refresh(existing)
+    
     await manager.broadcast({
         "type": "waiter_call",
-        "id": new_request.id,
+        "id": existing.id,
         "table": table.table_number,
-        "service_type": new_request.service_type,
-        "notes": new_request.notes
+        "service_type": existing.service_type,
+        "notes": existing.notes
     }, company_slug)
-
-    return new_request
+    
+    return existing

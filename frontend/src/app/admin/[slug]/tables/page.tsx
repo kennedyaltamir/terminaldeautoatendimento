@@ -7,6 +7,7 @@ import { Plus, Trash2, Printer, Copy, Check, Grid, QrCode, User, Clock, DollarSi
 import { QRCodeSVG } from "qrcode.react";
 import Modal from "@/components/ui/Modal";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { useTerminology } from "@/hooks/useTerminology"; // NOVO
 
 interface TableDashboard extends Table {
   status: 'free' | 'occupied' | 'alert';
@@ -23,21 +24,19 @@ interface TableDashboard extends Table {
 
 export default function TablesPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
+  const terms = useTerminology(); // Hook de Dicionário
   const [tables, setTables] = useState<TableDashboard[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
   const [isEditingLayout, setIsEditingLayout] = useState(false);
   
-  // Drag & Drop State
   const [draggedTable, setDraggedTable] = useState<number | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   
-  // Modais
   const [selectedTable, setSelectedTable] = useState<TableDashboard | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [customerName, setCustomerName] = useState("");
   
-  // Forms Criação
   const [newTableNum, setNewTableNum] = useState("");
   const [bulkStart, setBulkStart] = useState("");
   const [bulkEnd, setBulkEnd] = useState("");
@@ -64,7 +63,6 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
     }
   });
 
-  // --- DRAG AND DROP LOGIC ---
   const handleMouseDown = (e: React.MouseEvent, tableId: number) => {
     if (!isEditingLayout) return;
     setDraggedTable(tableId);
@@ -77,7 +75,6 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     
-    // Limitar dentro do container (0-90% para não sair)
     const clampedX = Math.max(0, Math.min(90, x));
     const clampedY = Math.max(0, Math.min(90, y));
 
@@ -99,7 +96,6 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
     }
   };
 
-  // Ações de Mesa
   const handleOpenTable = async () => {
     if (!selectedTable || !customerName) return;
     try {
@@ -107,17 +103,17 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
       setCustomerName("");
       setSelectedTable(null);
       fetchTables();
-    } catch (e) { alert("Erro ao abrir mesa"); }
+    } catch (e) { alert("Erro ao abrir " + terms.table.toLowerCase()); }
   };
 
   const handleCloseTable = async (method: string) => {
     if (!selectedTable) return;
-    if (!confirm(`Confirmar pagamento em ${method.toUpperCase()} e liberar mesa?`)) return;
+    if (!confirm(`Confirmar pagamento em ${method.toUpperCase()} e liberar ${terms.table.toLowerCase()}?`)) return;
     try {
       await closeTable(selectedTable.id, method);
       setSelectedTable(null);
       fetchTables();
-    } catch (e) { alert("Erro ao fechar mesa"); }
+    } catch (e) { alert("Erro ao fechar " + terms.table.toLowerCase()); }
   };
 
   const handleCreateSingle = async () => {
@@ -136,7 +132,7 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
   };
 
   const handleDelete = async (id: number) => {
-    if(confirm("Excluir mesa?")) {
+    if(confirm(`Excluir ${terms.table.toLowerCase()}?`)) {
       await deleteTable(id);
       fetchTables();
     }
@@ -155,11 +151,10 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
 
   return (
     <div className="space-y-8 pb-20" onMouseUp={handleMouseUp} onMouseMove={handleMouseMove}>
-      {/* HEADER */}
       <div className="print:hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Grid className="text-orange-500" /> Mapa de Sala
+            <Grid className="text-orange-500" /> Mapa de {terms.table}s
           </h1>
           <p className="text-gray-400 text-sm mt-1">Visão geral da operação em tempo real.</p>
         </div>
@@ -182,7 +177,7 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
           )}
 
           <button onClick={() => setIsCreateModalOpen(true)} className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-medium transition-colors text-sm">
-            <Plus size={16} /> Mesas
+            <Plus size={16} /> {terms.table}s
           </button>
           <button onClick={() => window.print()} className="bg-white text-gray-900 px-4 py-2 rounded-xl flex items-center gap-2 font-bold transition-colors text-sm hover:bg-gray-100">
             <Printer size={16} /> QR Codes
@@ -190,7 +185,6 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
         </div>
       </div>
 
-      {/* VIEW MODE: GRID */}
       {viewMode === "grid" && (
         <div className="print:hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {tables.map((table) => {
@@ -245,7 +239,6 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
         </div>
       )}
 
-      {/* VIEW MODE: MAP (DRAG & DROP) */}
       {viewMode === "map" && (
         <div 
           ref={mapRef}
@@ -275,30 +268,29 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
           })}
           {isEditingLayout && (
             <div className="absolute bottom-4 right-4 bg-black/50 text-white px-4 py-2 rounded-lg text-xs pointer-events-none">
-              Modo de Edição: Arraste as mesas
+              Modo de Edição: Arraste os itens
             </div>
           )}
         </div>
       )}
 
-      {/* MODAL DE DETALHES DA MESA */}
-      <Modal isOpen={!!selectedTable} onClose={() => setSelectedTable(null)} title={`Mesa ${selectedTable?.table_number}`}>
+      <Modal isOpen={!!selectedTable} onClose={() => setSelectedTable(null)} title={`${terms.table} ${selectedTable?.table_number}`}>
         {selectedTable?.status === 'free' ? (
           <div className="space-y-4">
-            <p className="text-gray-500">Esta mesa está livre. Deseja abri-la manualmente?</p>
+            <p className="text-gray-500">Este local está livre. Deseja abrir manualmente?</p>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Nome do Cliente</label>
               <input 
                 type="text" 
                 className="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-orange-500"
-                placeholder="Ex: Mesa do João"
+                placeholder="Ex: João"
                 value={customerName}
                 onChange={e => setCustomerName(e.target.value)}
                 autoFocus
               />
             </div>
             <button onClick={handleOpenTable} className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700">
-              Abrir Mesa
+              Abrir {terms.table}
             </button>
             
             <div className="border-t pt-4 mt-4">
@@ -335,7 +327,7 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
 
             {selectedTable?.status === 'alert' && (
               <div className="bg-yellow-50 text-yellow-800 p-3 rounded-lg text-sm font-bold flex items-center gap-2">
-                <BellRing size={16} /> O cliente solicitou: {selectedTable.service_request === 'bill' ? 'A Conta' : 'Ajuda'}
+                <BellRing size={16} /> O cliente solicitou: {selectedTable.service_request === 'bill' ? 'A Conta' : terms.waiter}
               </div>
             )}
 
@@ -360,8 +352,7 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
         )}
       </Modal>
 
-      {/* MODAL DE CRIAÇÃO */}
-      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Adicionar Mesas">
+      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title={`Adicionar ${terms.table}s`}>
         <div className="space-y-6">
           <div>
             <h4 className="font-bold text-sm text-gray-500 mb-2">Individual</h4>
@@ -382,12 +373,11 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
         </div>
       </Modal>
 
-      {/* ÁREA DE IMPRESSÃO */}
       <div className="hidden print:block bg-white absolute top-0 left-0 w-full h-full z-[9999]">
         <div className="grid grid-cols-3 gap-4 p-8">
           {tables.map((table) => (
             <div key={table.id} className="border-2 border-black rounded-xl p-6 flex flex-col items-center justify-center text-center break-inside-avoid page-break-inside-avoid aspect-[3/4]">
-              <h2 className="text-3xl font-black mb-2 text-black">Mesa {table.table_number}</h2>
+              <h2 className="text-3xl font-black mb-2 text-black">{terms.table} {table.table_number}</h2>
               <p className="text-sm mb-4 text-gray-600">Escaneie para pedir</p>
               <QRCodeSVG 
                 value={`${typeof window !== 'undefined' ? window.location.origin : ''}/${slug}/menu?mesa=${table.table_number}&token=${table.qr_token}`}

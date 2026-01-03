@@ -1,11 +1,16 @@
 import httpx
 import os
 import unicodedata
+import logging
 from decimal import Decimal, ROUND_DOWN
 from app.models import Order, Company
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Configuração de Logs Financeiros
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("FinancialEngine")
 
 MP_API_URL = "https://api.mercadopago.com/v1"
 BASE_URL = os.getenv("PUBLIC_API_URL", "http://localhost:8000")
@@ -63,17 +68,37 @@ class PaymentService:
         return f"{payload}{crc}"
 
     def calculate_split(self, total_amount: Decimal, fee_percentage: Decimal) -> Decimal:
-        if fee_percentage <= 0:
+        """
+        Calcula a comissão do SaaS com segurança.
+        Regra: Floor Rounding (Arredondar para baixo) para evitar problemas de centavos.
+        """
+        if fee_percentage is None or fee_percentage <= 0:
+            return Decimal("0.00")
+        
+        if total_amount <= 0:
+            return Decimal("0.00")
+
+        # Proteção: Taxa não pode ser maior que 100%
+        if fee_percentage > 100:
+            logger.error(f"⚠️ Taxa de comissão inválida ({fee_percentage}%). Ajustando para 0%.")
             return Decimal("0.00")
         
         fee = total_amount * (fee_percentage / Decimal("100"))
-        return fee.quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+        final_fee = fee.quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+
+        # Proteção: A comissão não pode ser maior ou igual ao valor total (Mercado Pago rejeita)
+        if final_fee >= total_amount:
+            logger.warning(f"⚠️ Comissão (R$ {final_fee}) maior/igual ao total (R$ {total_amount}). Ajustando para 50%.")
+            return (total_amount / 2).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+
+        return final_fee
 
     async def create_pix_payment(self, order: Order, company: Company):
         total_val = Decimal(str(order.total_amount))
         
+        # MODO 1: Pix Estático (Sem Token MP)
         if not company.mp_access_token:
-            print(f"⚠️ AVISO: Gerando Pix Estático para a chave: {company.pix_key}")
+            logger.info(f"💳 Modo Pix Direto: Gerando QR Code estático para {company.name}")
             qr_code_payload = self._generate_static_pix(
                 amount=total_val, 
                 pix_key=company.pix_key,
@@ -86,6 +111,7 @@ class PaymentService:
                 "qr_code_base64": None
             }
 
+        # MODO 2: Pix Automático (Split de Pagamento)
         headers = {
             "Authorization": f"Bearer {company.mp_access_token}",
             "Content-Type": "application/json",
@@ -96,7 +122,8 @@ class PaymentService:
         app_fee = self.calculate_split(total_val, fee_percentage)
 
         notification_url = f"{BASE_URL}/api/webhooks/mercadopago"
-        print(f"🔗 Configurando Webhook para: {notification_url} | Split Fee: R$ {app_fee}")
+        
+        logger.info(f"💰 Processando Split: Total R$ {total_val} | Fee {fee_percentage}% -> R$ {app_fee}")
 
         payload = {
             "transaction_amount": float(total_val),
@@ -107,9 +134,12 @@ class PaymentService:
                 "first_name": order.customer_name or "Cliente",
             },
             "notification_url": notification_url,
-            "application_fee": float(app_fee) if app_fee > 0 else None,
             "external_reference": str(order.id)
         }
+
+        # Só adiciona o campo application_fee se houver valor > 0
+        if app_fee > 0:
+            payload["application_fee"] = float(app_fee)
 
         async with httpx.AsyncClient() as client:
             try:
@@ -117,11 +147,12 @@ class PaymentService:
                     f"{MP_API_URL}/payments",
                     json=payload,
                     headers=headers,
-                    timeout=10.0
+                    timeout=15.0
                 )
                 
                 if response.status_code != 201:
-                    print(f"❌ Erro MP ({response.status_code}): {response.text}")
+                    logger.error(f"❌ Erro MP ({response.status_code}): {response.text}")
+                    # Fallback: Se falhar a criação no MP, lançar erro para o frontend tratar
                     response.raise_for_status()
 
                 data = response.json()
@@ -133,5 +164,5 @@ class PaymentService:
                     "qr_code_base64": data["point_of_interaction"]["transaction_data"]["qr_code_base64"]
                 }
             except Exception as e:
-                print(f"❌ Erro Conexão MP: {str(e)}")
+                logger.critical(f"❌ Falha Crítica na Conexão MP: {str(e)}")
                 raise e

@@ -1,5 +1,5 @@
 import { getToken, getRefreshToken, setTokens, removeTokens } from "./auth";
-import { Company } from "@/types";
+import { Company, Ingredient, RecipeItem } from "@/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
@@ -364,12 +364,94 @@ export async function closeTable(tableId: number, paymentMethod: string) {
   return res.json();
 }
 
-// --- NOVO: Atualizar posições das mesas ---
 export async function updateTablePositions(positions: { id: number, x: number, y: number }[]) {
   const res = await fetchClient(`/admin/tables/positions`, {
     method: "PATCH",
     body: JSON.stringify(positions)
   });
   if (!res.ok) throw new Error("Erro ao salvar layout");
+  return res.json();
+}
+
+export async function getIngredients() {
+  const res = await fetchClient(`/admin/inventory/ingredients`);
+  if (!res.ok) throw new Error("Erro ao carregar ingredientes");
+  return res.json();
+}
+
+export async function createIngredient(data: Partial<Ingredient>) {
+  const res = await fetchClient(`/admin/inventory/ingredients`, {
+    method: "POST",
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Erro ao criar ingrediente");
+  return res.json();
+}
+
+export async function updateIngredient(id: number, data: Partial<Ingredient>) {
+  const res = await fetchClient(`/admin/inventory/ingredients/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Erro ao atualizar ingrediente");
+  return res.json();
+}
+
+export async function deleteIngredient(id: number) {
+  const res = await fetchClient(`/admin/inventory/ingredients/${id}`, { method: "DELETE" });
+  return res.ok;
+}
+
+export async function updateProductRecipe(productId: number, ingredients: RecipeItem[]) {
+  const res = await fetchClient(`/admin/inventory/recipes`, {
+    method: "POST",
+    body: JSON.stringify({ product_id: productId, ingredients })
+  });
+  if (!res.ok) throw new Error("Erro ao salvar ficha técnica");
+  return res.json();
+}
+
+export async function updateSessionName(sessionId: number, name: string) {
+  const res = await fetchClient(`/admin/tables/sessions/${sessionId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ customer_name: name })
+  });
+  if (!res.ok) throw new Error("Erro ao renomear mesa");
+  return res.json();
+}
+
+export async function getSessionDetails(sessionId: number) {
+  const res = await fetchClient(`/admin/tables/sessions/${sessionId}/details`);
+  if (!res.ok) throw new Error("Erro ao carregar detalhes da sessão");
+  return res.json();
+}
+
+export async function transferTable(data: { from_table_id: number, to_table_id: number, merge: boolean }) {
+  const res = await fetchClient(`/admin/tables/transfer`, {
+    method: "POST",
+    body: JSON.stringify(data)
+  });
+  
+  if (!res.ok) {
+    const err = await res.json();
+    throw err;
+  }
+  return res.json();
+}
+
+// --- NOVAS FUNÇÕES PARA DELIVERY E FROTA ---
+
+export async function getDrivers() {
+  const res = await fetchClient(`/admin/employees?role=driver`);
+  if (!res.ok) throw new Error("Erro ao carregar entregadores");
+  return res.json();
+}
+
+export async function dispatchOrder(orderId: string, driverId?: number) {
+  const res = await fetchClient(`/admin/delivery/orders/${orderId}/dispatch`, {
+    method: "PATCH",
+    body: JSON.stringify({ driver_id: driverId })
+  });
+  if (!res.ok) throw new Error("Erro ao despachar pedido");
   return res.json();
 }

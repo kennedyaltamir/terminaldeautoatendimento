@@ -1,18 +1,44 @@
 "use client";
 import { useState } from "react";
-import { ChefHat } from "lucide-react";
+import { ChefHat, MapPin, Bed, Ticket } from "lucide-react";
+import { getSegmentLabels } from "@/lib/segment-utils";
 
-export default function CheckInScreen({ tableId, status, customerName, onJoin }: { tableId: string, status: 'free' | 'blocked', customerName?: string, onJoin: (name: string, pin?: string) => void }) {
+export default function CheckInScreen({ 
+  tableId, 
+  status, 
+  customerName, 
+  onJoin,
+  segment 
+}: { 
+  tableId: string, 
+  status: 'free' | 'blocked', 
+  customerName?: string, 
+  onJoin: (name: string, pin?: string) => void,
+  segment?: string
+}) {
   const [name, setName] = useState("");
   const [pin, setPin] = useState("");
+  
+  const labels = getSegmentLabels(segment);
+
+  // Ícone dinâmico
+  const getIcon = () => {
+    switch(segment) {
+      case 'hotel': return <Bed size={48} />;
+      case 'event': return <Ticket size={48} />;
+      default: return <ChefHat size={48} />;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-6 text-center text-white font-sans">
       <div className="w-24 h-24 bg-orange-600 rounded-full flex items-center justify-center mb-8 shadow-2xl shadow-orange-500/30 animate-in zoom-in duration-500">
-        <ChefHat size={48} />
+        {getIcon()}
       </div>
       
-      <h1 className="text-3xl font-bold mb-2">Bem-vindo à Mesa {tableId}</h1>
+      <h1 className="text-3xl font-bold mb-2">
+        {labels.table} {tableId}
+      </h1>
       
       {status === 'free' ? (
         <div className="w-full max-w-xs animate-in slide-in-from-bottom-4 duration-700">
@@ -30,18 +56,18 @@ export default function CheckInScreen({ tableId, status, customerName, onJoin }:
             disabled={!name}
             className="w-full bg-orange-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-orange-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Abrir Mesa
+            Abrir {labels.table}
           </button>
         </div>
       ) : (
         <div className="w-full max-w-xs animate-in slide-in-from-bottom-4 duration-700">
           <div className="bg-gray-800/50 border border-gray-700 p-4 rounded-xl mb-6">
-            <p className="text-gray-400 text-sm mb-1">Mesa ocupada por</p>
+            <p className="text-gray-400 text-sm mb-1">{labels.table} ocupada por</p>
             <p className="text-white font-bold text-xl">{customerName}</p>
           </div>
           
           <div className="space-y-3">
-            <p className="text-xs text-gray-500 uppercase font-bold tracking-widest">Entrar na Mesa</p>
+            <p className="text-xs text-gray-500 uppercase font-bold tracking-widest">Entrar na Sessão</p>
             <input 
               type="text" 
               className="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-center text-white focus:ring-2 focus:ring-orange-500 outline-none placeholder-gray-500"

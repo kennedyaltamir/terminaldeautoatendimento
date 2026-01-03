@@ -14,8 +14,9 @@ import {
   deleteOption 
 } from "@/lib/api";
 import { MenuResponse, Product } from "@/types";
-import { Trash2, Plus, Edit2, Image as ImageIcon, Save, Settings2, ChevronDown, ChevronUp, X, Box, Link as LinkIcon, Utensils, Wine, Coffee } from "lucide-react";
+import { Trash2, Plus, Edit2, Image as ImageIcon, Save, Settings2, ChevronDown, ChevronUp, X, Box, Link as LinkIcon, Utensils, Wine, Coffee, FileText, Hash } from "lucide-react";
 import Modal from "@/components/ui/Modal";
+import RecipeModal from "@/components/admin/RecipeModal";
 
 export default function AdminMenuPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
@@ -27,6 +28,7 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
   const [isProdModalOpen, setIsProdModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [isOptModalOpen, setIsOptModalOpen] = useState(false);
+  const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
   
   const [newCategoryName, setNewCategoryName] = useState("");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -42,6 +44,7 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
     track_stock: false,
     stock_quantity: 0,
     station: "kitchen",
+    short_code: "", // NOVO CAMPO
     recommended_ids: [] as number[]
   });
   const [groupForm, setGroupForm] = useState({ name: "", min_selection: 0, max_selection: 1 });
@@ -84,7 +87,8 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
     const payload = { 
       ...prodForm, 
       price: priceFloat,
-      image_url: prodForm.image_url || null 
+      image_url: prodForm.image_url || null,
+      short_code: prodForm.short_code || null // Envia null se vazio
     };
 
     try {
@@ -162,7 +166,10 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
                     <div className="flex items-center gap-4">
                       {product.image_url ? <img src={product.image_url} className="w-14 h-14 rounded-lg object-cover shadow-md" /> : <div className="w-14 h-14 bg-gray-800 rounded-lg flex items-center justify-center"><ImageIcon className="text-gray-600" /></div>}
                       <div>
-                        <h3 className="font-bold text-gray-100 text-lg">{product.name}</h3>
+                        <h3 className="font-bold text-gray-100 text-lg flex items-center gap-2">
+                            {product.name}
+                            {product.short_code && <span className="text-xs bg-gray-700 text-gray-300 px-1.5 py-0.5 rounded font-mono">#{product.short_code}</span>}
+                        </h3>
                         <div className="flex items-center gap-3">
                           <p className="text-orange-500 font-mono font-bold">R$ {Number(product.price).toFixed(2)}</p>
                           {product.track_stock && (
@@ -177,6 +184,9 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      <button onClick={() => { setEditingProduct(product); setIsRecipeModalOpen(true); }} className="p-2 bg-blue-900/20 hover:bg-blue-900/40 rounded-lg text-blue-400" title="Ficha Técnica">
+                        <FileText size={18} />
+                      </button>
                       <button onClick={() => setExpandedProduct(expandedProduct === product.id ? null : product.id)} className="flex items-center gap-1 px-3 py-2 bg-gray-800 text-gray-300 rounded-lg text-xs font-bold hover:bg-gray-700">
                         <Settings2 size={14} /> Adicionais {expandedProduct === product.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                       </button>
@@ -191,6 +201,7 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
                           track_stock: product.track_stock,
                           stock_quantity: product.stock_quantity,
                           station: product.station,
+                          short_code: product.short_code || "", // Carrega o código existente
                           recommended_ids: product.recommendations?.map(r => r.id) || []
                         }); 
                         setIsProdModalOpen(true); 
@@ -230,12 +241,13 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
                   )}
                 </div>
               ))}
-              <button onClick={() => { setEditingProduct(null); setProdForm({ category_id: category.id, name: "", description: "", price: "", image_url: "", track_stock: false, stock_quantity: 0, station: "kitchen", recommended_ids: [] }); setIsProdModalOpen(true); }} className="w-full py-4 border-2 border-dashed border-gray-700 rounded-lg text-gray-500 hover:text-orange-500 hover:border-orange-500/50 transition-all font-bold text-sm">+ Adicionar Produto em {category.name}</button>
+              <button onClick={() => { setEditingProduct(null); setProdForm({ category_id: category.id, name: "", description: "", price: "", image_url: "", track_stock: false, stock_quantity: 0, station: "kitchen", short_code: "", recommended_ids: [] }); setIsProdModalOpen(true); }} className="w-full py-4 border-2 border-dashed border-gray-700 rounded-lg text-gray-500 hover:text-orange-500 hover:border-orange-500/50 transition-all font-bold text-sm">+ Adicionar Produto em {category.name}</button>
             </div>
           </div>
         ))}
       </div>
 
+      {/* MODAIS EXISTENTES */}
       <Modal isOpen={isCatModalOpen} onClose={() => setIsCatModalOpen(false)} title="Nova Categoria">
         <div className="space-y-4">
           <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white mb-4 outline-none focus:ring-2 focus:ring-orange-500" placeholder="Nome da Categoria" value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} />
@@ -271,7 +283,25 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
       <Modal isOpen={isProdModalOpen} onClose={() => setIsProdModalOpen(false)} title={editingProduct ? "Editar Produto" : "Novo Produto"}>
         <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
           <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white outline-none focus:ring-2 focus:ring-orange-500" placeholder="Nome" value={prodForm.name} onChange={e => setProdForm({...prodForm, name: e.target.value})} />
-          <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white outline-none focus:ring-2 focus:ring-orange-500" placeholder="Preço" value={prodForm.price} onChange={e => setProdForm({...prodForm, price: e.target.value})} />
+          
+          <div className="grid grid-cols-2 gap-4">
+            <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white outline-none focus:ring-2 focus:ring-orange-500" placeholder="Preço" value={prodForm.price} onChange={e => setProdForm({...prodForm, price: e.target.value})} />
+            
+            {/* NOVO INPUT DE CÓDIGO */}
+            <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Hash className="h-4 w-4 text-gray-500" />
+                </div>
+                <input 
+                    type="text" 
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg pl-9 pr-3 py-3 text-white outline-none focus:ring-2 focus:ring-orange-500" 
+                    placeholder="Cód. Rápido (ex: 10)" 
+                    value={prodForm.short_code} 
+                    onChange={e => setProdForm({...prodForm, short_code: e.target.value})} 
+                />
+            </div>
+          </div>
+
           <textarea className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white outline-none focus:ring-2 focus:ring-orange-500 h-24 resize-none" placeholder="Descrição" value={prodForm.description} onChange={e => setProdForm({...prodForm, description: e.target.value})} />
           <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white outline-none focus:ring-2 focus:ring-orange-500" placeholder="URL da Imagem" value={prodForm.image_url} onChange={e => setProdForm({...prodForm, image_url: e.target.value})} />
           
@@ -327,6 +357,12 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
           <button onClick={handleSaveProduct} className="w-full bg-orange-600 py-3 rounded-lg font-bold flex items-center justify-center gap-2"><Save size={20} /> Salvar Produto</button>
         </div>
       </Modal>
+
+      <RecipeModal 
+        isOpen={isRecipeModalOpen} 
+        onClose={() => setIsRecipeModalOpen(false)} 
+        product={editingProduct} 
+      />
     </div>
   );
 }

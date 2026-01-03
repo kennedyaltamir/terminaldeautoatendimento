@@ -119,3 +119,269 @@
 - [ ] **Integração Fiscal:** Emissão de NFC-e/SAT.
 - [ ] **WhatsApp Automation:** Notificações de status via Zap.
 - [ ] **App do Garçom:** Interface móvel para lançar pedidos na mesa.
+# 🗺️ Roadmap do Produto: MesaFlow
+
+## ✅ Fase 1: MVP & Core Operacional (CONCLUÍDO)
+- [x] **Arquitetura Base:** FastAPI + Next.js 14 + PostgreSQL.
+- [x] **Multi-tenancy:** Isolamento lógico por `company_id`.
+- [x] **Cardápio Público:** Listagem dinâmica com suporte a Adicionais/Opções.
+- [x] **Carrinho & Pedidos:** Fluxo completo do cliente até o banco de dados.
+- [x] **KDS (Cozinha):** Monitor em tempo real com WebSockets e Alerta Sonoro.
+- [x] **Gestão Admin:** CRUD de Categorias, Produtos e Mesas.
+- [x] **KDS Setorizado:** Filtros para Cozinha e Bar.
+
+## ✅ Fase 2: Experiência & Híbrido (CONCLUÍDO)
+- [x] **Modo Delivery:** Suporte a pedidos sem mesa (Endereço + Telefone).
+- [x] **Sessão de Mesa (Comanda):** Segurança via Token e persistência de pedidos.
+- [x] **Chamada de Garçom:** Notificação digital com tipos de serviço.
+- [x] **Upselling (Recomendação):** Sugestão de produtos complementares no carrinho.
+- [x] **Landing Page B2B:** Site institucional de alta conversão com i18n e animações.
+- [x] **Gestão de Mesas:** Criação em lote, Impressão de QR Codes e Status em Tempo Real.
+
+## 🔄 Fase 3: Profissionalização & Fintech (PRÓXIMO PASSO)
+- [ ] **Tela de Login/Registro 2.0:** Layout Split, validações visuais e feedback refinado.
+- [ ] **Perfil do Usuário Avançado:** Upload de Logo real, Configuração de Cores, Horários complexos.
+- [ ] **Pagamento Real (Split):** Integração profunda com Mercado Pago/Stripe para dividir o dinheiro (SaaS vs Restaurante) automaticamente.
+- [ ] **Dashboard Financeiro:** Gráficos de faturamento real, ticket médio e projeções.
+- [ ] **Gestão de Estoque Avançada:** Ficha técnica (Ingredientes).
+- [ ] **Gestão de Permissões (ACL):** Níveis de acesso (Dono, Gerente, Garçom, Cozinha).
+
+## 🚀 Fase 4: Escala & Ecossistema (FUTURO)
+- [ ] **PWA Real:** Instalação nativa no celular e cache offline.
+- [ ] **Integração Fiscal:** Emissão de NFC-e/SAT.
+- [ ] **WhatsApp Automation:** Notificações de status via Zap.
+- [ ] **App do Garçom:** Interface móvel para lançar pedidos na mesa.
+
+
+
+# docs/ROADMAP.md
+```markdown
+# 🗺️ Roadmap do Produto: MesaFlow
+
+## ✅ Fase 1: MVP & Core Operacional (CONCLUÍDO)
+- [x] **Arquitetura Base:** FastAPI + Next.js 14 + PostgreSQL.
+- [x] **Multi-tenancy:** Isolamento lógico por `company_id`.
+- [x] **Cardápio Público:** Listagem dinâmica com suporte a Adicionais/Opções.
+- [x] **Carrinho & Pedidos:** Fluxo completo do cliente até o banco de dados.
+- [x] **KDS (Cozinha):** Monitor em tempo real com WebSockets.
+
+## ✅ Fase 2: Experiência & Híbrido (CONCLUÍDO)
+- [x] **Modo Delivery:** Suporte a pedidos sem mesa.
+- [x] **Sessão de Mesa:** Segurança via Token e persistência.
+- [x] **Chamada de Garçom:** Notificação digital.
+- [x] **Landing Page B2B:** Site institucional de alta conversão.
+- [x] **Gestão de Mesas:** Mapa de sala visual (Drag & Drop).
+
+## ✅ Fase 3: Profissionalização & Fintech (CONCLUÍDO)
+- [x] **Login/Registro 2.0:** Layout Split, validações Zod e feedback visual.
+- [x] **Perfil Avançado:** Upload de Logo (URL), Color Picker e Configurações.
+- [x] **Motor Financeiro:** Cálculo seguro de Split de Pagamento e taxas.
+- [x] **Gestão de Estoque:** Ficha técnica (Receitas) e baixa automática.
+- [x] **Segurança:** Rate Limiting (Anti-Spam) e proteção de rotas.
+- [x] **PWA:** Configuração de manifesto e service workers.
+
+## 🚀 Fase 4: Escala & Ecossistema (FUTURO)
+- [ ] **Integração Fiscal:** Emissão de NFC-e/SAT (Integração eNotas/Focus).
+- [ ] **WhatsApp Automation:** Notificações de status via Zap (Twilio/Evolution).
+- [ ] **App do Garçom:** Interface móvel dedicada para lançar pedidos na mesa.
+- [ ] **Dashboard Multi-loja:** Visão consolidada para franquias.
+- [ ] **Impressão Nativa:** Integração direta com impressoras térmicas via USB/RawBT.
+
+
+# 🗺️ Roadmap do Produto: MesaFlow
+
+## ✅ Fase 1: MVP & Core Operacional (CONCLUÍDO)
+- [x] **Arquitetura Base:** FastAPI + Next.js 14 + PostgreSQL.
+- [x] **Multi-tenancy:** Isolamento lógico por `company_id`.
+- [x] **Cardápio Público:** Listagem dinâmica com suporte a Adicionais/Opções.
+- [x] **Carrinho & Pedidos:** Fluxo completo do cliente até o banco de dados.
+- [x] **KDS (Cozinha):** Monitor em tempo real com WebSockets.
+
+## ✅ Fase 2: Experiência & Híbrido (CONCLUÍDO)
+- [x] **Modo Delivery:** Suporte a pedidos sem mesa.
+- [x] **Sessão de Mesa:** Segurança via Token e persistência.
+- [x] **Chamada de Garçom:** Notificação digital.
+- [x] **Landing Page B2B:** Site institucional de alta conversão.
+- [x] **Gestão de Mesas:** Mapa de sala visual (Drag & Drop).
+
+## ✅ Fase 3: Profissionalização & Fintech (CONCLUÍDO)
+- [x] **Login/Registro 2.0:** Layout Split, validações Zod e feedback visual.
+- [x] **Perfil Avançado:** Upload de Logo (URL), Color Picker e Configurações.
+- [x] **Motor Financeiro:** Cálculo seguro de Split de Pagamento e taxas.
+- [x] **Gestão de Estoque:** Ficha técnica (Receitas) e baixa automática.
+- [x] **Segurança:** Rate Limiting (Anti-Spam) e proteção de rotas.
+- [x] **PWA:** Configuração de manifesto e service workers.
+- [x] **Onboarding:** Tour guiado para novos usuários.
+- [x] **Verticalização:** Adaptação para Hotéis e Eventos.
+
+## 🚀 Fase 4: Escala & Ecossistema (PRÓXIMOS PASSOS)
+- [ ] **Integração Fiscal:** Emissão de NFC-e/SAT (Integração eNotas/Focus).
+- [ ] **WhatsApp Automation:** Notificações de status via Zap (Twilio/Evolution).
+- [ ] **App do Garçom:** Interface móvel dedicada para lançar pedidos na mesa.
+- [ ] **Dashboard Multi-loja:** Visão consolidada para franquias.
+- [ ] **Impressão Nativa:** Integração direta com impressoras térmicas via USB/RawBT.
+
+
+
+# 🗺️ Roadmap do Produto: MesaFlow
+
+## ✅ Fase 1: MVP & Core Operacional (CONCLUÍDO)
+- [x] **Arquitetura Base:** FastAPI + Next.js 14 + PostgreSQL.
+- [x] **Multi-tenancy:** Isolamento lógico total por estabelecimento.
+- [x] **Cardápio Público:** Listagem dinâmica com suporte a Adicionais/Opções.
+- [x] **Carrinho & Pedidos:** Fluxo completo do cliente até o banco de dados.
+- [x] **KDS (Cozinha):** Monitor em tempo real com WebSockets e Alerta Sonoro.
+
+## ✅ Fase 2: Profissionalização & Operação (CONCLUÍDO)
+- [x] **App do Garçom (Mobile POS):** Lançamento de pedidos, troca de nomes e fechamento de conta.
+- [x] **Gestão de Estoque (Regra 86):** Baixa automática por ficha técnica e bloqueio de produtos esgotados.
+- [x] **Automação de WhatsApp:** Notificações de "Pedido Pronto" e "Mesa Aberta".
+- [x] **Motor Financeiro SaaS:** Integração com Stripe para cobrança de mensalidades (Planos Free/Pro).
+- [x] **Impressão Térmica:** Recibos formatados para 80mm/58mm.
+
+## 🔄 Fase 3: Experiência do Usuário & Fintech (EM ANDAMENTO)
+- [ ] **Login/Registro 2.0:** Layout profissional (Split Screen), validações visuais e feedback refinado.
+- [ ] **Perfil do Usuário Avançado:** Upload de Logo, configuração de cores da marca e horários complexos.
+- [ ] **Dashboard Financeiro:** Gráficos de faturamento real, ticket médio e produtos mais vendidos.
+- [ ] **Integração Mercado Pago:** Ativação de Pix Dinâmico para o restaurante receber direto.
+
+## 🚀 Fase 4: Escala & Ecossistema (FUTURO)
+- [ ] **PWA Real:** Instalação nativa no celular e cache offline.
+- [ ] **Integração Fiscal:** Emissão de NFC-e/SAT automática.
+- [ ] **Multi-loja:** Gestão centralizada para franquias e redes.
+
+
+# 🗺️ Roadmap do Produto: MesaFlow
+
+## ✅ Fase 1: MVP & Core Operacional (CONCLUÍDO)
+- [x] **Arquitetura Base:** FastAPI + Next.js 14 + PostgreSQL.
+- [x] **Multi-tenancy:** Isolamento lógico total por estabelecimento.
+- [x] **Cardápio Público:** Listagem dinâmica com suporte a Adicionais/Opções.
+- [x] **Carrinho & Pedidos:** Fluxo completo do cliente até o banco de dados.
+- [x] **KDS (Cozinha):** Monitor em tempo real com WebSockets e Alerta Sonoro.
+
+## ✅ Fase 2: Profissionalização & Operação (CONCLUÍDO)
+- [x] **App do Garçom (Mobile POS):** Lançamento de pedidos, troca de nomes e fechamento de conta.
+- [x] **Gestão de Estoque (Regra 86):** Baixa automática por ficha técnica e bloqueio de produtos esgotados.
+- [x] **Automação de WhatsApp:** Notificações de "Pedido Pronto" e "Mesa Aberta".
+- [x] **Motor Financeiro SaaS:** Integração com Stripe para cobrança de mensalidades (Planos Free/Pro).
+- [x] **Impressão Térmica:** Recibos formatados para 80mm/58mm.
+
+## 🔄 Fase 3: Experiência do Usuário & Fintech (PRÓXIMOS PASSOS)
+- [ ] **Login/Registro 2.0:** Layout profissional (Split Screen), validações visuais e feedback refinado.
+- [ ] **Perfil do Usuário Avançado:** Upload de Logo, configuração de cores da marca e horários complexos.
+- [ ] **Dashboard Financeiro:** Gráficos de faturamento real, ticket médio e produtos mais vendidos.
+- [ ] **Integração Mercado Pago:** Ativação de Pix Dinâmico para o restaurante receber direto.
+
+## 🚀 Fase 4: Escala & Ecossistema (FUTURO)
+- [ ] **PWA Real:** Instalação nativa no celular e cache offline.
+- [ ] **Integração Fiscal:** Emissão de NFC-e/SAT automática.
+- [ ] **Multi-loja:** Gestão centralizada para franquias e redes.
+
+# 🗺️ Roadmap do Produto: MesaFlow
+
+## ✅ Fase 1: MVP & Core Operacional (CONCLUÍDO)
+- [x] **Arquitetura Base:** FastAPI + Next.js 14 + PostgreSQL.
+- [x] **Multi-tenancy:** Isolamento lógico por `company_id`.
+- [x] **Cardápio Público:** Listagem dinâmica com suporte a Adicionais/Opções.
+- [x] **Carrinho & Pedidos:** Fluxo completo do cliente até o banco de dados.
+- [x] **KDS (Cozinha):** Monitor em tempo real com WebSockets.
+
+## ✅ Fase 2: Experiência & Híbrido (CONCLUÍDO)
+- [x] **Modo Delivery:** Suporte a pedidos sem mesa.
+- [x] **Sessão de Mesa:** Segurança via Token e persistência.
+- [x] **Chamada de Garçom:** Notificação digital.
+- [x] **Landing Page B2B:** Site institucional de alta conversão.
+- [x] **Gestão de Mesas:** Mapa de sala visual (Drag & Drop).
+
+## ✅ Fase 3: Profissionalização & Fintech (CONCLUÍDO)
+- [x] **Login/Registro 2.0:** Layout Split, validações Zod e feedback visual.
+- [x] **Perfil Avançado:** Upload de Logo (URL), Color Picker e Configurações.
+- [x] **Motor Financeiro:** Cálculo seguro de Split de Pagamento e taxas.
+- [x] **Gestão de Estoque:** Ficha técnica (Receitas) e baixa automática.
+- [x] **Segurança:** Rate Limiting (Anti-Spam) e proteção de rotas.
+- [x] **PWA:** Configuração de manifesto e service workers.
+
+## ✅ Fase 4: Escala & Ecossistema (CONCLUÍDO)
+- [x] **Assinaturas SaaS:** Integração completa com Stripe (Checkout/Portal/Webhooks).
+- [x] **Dashboard Financeiro:** Gráficos reais via SQL Aggregation.
+- [x] **Fidelidade (Cashback):** Carteira digital automática para clientes.
+- [x] **App do Garçom 2.0:** Mobile POS com Venda Balcão, Delivery e Transferência de Mesas.
+- [x] **Logística (Driver App):** App do Entregador, Gestão de Frota e Despacho.
+- [x] **Notificações Sensoriais:** Vibração e Som para garçons.
+
+## 🚀 Fase 5: Enterprise & IA (PRÓXIMOS PASSOS)
+- [ ] **Integração Fiscal:** Emissão de NFC-e/SAT (Integração eNotas/Focus).
+- [ ] **WhatsApp Automation:** Notificações de status via Zap (Twilio/Evolution).
+- [ ] **Dashboard Multi-loja:** Visão consolidada para franquias.
+- [ ] **Impressão Nativa:** Integração direta com impressoras térmicas via USB/RawBT.
+- [ ] **IA Upselling:** Recomendação de produtos baseada no carrinho.
+
+# 🗺️ Roadmap do Produto: MesaFlow
+
+## ✅ Fase 1: MVP & Core Operacional (CONCLUÍDO)
+- [x] **Arquitetura Base:** FastAPI + Next.js 14 + PostgreSQL.
+- [x] **Multi-tenancy:** Isolamento lógico por `company_id`.
+- [x] **Cardápio Público:** Listagem dinâmica com suporte a Adicionais/Opções.
+- [x] **Carrinho & Pedidos:** Fluxo completo do cliente até o banco de dados.
+- [x] **KDS (Cozinha):** Monitor em tempo real com WebSockets.
+
+## ✅ Fase 2: Experiência & Híbrido (CONCLUÍDO)
+- [x] **Modo Delivery:** Suporte a pedidos sem mesa.
+- [x] **Sessão de Mesa:** Segurança via Token e persistência.
+- [x] **Chamada de Garçom:** Notificação digital.
+- [x] **Landing Page B2B:** Site institucional de alta conversão.
+- [x] **Gestão de Mesas:** Mapa de sala visual (Drag & Drop).
+
+## ✅ Fase 3: Profissionalização & Fintech (CONCLUÍDO)
+- [x] **Login/Registro 2.0:** Layout Split, validações Zod e feedback visual.
+- [x] **Perfil Avançado:** Upload de Logo (URL), Color Picker e Configurações.
+- [x] **Motor Financeiro:** Cálculo seguro de Split de Pagamento e taxas.
+- [x] **Gestão de Estoque:** Ficha técnica (Receitas) e baixa automática.
+- [x] **Segurança:** Rate Limiting (Anti-Spam) e proteção de rotas.
+- [x] **PWA:** Configuração de manifesto e service workers.
+
+## ✅ Fase 4: Escala & Ecossistema (CONCLUÍDO)
+- [x] **Assinaturas SaaS:** Integração completa com Stripe (Checkout/Portal/Webhooks).
+- [x] **Dashboard Financeiro:** Gráficos reais via SQL Aggregation.
+- [x] **Fidelidade (Cashback):** Carteira digital automática para clientes.
+- [x] **App do Garçom 2.0:** Mobile POS com Venda Balcão, Delivery e Transferência de Mesas.
+- [x] **Logística (Driver App):** App do Entregador, Gestão de Frota e Despacho.
+- [x] **Notificações Sensoriais:** Vibração e Som para garçons.
+
+## 🔄 Fase 5: Enterprise & IA (EM ANDAMENTO)
+- [x] **Integração Fiscal (Backend):** Estrutura de dados (NCM/CFOP) e Mock de emissão NFC-e.
+- [x] **Logs de Auditoria:** Rastreabilidade de ações sensíveis (quem alterou o quê).
+- [x] **Gestão de Compras:** Geração automática de ordens de compra baseada em estoque mínimo.
+- [x] **Conta Digital do Garçom:** Cálculo e registro de gorjetas (10%) por funcionário.
+- [ ] **KDS Setorizado:** Filtros visuais para Bar vs Cozinha no Frontend.
+- [ ] **Infraestrutura:** Migração de WebSockets para Redis (Escalabilidade).
+- [ ] **Modo Offline:** PWA com banco de dados local (Dexie.js) e sincronização.
+- [ ] **Testes E2E:** Automação de testes de interface com Playwright.
+
+## 🚀 Fase 6: Futuro (Planejamento)
+- [ ] **IA Upselling:** Recomendação inteligente de produtos.
+- [ ] **White Label:** Domínios personalizados para grandes redes.
+
+
+# 🗺️ Roadmap do Produto: MesaFlow
+
+## ✅ Fase 1 a 4 (MVP & Core)
+- [x] **Core:** FastAPI + Next.js + PostgreSQL.
+- [x] **Operação:** KDS, App do Garçom, Gestão de Mesas.
+- [x] **Financeiro:** Split de Pagamento, Assinaturas Stripe, Ledger de Gorjetas.
+
+## 🔄 Fase 5: Enterprise & Escala (CONCLUÍDO)
+- [x] **KDS Setorizado:** Filtros visuais para Bar vs Cozinha.
+- [x] **Infraestrutura:** Migração de WebSockets para Redis (Escalabilidade).
+- [x] **Modo Offline:** PWA com banco de dados local (Dexie.js).
+- [x] **Arquitetura Fiscal:** Adapter Pattern para múltiplos provedores (FocusNFe).
+- [x] **Testes E2E:** Automação com Playwright.
+- [x] **Observabilidade:** Monitoramento com Sentry (Back/Front).
+- [x] **White-Label:** Suporte a domínios personalizados via Middleware.
+
+## 🚀 Fase 6: Diferenciais Competitivos (PRÓXIMOS PASSOS)
+- [ ] **Impressão Nativa:** Integração direta via protocolo `rawbt:` (Android).
+- [ ] **IA Upselling:** Recomendação inteligente de produtos ("Quem comprou X levou Y").
+- [ ] **Dashboard Multi-loja:** Visão consolidada para franquias.
+- [ ] **Cardápio Multilíngue:** Tradução automática baseada no browser do cliente.

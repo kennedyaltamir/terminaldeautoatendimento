@@ -1,14 +1,26 @@
-from pydantic import BaseModel, ConfigDict, Field, EmailStr
-from typing import List, Optional
+from pydantic import BaseModel, ConfigDict, Field, EmailStr, field_validator
+from typing import List, Optional, Any
 from decimal import Decimal
 from uuid import UUID
-from datetime import time, datetime
+from datetime import time, datetime, date
+import re
+
+# --- AUTH & COMPANY ---
 
 class SignUpRequest(BaseModel):
     company_name: str = Field(..., min_length=3)
     company_slug: str = Field(..., min_length=3, pattern="^[a-z0-9-]+$")
     owner_email: EmailStr
-    password: str = Field(..., min_length=6)
+    password: str = Field(..., min_length=8)
+    owner_phone: Optional[str] = None
+    owner_role: Optional[str] = None
+    segment: str = "gastro"
+
+    @field_validator('password')
+    def validate_password_strength(cls, v):
+        if not re.search(r'[A-Za-z]', v) or not re.search(r'[0-9]', v):
+            raise ValueError('A senha deve conter letras e números')
+        return v
 
 class Token(BaseModel):
     access_token: str
@@ -24,7 +36,13 @@ class TokenData(BaseModel):
 
 class PasswordUpdate(BaseModel):
     current_password: str
-    new_password: str = Field(..., min_length=6)
+    new_password: str = Field(..., min_length=8)
+    
+    @field_validator('new_password')
+    def validate_password_strength(cls, v):
+        if not re.search(r'[A-Za-z]', v) or not re.search(r'[0-9]', v):
+            raise ValueError('A senha deve conter letras e números')
+        return v
 
 class CompanyPublic(BaseModel):
     name: str
@@ -40,12 +58,28 @@ class CompanyPublic(BaseModel):
     whatsapp_number: Optional[str] = None
     wifi_ssid: Optional[str] = None
     wifi_password: Optional[str] = None
+    segment: str = "gastro"
     model_config = ConfigDict(from_attributes=True)
 
 class CompanyAdminSettings(CompanyPublic):
     mp_access_token: Optional[str] = None
     marketplace_fee_percentage: Decimal = Decimal(0)
     loyalty_percentage: Decimal = Decimal(0)
+    plan_tier: str = "free"
+    trial_ends_at: Optional[datetime] = None
+    stripe_subscription_id: Optional[str] = None
+    subscription_status: Optional[str] = None
+    
+    # Fiscal
+    cnpj: Optional[str] = None
+    inscricao_estadual: Optional[str] = None
+    fiscal_token: Optional[str] = None
+    csc_token: Optional[str] = None
+    csc_id: Optional[str] = None
+    
+    # Gorjeta
+    service_fee_percentage: Decimal = Decimal(10.0)
+    
     model_config = ConfigDict(from_attributes=True)
 
 class CompanyUpdate(BaseModel):
@@ -62,6 +96,25 @@ class CompanyUpdate(BaseModel):
     whatsapp_number: Optional[str] = None
     wifi_ssid: Optional[str] = None
     wifi_password: Optional[str] = None
+    
+    # Fiscal
+    cnpj: Optional[str] = None
+    inscricao_estadual: Optional[str] = None
+    fiscal_token: Optional[str] = None
+    csc_token: Optional[str] = None
+    csc_id: Optional[str] = None
+    
+    # Gorjeta
+    service_fee_percentage: Optional[Decimal] = None
+
+    @field_validator('primary_color')
+    def validate_hex_color(cls, v):
+        if v is not None:
+            if not re.match(r'^#(?:[0-9a-fA-F]{3}){1,2}$', v):
+                raise ValueError('Cor inválida. Use formato hexadecimal (ex: #FF0000)')
+        return v
+
+# --- MENU & PRODUCTS ---
 
 class OptionResponse(BaseModel):
     id: int
@@ -96,6 +149,9 @@ class ProductResponse(BaseModel):
     stock_quantity: int
     station: str = "kitchen"
     tags: List[str] = []
+    short_code: Optional[str] = None
+    ncm: Optional[str] = None
+    cfop: Optional[str] = None
     option_groups: List[OptionGroupResponse] = []
     recommendations: List[ProductSimpleResponse] = []
     model_config = ConfigDict(from_attributes=True)
@@ -138,6 +194,9 @@ class ProductCreate(BaseModel):
     stock_quantity: int = 0
     station: str = "kitchen"
     tags: List[str] = []
+    short_code: Optional[str] = None
+    ncm: str = "21069090"
+    cfop: str = "5102"
     recommended_ids: List[int] = []
 
 class ProductUpdate(BaseModel):
@@ -150,6 +209,9 @@ class ProductUpdate(BaseModel):
     stock_quantity: Optional[int] = None
     station: Optional[str] = None
     tags: Optional[List[str]] = None
+    short_code: Optional[str] = None
+    ncm: Optional[str] = None
+    cfop: Optional[str] = None
     recommended_ids: Optional[List[int]] = None
 
 class OptionGroupCreate(BaseModel):
@@ -160,6 +222,8 @@ class OptionGroupCreate(BaseModel):
 class OptionCreate(BaseModel):
     name: str
     price: Decimal = Decimal(0)
+
+# --- ORDERS ---
 
 class OrderItemOptionResponse(BaseModel):
     name: str
@@ -197,6 +261,14 @@ class OrderResponse(BaseModel):
     items: List[OrderItemResponse] = []
     mp_qr_code: Optional[str] = None
     mp_qr_code_base64: Optional[str] = None
+    driver_id: Optional[int] = None
+    
+    fiscal_status: str = "pending"
+    nfe_url_pdf: Optional[str] = None
+    nfe_url_xml: Optional[str] = None
+    
+    service_fee: Decimal = Decimal(0) # NOVO
+    
     model_config = ConfigDict(from_attributes=True)
 
 class OrderItemCreate(BaseModel):
@@ -216,6 +288,11 @@ class OrderCreate(BaseModel):
     use_balance: bool = False
     items: List[OrderItemCreate]
 
+class DispatchOrderRequest(BaseModel):
+    driver_id: Optional[int] = None
+
+# --- TABLES & SESSIONS ---
+
 class TableResponse(BaseModel):
     id: int
     table_number: int
@@ -231,14 +308,6 @@ class TableCreate(BaseModel):
 class TableBulkCreate(BaseModel):
     start: int
     end: int
-
-class TopProduct(BaseModel):
-    name: str
-    count: int
-
-class ChartData(BaseModel):
-    date: str
-    value: Decimal
 
 class ServiceRequestCreate(BaseModel):
     table_id: int
@@ -315,12 +384,31 @@ class TablePositionUpdate(BaseModel):
     x: float
     y: float
 
+class SessionUpdate(BaseModel):
+    customer_name: str
+
+class TableSessionDetail(BaseModel):
+    id: int
+    customer_name: str
+    total_spent: Decimal
+    start_time: datetime
+    orders: List[OrderResponse]
+    model_config = ConfigDict(from_attributes=True)
+
+class TableTransferRequest(BaseModel):
+    from_table_id: int
+    to_table_id: int
+    merge: bool = False
+
+# --- INVENTORY & SUPPLIERS ---
+
 class IngredientCreate(BaseModel):
     name: str
     unit: str = "un"
     current_stock: Decimal = Decimal(0)
     min_stock_alert: Decimal = Decimal(0)
     cost_per_unit: Decimal = Decimal(0)
+    supplier_id: Optional[int] = None
 
 class IngredientResponse(BaseModel):
     id: int
@@ -329,6 +417,7 @@ class IngredientResponse(BaseModel):
     current_stock: Decimal
     min_stock_alert: Decimal
     cost_per_unit: Decimal
+    supplier_id: Optional[int] = None
     model_config = ConfigDict(from_attributes=True)
 
 class RecipeItemCreate(BaseModel):
@@ -339,29 +428,33 @@ class ProductRecipeUpdate(BaseModel):
     product_id: int
     ingredients: List[RecipeItemCreate]
 
-class SalesByHour(BaseModel):
-    hour: int
-    total: Decimal
-    count: int
-
-class ProductPerformance(BaseModel):
+class SupplierCreate(BaseModel):
     name: str
-    revenue: Decimal
-    quantity: int
+    contact_name: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[EmailStr] = None
 
-class TicketData(BaseModel):
-    date: str
-    ticket: Decimal
+class SupplierResponse(BaseModel):
+    id: int
+    name: str
+    contact_name: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
 
-class DashboardMetrics(BaseModel):
-    total_revenue: Decimal
-    total_orders: int
-    average_ticket: Decimal
-    top_products: List[TopProduct]
-    sales_chart: List[ChartData]
-    sales_by_hour: List[SalesByHour] = []
-    product_performance: List[ProductPerformance] = []
-    ticket_evolution: List[TicketData] = []
+class ShoppingListItem(BaseModel):
+    ingredient_name: str
+    current_stock: Decimal
+    min_stock: Decimal
+    unit: str
+    deficit: Decimal
+    supplier_name: str
+    model_config = ConfigDict(from_attributes=True)
+
+class ShoppingListResponse(BaseModel):
+    items: List[ShoppingListItem]
+
+# --- EMPLOYEES ---
 
 class EmployeeCreate(BaseModel):
     name: str
@@ -384,3 +477,69 @@ class EmployeeResponse(BaseModel):
     is_active: bool
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
+
+# --- BILLING & METRICS ---
+
+class StripeCheckoutResponse(BaseModel):
+    url: str
+
+class TopProduct(BaseModel):
+    name: str
+    count: int
+    revenue: float
+
+class ChartData(BaseModel):
+    date: str
+    value: float
+
+class SalesByHour(BaseModel):
+    hour: int
+    total: float
+    count: int
+
+class ProductPerformance(BaseModel):
+    name: str
+    revenue: float
+    quantity: int
+
+class TicketData(BaseModel):
+    date: str
+    ticket: float
+
+class DashboardMetrics(BaseModel):
+    total_revenue: float
+    total_orders: int
+    average_ticket: float
+    top_products: List[TopProduct]
+    sales_chart: List[ChartData]
+    sales_by_hour: List[SalesByHour]
+    product_performance: List[ProductPerformance]
+    ticket_evolution: List[TicketData]
+
+# --- AUDIT LOGS ---
+
+class AuditLogResponse(BaseModel):
+    id: int
+    user_name: str
+    user_role: str
+    action: str
+    resource: str
+    resource_id: Optional[str] = None
+    details: Optional[Any] = None
+    ip_address: Optional[str] = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+# --- FISCAL ---
+
+class FiscalEmissionResponse(BaseModel):
+    status: str
+    message: str
+    nfe_url: Optional[str] = None
+
+# --- FINANCIAL REPORTS ---
+
+class TipReportItem(BaseModel):
+    employee_name: str
+    total_tips: float
+    order_count: int

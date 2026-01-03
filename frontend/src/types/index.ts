@@ -9,6 +9,10 @@ export interface Company {
   owner_email?: string;
   pix_key?: string;
   loyalty_percentage?: number;
+  segment?: 'gastro' | 'event' | 'hotel' | 'corp';
+  plan_tier: 'free' | 'pro' | 'enterprise';
+  stripe_subscription_id?: string;
+  subscription_status?: string;
 }
 
 export interface Option {
@@ -26,6 +30,22 @@ export interface OptionGroup {
   options: Option[];
 }
 
+export interface Ingredient {
+  id: number;
+  name: string;
+  unit: 'kg' | 'g' | 'l' | 'ml' | 'un';
+  current_stock: number;
+  min_stock_alert: number;
+  cost_per_unit: number;
+}
+
+export interface RecipeItem {
+  id?: number;
+  ingredient_id: number;
+  quantity_required: number;
+  ingredient?: Ingredient;
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -36,9 +56,11 @@ export interface Product {
   track_stock: boolean;
   stock_quantity: number;
   station: 'kitchen' | 'bar' | 'dessert' | 'other';
-  tags: string[]; // --- NOVO ---
+  tags: string[];
+  short_code?: string;
   option_groups: OptionGroup[];
   recommendations?: Product[];
+  recipe_items?: RecipeItem[];
 }
 
 export interface Category {
@@ -92,7 +114,7 @@ export interface Order {
   
   customer_name: string | null;
   total_amount: number;
-  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivered' | 'canceled';
+  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivering' | 'delivered' | 'canceled';
   payment_method: 'pix' | 'card' | 'cash' | 'online';
   payment_status: 'pending' | 'paid';
   created_at: string;
@@ -100,6 +122,7 @@ export interface Order {
   items: OrderItemResponse[];
   mp_qr_code?: string;
   mp_qr_code_base64?: string;
+  driver_id?: number; // NOVO
 }
 
 export interface Table {
@@ -133,4 +156,12 @@ export interface CheckTableResponse {
   customer_name?: string;
   session_token?: string;
   requires_pin?: boolean;
+}
+
+export interface Employee {
+  id: number;
+  name: string;
+  email: string;
+  role: "kitchen" | "cashier" | "manager" | "driver";
+  is_active: boolean;
 }

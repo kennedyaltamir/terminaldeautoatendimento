@@ -3,13 +3,12 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { getMenu, createOrder, getOrder, requestService, getWallet, checkTableStatus, getTableSession, joinTable } from "@/lib/api";
-import { MenuResponse, Product, Option, Order, TableSession, Category } from "@/types";
+import { MenuResponse, Product, Option, Order, TableSession } from "@/types";
 import { CartProvider, useCart } from "@/context/CartContext";
-import { Plus, X, AlertCircle, ShoppingBag, CreditCard, Banknote, QrCode, CheckCircle2, Loader2, Copy, Bike, MapPin, Phone, Bell, Wallet, User, FileText, KeyRound, Filter, Edit2 } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
+import { Plus, X, AlertCircle, ShoppingBag, CreditCard, Banknote, QrCode, Phone, Bell, FileText, Edit2, Loader2, MapPin } from "lucide-react";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { getSegmentLabels } from "@/lib/segment-utils";
 
-// Importando componentes modularizados
 import ProductModal from "@/components/menu/ProductModal";
 import ServiceModal from "@/components/menu/ServiceModal";
 import UpsellModal from "@/components/menu/UpsellModal";
@@ -19,6 +18,7 @@ import ComandaView from "@/components/menu/ComandaView";
 import OrderStatusView from "@/components/menu/OrderStatusView";
 import CategoryNav from "@/components/menu/CategoryNav";
 import SearchBar from "@/components/menu/SearchBar";
+import WalletWidget from "@/components/menu/WalletWidget";
 
 function MenuContent({ slug }: { slug: string }) {
   const [menu, setMenu] = useState<MenuResponse | null>(null);
@@ -47,15 +47,11 @@ function MenuContent({ slug }: { slug: string }) {
   const [pendingItem, setPendingItem] = useState<any>(null);
   const [currentRecommendations, setCurrentRecommendations] = useState<Product[]>([]);
 
-  // Scroll Spy State
   const [activeCategoryId, setActiveCategoryId] = useState<number>(0);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // Search & Filter State
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
-
-  // --- NOVO: Estado de Edição ---
   const [editingCartIndex, setEditingCartIndex] = useState<number | null>(null);
 
   const searchParams = useSearchParams();
@@ -64,6 +60,8 @@ function MenuContent({ slug }: { slug: string }) {
   const tableId = searchParams.get("mesa");
   const qrToken = searchParams.get("token");
   const isDelivery = !tableId;
+
+  const labels = getSegmentLabels(menu?.company.segment);
 
   useEffect(() => {
     const init = async () => {
@@ -120,7 +118,6 @@ function MenuContent({ slug }: { slug: string }) {
     init();
   }, [slug, tableId, qrToken, isDelivery]);
 
-  // Scroll Spy Logic
   useEffect(() => {
     if (loading || !menu) return;
 
@@ -164,7 +161,6 @@ function MenuContent({ slug }: { slug: string }) {
     }
   };
 
-  // CORREÇÃO: useCallback para evitar recriação da função e loop do WebSocket
   const handleWebSocketMessage = useCallback((data: any) => {
     if (sessionToken && (data.type === "order_update" || data.type === "new_order")) {
       getTableSession(slug, sessionToken).then(setSessionData);
@@ -200,17 +196,14 @@ function MenuContent({ slug }: { slug: string }) {
     }
   };
 
-  // --- NOVO: Função para abrir modal de edição ---
   const handleEditCartItem = (index: number) => {
     const item = items[index];
     setEditingCartIndex(index);
     setSelectedProduct(item.product);
-    // O ProductModal vai ler initialValues
   };
 
   const handleProductModalConfirm = (qty: number, notes: string, opts: Option[]) => {
     if (editingCartIndex !== null && selectedProduct) {
-      // Atualizar item existente
       updateCartItem(editingCartIndex, {
         product: selectedProduct,
         quantity: qty,
@@ -219,7 +212,6 @@ function MenuContent({ slug }: { slug: string }) {
       });
       setEditingCartIndex(null);
     } else if (selectedProduct) {
-      // Adicionar novo
       handleAddToCart(selectedProduct, qty, notes, opts);
     }
     setSelectedProduct(null);
@@ -316,10 +308,10 @@ function MenuContent({ slug }: { slug: string }) {
         service_type: type,
         notes: notes
       });
-      alert("✅ Garçom chamado! Aguarde um instante.");
+      alert("✅ Solicitação enviada! Aguarde um instante.");
       setIsServiceModalOpen(false);
     } catch (e) {
-      alert("Erro ao chamar garçom.");
+      alert("Erro ao chamar serviço.");
     }
   };
 
@@ -350,7 +342,7 @@ function MenuContent({ slug }: { slug: string }) {
 
   if (loading) return <div className="p-8 text-center">Carregando...</div>;
   if (sessionStatus === 'blocked') return <BlockedTableScreen customerName={tableOwnerName} />;
-  if (!isDelivery && sessionStatus === 'free') return <CheckInScreen tableId={tableId!} status="free" onJoin={handleJoinTable} />;
+  if (!isDelivery && sessionStatus === 'free') return <CheckInScreen tableId={tableId!} status="free" onJoin={handleJoinTable} segment={menu?.company.segment} />;
   if (!menu) return <div className="p-8 text-center">Restaurante não encontrado.</div>;
 
   const isClosed = (() => {
@@ -383,7 +375,7 @@ function MenuContent({ slug }: { slug: string }) {
             <div className="flex items-center gap-3">
                 {!isDelivery && sessionStatus === 'active' && (
                     <button onClick={() => setIsComandaOpen(true)} className="text-xs font-bold bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-gray-200 transition-colors">
-                    <FileText size={14} /> Comanda
+                    <FileText size={14} /> {labels.bill}
                     </button>
                 )}
                 {!isDelivery && !isClosed && (
@@ -458,7 +450,15 @@ function MenuContent({ slug }: { slug: string }) {
                 {category.products.map((product) => {
                     const isOutOfStock = product.track_stock && product.stock_quantity <= 0;
                     return (
-                    <div key={product.id} className={`bg-white p-4 rounded-xl shadow-sm flex justify-between items-center border border-gray-100 ${isOutOfStock ? 'opacity-60' : ''}`}>
+                    <div 
+                        key={product.id} 
+                        onClick={() => {
+                            if (!isClosed && !isOutOfStock) {
+                                product.option_groups.length > 0 ? setSelectedProduct(product) : handleAddToCart(product, 1);
+                            }
+                        }}
+                        className={`bg-white p-4 rounded-xl shadow-sm flex justify-between items-center border border-gray-100 cursor-pointer active:scale-[0.98] transition-transform ${isOutOfStock ? 'opacity-60 grayscale' : ''}`}
+                    >
                         <div className="flex-1 pr-4">
                         <h3 className="font-bold text-gray-900">{product.name}</h3>
                         <p className="text-sm text-gray-500 line-clamp-2 mt-1">{product.description}</p>
@@ -482,8 +482,7 @@ function MenuContent({ slug }: { slug: string }) {
                             )}
                             <button
                             disabled={isClosed || isOutOfStock}
-                            onClick={() => product.option_groups.length > 0 ? setSelectedProduct(product) : handleAddToCart(product, 1)}
-                            className={`text-white w-8 h-8 flex items-center justify-center rounded-full active:scale-95 transition-transform shadow-md ${isClosed || isOutOfStock ? 'bg-gray-300 grayscale cursor-not-allowed' : ''}`}
+                            className={`text-white w-8 h-8 flex items-center justify-center rounded-full shadow-md ${isClosed || isOutOfStock ? 'bg-gray-300 cursor-not-allowed' : ''}`}
                             style={{ backgroundColor: (isClosed || isOutOfStock) ? undefined : primaryColor }}
                             >
                             <Plus size={18} />
@@ -512,7 +511,6 @@ function MenuContent({ slug }: { slug: string }) {
         </div>
       )}
 
-      {/* --- MODAL DE PRODUTO (AGORA COM SUPORTE A EDIÇÃO) --- */}
       <ProductModal 
         product={selectedProduct} 
         isOpen={!!selectedProduct} 
@@ -522,7 +520,14 @@ function MenuContent({ slug }: { slug: string }) {
         initialValues={editingCartIndex !== null ? items[editingCartIndex] : null}
       />
       
-      <ServiceModal isOpen={isServiceModalOpen} onClose={() => setIsServiceModalOpen(false)} onConfirm={handleServiceRequest} primaryColor={primaryColor} />
+      <ServiceModal 
+        isOpen={isServiceModalOpen} 
+        onClose={() => setIsServiceModalOpen(false)} 
+        onConfirm={handleServiceRequest} 
+        primaryColor={primaryColor}
+        segment={menu?.company.segment}
+      />
+      
       <UpsellModal isOpen={isUpsellOpen} onClose={() => handleUpsellFinish()} recommendations={currentRecommendations} onAdd={handleAddRecommendation} onFinish={handleUpsellFinish} primaryColor={primaryColor} />
 
       {isComandaOpen && sessionData && (
@@ -585,24 +590,13 @@ function MenuContent({ slug }: { slug: string }) {
               )}
 
               {loyaltyPercent > 0 && (
-                <div className="bg-purple-50 border border-purple-100 p-3 rounded-lg animate-in fade-in">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-bold text-purple-800 flex items-center gap-2"><Wallet size={16}/> Fidelidade</span>
-                    <span className="text-xs bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full font-bold">Ganhe {loyaltyPercent}%</span>
-                  </div>
-                  
-                  {walletBalance > 0 ? (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Seu saldo: <b>R$ {Number(walletBalance).toFixed(2)}</b></span>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" className="accent-purple-600 w-4 h-4" checked={useBalance} onChange={e => setUseBalance(e.target.checked)} />
-                        <span className="text-xs font-bold text-purple-700">Usar Saldo</span>
-                      </label>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-gray-500">Informe seu telefone para acumular pontos!</p>
-                  )}
-                </div>
+                <WalletWidget 
+                  balance={walletBalance} 
+                  loyaltyPercent={loyaltyPercent} 
+                  customerPhone={customerPhone} 
+                  onUseBalance={setUseBalance} 
+                  useBalance={useBalance} 
+                />
               )}
 
               <div>

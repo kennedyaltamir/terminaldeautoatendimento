@@ -4,12 +4,15 @@ from typing import List, Optional
 from pydantic import BaseModel
 from datetime import date, datetime, time
 from app.database import get_db
-from app.models import Order, OrderStatus, Company, OrderItem, OrderItemOption, PaymentStatus, ServiceRequest, Table, CustomerWallet, Product, Category
+from app.models import Order, OrderStatus, Company, OrderItem, PaymentStatus, ServiceRequest, Table, Product, Category
 from app.routers.auth import get_current_user
 from app.schemas import OrderResponse, ServiceRequestResponse, ProductResponse
 from app.websockets import manager
+from app.services.whatsapp_service import WhatsAppService
+from app.services.loyalty_service import LoyaltyService
 
 router = APIRouter()
+whatsapp_service = WhatsAppService()
 
 class OrderStatusUpdate(BaseModel):
     status: OrderStatus
@@ -22,25 +25,6 @@ class OrderHistoryResponse(BaseModel):
     page: int
     limit: int
     data: List[OrderResponse]
-
-def process_loyalty_credit(order: Order, db: Session):
-    if order.cashback_earned > 0 and order.customer_phone:
-        wallet = db.query(CustomerWallet).filter(
-            CustomerWallet.company_id == order.company_id,
-            CustomerWallet.customer_phone == order.customer_phone
-        ).first()
-        
-        if not wallet:
-            wallet = CustomerWallet(
-                company_id=order.company_id,
-                customer_phone=order.customer_phone,
-                balance=0
-            )
-            db.add(wallet)
-        
-        wallet.balance += order.cashback_earned
-        order.cashback_earned = 0 
-        db.add(order)
 
 @router.get("/{company_slug}/orders", response_model=List[OrderResponse])
 def get_kitchen_orders(
@@ -94,7 +78,6 @@ def get_recent_completed_orders(
     )
     return orders
 
-# --- CORREÇÃO: JOIN EXPLÍCITO (Product -> Category -> Company) ---
 @router.get("/{company_slug}/products/quick-list", response_model=List[ProductResponse])
 def get_quick_product_list(
     company_slug: str,
@@ -106,8 +89,8 @@ def get_quick_product_list(
     
     products = (
         db.query(Product)
-        .join(Category) # Join explícito com Categoria
-        .join(Company)  # Join explícito com Empresa
+        .join(Category)
+        .join(Company)
         .filter(Company.id == current_user.id)
         .order_by(Product.name)
         .all()
@@ -166,7 +149,7 @@ async def update_order_status(
     db: Session = Depends(get_db),
     current_user: Company = Depends(get_current_user)
 ):
-    order = db.query(Order).filter(
+    order = db.query(Order).options(selectinload(Order.table), selectinload(Order.company)).filter(
         Order.id == order_id,
         Order.company_id == current_user.id
     ).first()
@@ -174,6 +157,7 @@ async def update_order_status(
     if not order:
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
 
+    old_status = order.status
     order.status = status_update.status
     
     if status_update.status in [OrderStatus.DELIVERED, OrderStatus.CANCELED]:
@@ -181,16 +165,32 @@ async def update_order_status(
     elif status_update.status in [OrderStatus.PREPARING, OrderStatus.PENDING]:
         order.finished_at = None
     
+    # Se o pedido for entregue e já estiver pago, processa fidelidade
     if status_update.status == OrderStatus.DELIVERED and order.payment_status == PaymentStatus.PAID:
-        process_loyalty_credit(order, db)
+        LoyaltyService.process_cashback(db, order)
 
     db.commit()
 
+    # Notificação WhatsApp
+    if status_update.status == OrderStatus.READY and old_status != OrderStatus.READY:
+        if order.customer_phone:
+            table_num = str(order.table.table_number) if order.table else "Delivery"
+            await whatsapp_service.notify_order_ready(
+                customer_name=order.customer_name or "Cliente",
+                phone=order.customer_phone,
+                table_number=table_num,
+                restaurant_name=order.company.name
+            )
+
+    table_num = order.table.table_number if order.table else "Delivery"
+    
     await manager.broadcast({
         "type": "order_update",
         "order_id": str(order.id),
         "status": order.status,
-        "payment_status": order.payment_status
+        "payment_status": order.payment_status,
+        "table": table_num,
+        "customer": order.customer_name
     }, current_user.slug)
 
     return {"message": "Status atualizado"}
@@ -212,8 +212,9 @@ async def update_order_payment(
 
     order.payment_status = payment_update.payment_status
     
+    # Se o pagamento for confirmado manualmente, processa fidelidade
     if payment_update.payment_status == PaymentStatus.PAID:
-        process_loyalty_credit(order, db)
+        LoyaltyService.process_cashback(db, order)
 
     db.commit()
 

@@ -1,19 +1,29 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import Company, Category, Product, OptionGroup, Option
+from app.models import Company, Category, Product, OptionGroup, Option, AuditAction
 from app.schemas import (
     CategoryCreate, CategoryResponse, CategoryUpdate, ProductCreate, ProductUpdate, ProductResponse,
     OptionGroupCreate, OptionGroupResponse, OptionCreate, OptionResponse
 )
 from app.routers.auth import get_current_user
+from app.core.saas_limits import SaasLimits
+from app.services.audit_service import AuditService
 
 router = APIRouter()
 
 @router.post("/categories", response_model=CategoryResponse, status_code=201)
-def create_category(category_data: CategoryCreate, db: Session = Depends(get_db), current_user: Company = Depends(get_current_user)):
+def create_category(
+    request: Request,
+    category_data: CategoryCreate, 
+    db: Session = Depends(get_db), 
+    current_user: any = Depends(get_current_user)
+):
+    # Identificar Company ID
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+
     new_category = Category(
-        company_id=current_user.id, 
+        company_id=company_id, 
         name=category_data.name, 
         order_index=category_data.order_index,
         availability_days=category_data.availability_days,
@@ -23,17 +33,24 @@ def create_category(category_data: CategoryCreate, db: Session = Depends(get_db)
     db.add(new_category)
     db.commit()
     db.refresh(new_category)
+
+    # Audit Log
+    AuditService.log(
+        db, current_user, AuditAction.CREATE, "Category", str(new_category.id),
+        details={"name": new_category.name}, request=request
+    )
+
     return new_category
 
-# --- NOVO ENDPOINT: ATUALIZAR CATEGORIA ---
 @router.patch("/categories/{category_id}", response_model=CategoryResponse)
 def update_category(
     category_id: int, 
     category_data: CategoryUpdate, 
     db: Session = Depends(get_db), 
-    current_user: Company = Depends(get_current_user)
+    current_user: any = Depends(get_current_user)
 ):
-    category = db.query(Category).filter(Category.id == category_id, Category.company_id == current_user.id).first()
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    category = db.query(Category).filter(Category.id == category_id, Category.company_id == company_id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
     
@@ -46,8 +63,9 @@ def update_category(
     return category
 
 @router.delete("/categories/{category_id}", status_code=204)
-def delete_category(category_id: int, db: Session = Depends(get_db), current_user: Company = Depends(get_current_user)):
-    category = db.query(Category).filter(Category.id == category_id, Category.company_id == current_user.id).first()
+def delete_category(category_id: int, db: Session = Depends(get_db), current_user: any = Depends(get_current_user)):
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    category = db.query(Category).filter(Category.id == category_id, Category.company_id == company_id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
     db.delete(category)
@@ -55,8 +73,20 @@ def delete_category(category_id: int, db: Session = Depends(get_db), current_use
     return None
 
 @router.post("/products", response_model=ProductResponse, status_code=201)
-def create_product(product_data: ProductCreate, db: Session = Depends(get_db), current_user: Company = Depends(get_current_user)):
-    category = db.query(Category).filter(Category.id == product_data.category_id, Category.company_id == current_user.id).first()
+def create_product(
+    request: Request,
+    product_data: ProductCreate, 
+    db: Session = Depends(get_db), 
+    current_user: any = Depends(get_current_user)
+):
+    # Se for funcionário, precisa verificar permissão (assumindo que manager pode)
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    
+    # Checagem de Limites SaaS (precisa do objeto Company)
+    company = current_user if isinstance(current_user, Company) else current_user.company
+    SaasLimits.check_product_limit(db, company)
+
+    category = db.query(Category).filter(Category.id == product_data.category_id, Category.company_id == company_id).first()
     if not category:
         raise HTTPException(status_code=400, detail="Categoria inválida")
     
@@ -70,7 +100,8 @@ def create_product(product_data: ProductCreate, db: Session = Depends(get_db), c
         track_stock=product_data.track_stock,
         stock_quantity=product_data.stock_quantity,
         station=product_data.station,
-        tags=product_data.tags
+        tags=product_data.tags,
+        short_code=product_data.short_code
     )
     
     if product_data.recommended_ids:
@@ -80,16 +111,33 @@ def create_product(product_data: ProductCreate, db: Session = Depends(get_db), c
     db.add(new_product)
     db.commit()
     db.refresh(new_product)
+
+    # Audit Log
+    AuditService.log(
+        db, current_user, AuditAction.CREATE, "Product", str(new_product.id),
+        details={"name": new_product.name, "price": float(new_product.price)}, request=request
+    )
+
     return new_product
 
 @router.patch("/products/{product_id}", response_model=ProductResponse)
-def update_product(product_id: int, product_data: ProductUpdate, db: Session = Depends(get_db), current_user: Company = Depends(get_current_user)):
-    product = db.query(Product).join(Category).filter(Product.id == product_id, Category.company_id == current_user.id).first()
+def update_product(
+    request: Request,
+    product_id: int, 
+    product_data: ProductUpdate, 
+    db: Session = Depends(get_db), 
+    current_user: any = Depends(get_current_user)
+):
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    product = db.query(Product).join(Category).filter(Product.id == product_id, Category.company_id == company_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     
     update_data = product_data.model_dump(exclude_unset=True)
     
+    # Calcular Diff para Auditoria
+    diff = AuditService.diff(product, update_data)
+
     if "recommended_ids" in update_data:
         rec_ids = update_data.pop("recommended_ids")
         if rec_ids is not None:
@@ -101,20 +149,42 @@ def update_product(product_id: int, product_data: ProductUpdate, db: Session = D
     
     db.commit()
     db.refresh(product)
+
+    # Registrar Auditoria se houve mudança
+    if diff:
+        AuditService.log(
+            db, current_user, AuditAction.UPDATE, "Product", str(product.id),
+            details=diff, request=request
+        )
+
     return product
 
 @router.delete("/products/{product_id}", status_code=204)
-def delete_product(product_id: int, db: Session = Depends(get_db), current_user: Company = Depends(get_current_user)):
-    product = db.query(Product).join(Category).filter(Product.id == product_id, Category.company_id == current_user.id).first()
+def delete_product(
+    request: Request,
+    product_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: any = Depends(get_current_user)
+):
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    product = db.query(Product).join(Category).filter(Product.id == product_id, Category.company_id == company_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
+    
+    # Audit Log (Antes de deletar para ter os dados)
+    AuditService.log(
+        db, current_user, AuditAction.DELETE, "Product", str(product.id),
+        details={"name": product.name}, request=request
+    )
+
     db.delete(product)
     db.commit()
     return None
 
 @router.post("/products/{product_id}/groups", response_model=OptionGroupResponse, status_code=201)
-def create_option_group(product_id: int, group_data: OptionGroupCreate, db: Session = Depends(get_db), current_user: Company = Depends(get_current_user)):
-    product = db.query(Product).join(Category).filter(Product.id == product_id, Category.company_id == current_user.id).first()
+def create_option_group(product_id: int, group_data: OptionGroupCreate, db: Session = Depends(get_db), current_user: any = Depends(get_current_user)):
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    product = db.query(Product).join(Category).filter(Product.id == product_id, Category.company_id == company_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     new_group = OptionGroup(product_id=product_id, name=group_data.name, min_selection=group_data.min_selection, max_selection=group_data.max_selection)
@@ -124,8 +194,9 @@ def create_option_group(product_id: int, group_data: OptionGroupCreate, db: Sess
     return new_group
 
 @router.post("/groups/{group_id}/options", response_model=OptionResponse, status_code=201)
-def create_option(group_id: int, option_data: OptionCreate, db: Session = Depends(get_db), current_user: Company = Depends(get_current_user)):
-    group = db.query(OptionGroup).join(Product).join(Category).filter(OptionGroup.id == group_id, Category.company_id == current_user.id).first()
+def create_option(group_id: int, option_data: OptionCreate, db: Session = Depends(get_db), current_user: any = Depends(get_current_user)):
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    group = db.query(OptionGroup).join(Product).join(Category).filter(OptionGroup.id == group_id, Category.company_id == company_id).first()
     if not group:
         raise HTTPException(status_code=404, detail="Grupo não encontrado")
     new_option = Option(group_id=group_id, name=option_data.name, price=option_data.price)
@@ -135,8 +206,9 @@ def create_option(group_id: int, option_data: OptionCreate, db: Session = Depend
     return new_option
 
 @router.delete("/groups/{group_id}", status_code=204)
-def delete_option_group(group_id: int, db: Session = Depends(get_db), current_user: Company = Depends(get_current_user)):
-    group = db.query(OptionGroup).join(Product).join(Category).filter(OptionGroup.id == group_id, Category.company_id == current_user.id).first()
+def delete_option_group(group_id: int, db: Session = Depends(get_db), current_user: any = Depends(get_current_user)):
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    group = db.query(OptionGroup).join(Product).join(Category).filter(OptionGroup.id == group_id, Category.company_id == company_id).first()
     if not group:
         raise HTTPException(status_code=404, detail="Grupo não encontrado")
     db.delete(group)
@@ -144,8 +216,9 @@ def delete_option_group(group_id: int, db: Session = Depends(get_db), current_us
     return None
 
 @router.delete("/options/{option_id}", status_code=204)
-def delete_option(option_id: int, db: Session = Depends(get_db), current_user: Company = Depends(get_current_user)):
-    option = db.query(Option).join(OptionGroup).join(Product).join(Category).filter(Option.id == option_id, Category.company_id == current_user.id).first()
+def delete_option(option_id: int, db: Session = Depends(get_db), current_user: any = Depends(get_current_user)):
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    option = db.query(Option).join(OptionGroup).join(Product).join(Category).filter(Option.id == option_id, Category.company_id == company_id).first()
     if not option:
         raise HTTPException(status_code=404, detail="Opção não encontrada")
     db.delete(option)
