@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-start-rgb));
+}
+
+/* Scroll Progress Bar */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(to right, #ea580c, #f97316);
+  transform-origin: 0 50%;
+  animation: scroll-progress auto linear;
+  animation-timeline: scroll();
+  z-index: 100;
+}
+
+@keyframes scroll-progress {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+/* Mesh Gradient Animation */
+.mesh-bg {
+  background-color: #ffffff;
+  background-image: 
+    radial-gradient(at 40% 20%, hsla(28,100%,74%,0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, hsla(189,100%,56%,0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsla(340,100%,76%,0.1) 0px, transparent 50%);
+  animation: mesh 20s infinite alternate;
+}
+
+@keyframes mesh {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Noise Texture */
+.bg-noise {
+  position: relative;
+}
+.bg-noise::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Custom Cursor */
+.custom-cursor {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ea580c;
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s, height 0.2s, background-color 0.2s;
+  mix-blend-mode: difference;
+}
+
+.custom-cursor.hovered {
+  width: 50px;
+  height: 50px;
+  background-color: rgba(234, 88, 12, 0.2);
+  border-color: transparent;
+}
+
+/* --- ESTILOS DE IMPRESSÃO TÉRMICA (CUPOM) --- */
+@media print {
+  @page {
+    margin: 0;
+    size: 80mm auto; /* Define largura do papel para impressoras térmicas */
+  }
+
+  body {
+    background-color: white !important;
+    color: black !important;
+    font-family: 'Courier New', Courier, monospace !important; /* Fonte monoespaçada para alinhamento */
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Esconde tudo que não for explicitamente marcado para impressão */
+  body > *:not(.print\:block) {
+    display: none !important;
+  }
+
+  /* Mostra apenas a área específica de impressão e seus filhos */
+  .print\:block {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+  
+  /* Esconde elementos específicos dentro da área de impressão se necessário */
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  /* Ajustes de layout para impressão */
+  .print\:text-center { text-align: center; }
+  .print\:font-bold { font-weight: bold; }
+  .print\:text-xl { font-size: 18px; }
+  .print\:text-lg { font-size: 16px; }
+  .print\:text-sm { font-size: 12px; }
+  .print\:text-xs { font-size: 10px; }
+  .print\:mb-2 { margin-bottom: 8px; }
+  .print\:pb-2 { padding-bottom: 8px; }
+  .print\:border-b { border-bottom: 1px dashed black; }
+  .print\:border-t { border-top: 1px dashed black; }
+  .print\:flex { display: flex; }
+  .print\:justify-between { justify-content: space-between; }
+}
