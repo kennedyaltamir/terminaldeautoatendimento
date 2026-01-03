@@ -393,4 +393,4 @@ export default function KitchenPage({ params }: { params: { slug: string } }) {
       `}</style>
     </div>
   );
-}
+} 
