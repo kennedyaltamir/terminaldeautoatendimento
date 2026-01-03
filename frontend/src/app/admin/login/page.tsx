@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -35,12 +35,13 @@ export default function LoginPage() {
   const router = useRouter();
   const [activeTestimonial, setActiveTestimonial] = useState(0);
 
-  useState(() => {
+  // CORREÇÃO: Uso de useEffect para efeitos colaterais (Intervalo)
+  useEffect(() => {
     const interval = setInterval(() => {
       setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
     }, 5000);
     return () => clearInterval(interval);
-  });
+  }, []);
 
   const {
     register,
@@ -59,7 +60,7 @@ export default function LoginPage() {
       
       toast.success(`Bem-vindo, ${response.user_name}!`);
       
-      // --- ATUALIZAÇÃO: Redirecionamento para Driver ---
+      // Redirecionamento inteligente baseado no cargo
       setTimeout(() => {
         const slug = response.company_slug;
         const role = response.user_role;
@@ -69,7 +70,7 @@ export default function LoginPage() {
         } else if (role === 'cashier') {
           router.push(`/admin/${slug}/waiter`);
         } else if (role === 'driver') {
-          router.push(`/admin/${slug}/driver`); // Nova Rota
+          router.push(`/admin/${slug}/driver`);
         } else {
           router.push(`/admin/${slug}/dashboard`);
         }

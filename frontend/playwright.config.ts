@@ -8,14 +8,17 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   
-  timeout: 60000,
+  // Aumentado para 2 minutos (Global) para suportar compilação lenta no Windows
+  timeout: 120000,
   
   use: {
-    // Forçando IPv4 também no frontend para consistência
     baseURL: 'http://127.0.0.1:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    actionTimeout: 15000,
+    // Aumentado para 30s para ações individuais (cliques, preenchimentos)
+    actionTimeout: 30000,
+    // Adiciona um tempo extra de navegação
+    navigationTimeout: 45000,
   },
   
   webServer: {

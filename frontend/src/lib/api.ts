@@ -439,8 +439,6 @@ export async function transferTable(data: { from_table_id: number, to_table_id: 
   return res.json();
 }
 
-// --- NOVAS FUNÇÕES PARA DELIVERY E FROTA ---
-
 export async function getDrivers() {
   const res = await fetchClient(`/admin/employees?role=driver`);
   if (!res.ok) throw new Error("Erro ao carregar entregadores");
@@ -453,5 +451,12 @@ export async function dispatchOrder(orderId: string, driverId?: number) {
     body: JSON.stringify({ driver_id: driverId })
   });
   if (!res.ok) throw new Error("Erro ao despachar pedido");
+  return res.json();
+}
+
+// --- NOVO: Dashboard de Franquia ---
+export async function getFranchiseDashboard() {
+  const res = await fetchClient(`/admin/franchise/dashboard`);
+  if (!res.ok) throw new Error("Erro ao carregar dashboard de franquia");
   return res.json();
 }

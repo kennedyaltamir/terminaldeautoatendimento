@@ -31,25 +31,27 @@ test('Fluxo Crítico: Pedido do Cliente reflete no KDS em Tempo Real', async ({ 
   const customerPage = await customerContext.newPage();
 
   // --- 1. ADMIN ABRE KDS ---
-  await adminPage.goto('/admin/login');
+  await adminPage.goto('/admin/login', { waitUntil: 'domcontentloaded' });
+  await expect(adminPage.locator('input[name="email"]')).toBeVisible({ timeout: 20000 });
+  
   await adminPage.fill('input[name="email"]', 'admin@mesaflow.com');
   await adminPage.fill('input[name="password"]', '123456');
   await adminPage.click('button[type="submit"]');
   await adminPage.waitForURL('**/dashboard');
-  await adminPage.goto('/admin/hamburgueria-ze/kitchen');
-  await expect(adminPage.getByText('Monitor de Produção')).toBeVisible();
+  await adminPage.goto('/admin/hamburgueria-ze/kitchen', { waitUntil: 'domcontentloaded' });
+  await expect(adminPage.getByText('Monitor de Produção')).toBeVisible({ timeout: 20000 });
 
   // --- 2. CLIENTE FAZ PEDIDO ---
-  await customerPage.goto('/hamburgueria-ze/menu?mesa=1&token=token-seguro-mesa-1');
+  await customerPage.goto('/hamburgueria-ze/menu?mesa=1&token=token-seguro-mesa-1', { waitUntil: 'domcontentloaded' });
   
-  // Check-in OBRIGATÓRIO (Pois resetamos a mesa)
+  // Check-in
   const nameInput = customerPage.getByPlaceholder('Seu Nome');
-  await expect(nameInput).toBeVisible({ timeout: 10000 }); // Espera explícita
+  await expect(nameInput).toBeVisible({ timeout: 20000 });
   await nameInput.fill('Robô E2E');
   await customerPage.getByRole('button', { name: /Abrir/i }).click();
 
-  // Esperar menu carregar
-  await expect(customerPage.getByText('Lanches')).toBeVisible({ timeout: 10000 });
+  // Esperar menu
+  await expect(customerPage.getByText('Lanches')).toBeVisible({ timeout: 20000 });
 
   // Adicionar Produto
   const productCard = customerPage.locator('div', { hasText: 'X-Bacon' }).first();
@@ -71,11 +73,11 @@ test('Fluxo Crítico: Pedido do Cliente reflete no KDS em Tempo Real', async ({ 
   await customerPage.click('button:has-text("Enviar Pedido")');
 
   // Sucesso
-  await expect(customerPage.getByText('Pedido enviado!')).toBeVisible({ timeout: 15000 });
+  await expect(customerPage.getByText('Pedido enviado!')).toBeVisible({ timeout: 20000 });
 
   // --- 3. VERIFICAR NO KDS ---
   const kdsCard = adminPage.locator('div', { hasText: 'Robô E2E' });
-  await expect(kdsCard).toBeVisible({ timeout: 15000 });
+  await expect(kdsCard).toBeVisible({ timeout: 20000 });
   await expect(kdsCard).toContainText('X-Bacon');
   
   console.log('✅ Fluxo E2E concluído com sucesso!');
