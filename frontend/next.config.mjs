@@ -1,4 +1,3 @@
-import { withSentryConfig } from "@sentry/nextjs";
 import withPWAInit from "@ducanh2912/next-pwa";
 
 const withPWA = withPWAInit({
@@ -11,7 +10,7 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Desativa a checagem de tipos e lint no build para acelerar o deploy e evitar quebras
+  // Ignora erros de TypeScript e Lint para garantir o deploy imediato
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
   
@@ -32,24 +31,5 @@ const nextConfig = {
   },
 };
 
-const sentryOptions = {
-  silent: true,
-  org: "mesaflow",
-  project: "mesaflow-frontend",
-};
-
-const sentryWebpackPluginOptions = {
-  widenClientFileUpload: true,
-  transpileClientSDK: true,
-  hideSourceMaps: true,
-  disableLogger: true,
-  // IMPORTANTE: Não quebra o build se o token estiver faltando
-  failSilently: true, 
-};
-
-// Exporta com PWA e Sentry (Sentry por último)
-export default withSentryConfig(
-  withPWA(nextConfig),
-  sentryOptions,
-  sentryWebpackPluginOptions
-);
+// Exporta apenas com PWA por enquanto para destravar o deploy
+export default withPWA(nextConfig);
