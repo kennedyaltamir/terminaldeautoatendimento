@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getCompanySettings, updateCompanySettings } from "../../../../lib/api";
-import { settingsSchema, SettingsSchema } from "../../../../lib/validations/settings";
+import { getCompanySettings, updateCompanySettings } from "@/lib/api";
+import { settingsSchema, SettingsSchema } from "@/lib/validations/settings";
 import { Save, Loader2, Store, Smartphone, CreditCard, Image as ImageIcon, Trash2, AlertTriangle, Zap, Bug } from "lucide-react";
 import { toast, Toaster } from "sonner";
-import AuthInput from "../../../../components/ui/AuthInput";
-import ColorPicker from "../../../../components/ui/ColorPicker";
+import AuthInput from "@/components/ui/AuthInput";
+import ColorPicker from "@/components/ui/ColorPicker";
 import BillingSection from "./BillingSection";
 
 export default function SettingsPage() {
@@ -22,9 +22,6 @@ export default function SettingsPage() {
   });
 
   const watchedColor = watch("primary_color");
-  const watchedName = watch("name");
-  const watchedLogo = watch("logo_url");
-  const watchedBanner = watch("banner_url");
 
   useEffect(() => {
     getCompanySettings().then((data) => {
@@ -50,7 +47,7 @@ export default function SettingsPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-white">Configurações</h1>
         <button onClick={handleSubmit(onSubmit)} disabled={isSubmitting || !isDirty} className="bg-orange-600 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2">
-          {isSubmitting ? <Loader2 className="animate-spin" /> : <Save />} Salvar
+          {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Save />} Salvar
         </button>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

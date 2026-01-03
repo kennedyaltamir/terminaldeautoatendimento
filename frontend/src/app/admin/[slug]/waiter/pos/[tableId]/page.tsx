@@ -2,18 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getMenu, createOrder, openTable, checkTableStatus, getTableSession, getDashboardMetrics } from "../../../../../../lib/api";
-import { MenuResponse, Product, Order, Category } from "../../../../../../types";
-import { useCart } from "../../../../../../context/CartContext";
+import { getMenu, createOrder, openTable, checkTableStatus, getTableSession, getDashboardMetrics } from "@/lib/api";
+import { MenuResponse, Product, Order, Category } from "@/types";
+import { useCart } from "@/context/CartContext";
 import { Search, ShoppingBag, Plus, Trash2, ChevronLeft, ChefHat, User, X, Printer, Zap, Eye, CreditCard, ArrowRightLeft, Star, WifiOff } from "lucide-react";
 import { toast, Toaster } from "sonner";
-import { useTerminology } from "../../../../../../hooks/useTerminology";
-import Receipt from "../../../../../../components/waiter/Receipt";
-import BillAuditModal from "../../../../../../components/waiter/BillAuditModal";
-import PaymentModal from "../../../../../../components/waiter/PaymentModal";
-import TransferModal from "../../../../../../components/waiter/TransferModal";
-import ProductModal from "../../../../../../components/menu/ProductModal";
-import { db } from "../../../../../../lib/db";
+import { useTerminology } from "@/hooks/useTerminology";
+import Receipt from "@/components/waiter/Receipt";
+import BillAuditModal from "@/components/waiter/BillAuditModal";
+import PaymentModal from "@/components/waiter/PaymentModal";
+import TransferModal from "@/components/waiter/TransferModal";
+import ProductModal from "@/components/menu/ProductModal";
+import { db } from "@/lib/db";
 
 export default function WaiterPOSPage({ params }: { params: { slug: string, tableId: string } }) {
   const { slug, tableId } = params;

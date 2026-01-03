@@ -2,14 +2,14 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getKitchenOrders, updateOrderStatus, updateOrderPayment, getServiceRequests, resolveServiceRequest, getRecentCompletedOrders } from "../../../../lib/api";
-import { Order, ServiceRequest, OrderItemResponse } from "../../../../types";
+import { getKitchenOrders, updateOrderStatus, updateOrderPayment, getServiceRequests, resolveServiceRequest, getRecentCompletedOrders } from "@/lib/api";
+import { Order, ServiceRequest, OrderItemResponse } from "@/types";
 import { ChefHat, RefreshCw, LogOut, ArrowRightCircle, CheckCircle2, Volume2, VolumeX, DollarSign, Printer, Bike, BellRing, XCircle, Utensils, Wine, Layers, History, Undo2, Box, AlertTriangle, IceCream } from "lucide-react";
-import { removeToken } from "../../../../lib/auth";
-import { useWebSocket } from "../../../../hooks/useWebSocket";
-import OrderTimer from "../../../../components/admin/OrderTimer";
-import Modal from "../../../../components/ui/Modal";
-import StockModal from "../../../../components/admin/StockModal";
+import { removeToken } from "@/lib/auth";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import OrderTimer from "@/components/admin/OrderTimer";
+import Modal from "@/components/ui/Modal";
+import StockModal from "@/components/admin/StockModal";
 
 type StationFilter = 'all' | 'kitchen' | 'bar' | 'dessert';
 
@@ -68,7 +68,6 @@ export default function KitchenPage({ params }: { params: { slug: string } }) {
   useWebSocket(slug, handleWebSocketMessage);
 
   const handleAdvanceStatus = async (orderId: string, currentStatus: string) => {
-    const nextStatus = currentStatus === "pending" ? "preparing" : "ready";
     let newStatusApi = currentStatus === "pending" ? "preparing" : "ready";
     if (currentStatus === "preparing" || currentStatus === "ready") newStatusApi = "delivered";
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatusApi as any } : o).filter(o => o.status !== 'delivered'));
@@ -124,7 +123,7 @@ export default function KitchenPage({ params }: { params: { slug: string } }) {
       </header>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredOrders.map((order) => (
-          <div key={order.id} className="rounded-2xl border-t-8 bg-gray-800 border-orange-500 p-4">
+          <div key={order.id} className={`rounded-2xl border-t-8 bg-gray-800 border-orange-500 p-4`}>
             <div className="flex justify-between mb-4">
               <h2 className="text-xl font-bold">Mesa {order.table?.table_number || "DLV"}</h2>
               <OrderTimer createdAt={order.created_at} />
