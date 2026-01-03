@@ -1,26 +1,48 @@
-# Ambiente
+# =====================
+# ENV & SECRETS
+# =====================
 .env
-*.env
+.env.*
 frontend.env.local
 
+# =====================
 # Python
+# =====================
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-
-# Testes
 .pytest_cache/
+pytest.ini
 
-# Sons / arquivos gerados
+# =====================
+# Node / Next.js
+# =====================
+node_modules/
+.next/
+out/
+
+# =====================
+# Build / Cache
+# =====================
+dist/
+build/
+
+# =====================
+# Áudio / Binários
+# =====================
+*.wav
+*.mp3
+*.exe
+ngrok.exe
 output_sounds/
 
-# Binários
-ngrok.exe
+# =====================
+# Logs & temp
+# =====================
+*.log
+*.tmp
 
-# Sistema
+# =====================
+# OS
+# =====================
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
