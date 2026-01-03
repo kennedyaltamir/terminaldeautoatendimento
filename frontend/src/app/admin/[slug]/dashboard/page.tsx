@@ -9,11 +9,28 @@ import {
   BarChart, Bar, LineChart, Line
 } from 'recharts';
 
-// ... (Interfaces mantidas igual ao anterior) ...
-interface ChartData { date: string; value: number; }
-interface SalesByHour { hour: number; total: number; count: number; }
-interface ProductPerformance { name: string; revenue: number; quantity: number; }
-interface TicketData { date: string; ticket: number; }
+interface ChartData {
+  date: string;
+  value: number;
+}
+
+interface SalesByHour {
+  hour: number;
+  total: number;
+  count: number;
+}
+
+interface ProductPerformance {
+  name: string;
+  revenue: number;
+  quantity: number;
+}
+
+interface TicketData {
+  date: string;
+  ticket: number;
+}
+
 interface Metrics {
   total_revenue: number;
   total_orders: number;
@@ -59,7 +76,9 @@ export default function DashboardPage() {
       setMetrics(data);
     } catch (err: any) {
       console.error(err);
-      // Evitar redirect loop se falhar, apenas logar
+      if (err.message === "Unauthorized") {
+        router.push("/admin/login");
+      }
     } finally {
       setLoading(false);
     }
@@ -67,7 +86,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchMetrics();
-  }, [period]);
+  }, [period, router]);
 
   const revenue = metrics?.total_revenue || 0;
   const orders = metrics?.total_orders || 0;
@@ -95,6 +114,7 @@ export default function DashboardPage() {
         <div className="text-center py-20 text-gray-500 animate-pulse">Atualizando dados...</div>
       ) : (
         <>
+          {/* CARDS PRINCIPAIS */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {cards.map((card, i) => (
               <div key={i} className="bg-gray-800 border border-gray-700 p-6 rounded-2xl shadow-lg">
@@ -111,6 +131,7 @@ export default function DashboardPage() {
             ))}
           </div>
 
+          {/* GRÁFICO DE VENDAS */}
           <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-lg p-6">
             <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2"><TrendingUp size={20} className="text-green-500"/> Evolução de Vendas</h2>
             <div className="h-[300px] w-full">
@@ -137,6 +158,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* VENDAS POR HORA */}
             <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-lg p-6">
               <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2"><Clock size={20} className="text-blue-500"/> Horários de Pico</h2>
               <div className="h-[300px] w-full">
@@ -155,6 +177,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* EVOLUÇÃO TICKET MÉDIO */}
             <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-lg p-6">
               <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2"><BarChart2 size={20} className="text-purple-500"/> Ticket Médio Diário</h2>
               <div className="h-[300px] w-full">
@@ -171,6 +194,38 @@ export default function DashboardPage() {
                   </LineChart>
                 </ResponsiveContainer>
               </div>
+            </div>
+          </div>
+
+          {/* CURVA ABC (PRODUTOS) */}
+          <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-lg overflow-hidden">
+            <div className="p-6 border-b border-gray-700 flex items-center gap-2">
+              <Star className="text-yellow-500" size={20} />
+              <h2 className="text-xl font-bold text-white">Ranking de Produtos (Receita)</h2>
+            </div>
+            <div className="p-6">
+              {!metrics || metrics.product_performance.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">Nenhuma venda registrada.</p>
+              ) : (
+                <div className="space-y-4">
+                  {metrics.product_performance.map((product, index) => (
+                    <div key={index} className="flex items-center justify-between bg-gray-900/50 p-4 rounded-xl border border-gray-700/50 hover:bg-gray-900 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <span className={`text-lg font-black w-8 h-8 flex items-center justify-center rounded-full ${index < 3 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-gray-700 text-gray-400'}`}>
+                          {index + 1}
+                        </span>
+                        <div>
+                          <p className="font-bold text-gray-200">{product.name}</p>
+                          <p className="text-xs text-gray-500">{product.quantity} unidades vendidas</p>
+                        </div>
+                      </div>
+                      <span className="text-green-400 font-mono font-bold">
+                        R$ {Number(product.revenue).toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </>
