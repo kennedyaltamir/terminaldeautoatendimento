@@ -1,6 +1,0 @@
-#exemplo/teste1.py
-```python
-def hello():
-    print("Olá! Este é um teste em arquivo temporário.")
-
-hello()
