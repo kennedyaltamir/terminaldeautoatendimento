@@ -1,0 +1,110 @@
+vamos lá, cite tudo que fizemos até aqui e vamos atualizar o system instructions. Seu formato de resposta deve ser:
+Uma explicação como se fosse para um não programador, detalhada.
+Todos os arquivos envolvendo a task completos, corrigidos, sem comentários e sem abreviações
+Comportamento esperado e quais comandos rodar no terminal do vscode.
+Sua resposta será copiada, colocada em um arquivo na pasta raiz e eu rodarei o seguinte script:
+import os
+import shutil
+import re
+import subprocess
+
+ARQUIVO_RESPOSTA = "resposta.txt"
+PASTA_COPY = "Copy"
+
+
+def obter_proximo_backup(caminho_original):
+    """
+    Retorna o caminho do próximo backup versionado dentro da pasta Copy
+    Ex: arquivo.py -> Copy/arquivo.py, Copy/arquivo_v2.py, Copy/arquivo_v3.py
+    """
+    pasta, nome_arquivo = os.path.split(caminho_original)
+    nome_base, extensao = os.path.splitext(nome_arquivo)
+
+    pasta_backup = os.path.join(PASTA_COPY, pasta)
+    os.makedirs(pasta_backup, exist_ok=True)
+
+    caminho_backup = os.path.join(pasta_backup, nome_arquivo)
+    if not os.path.exists(caminho_backup):
+        return caminho_backup
+
+    i = 2
+    while True:
+        novo_nome = f"{nome_base}_v{i}{extensao}"
+        novo_caminho = os.path.join(pasta_backup, novo_nome)
+        if not os.path.exists(novo_caminho):
+            return novo_caminho
+        i += 1
+
+
+def limpar_confirmacao_markdown(texto):
+    """Remove ``` do markdown caso exista"""
+    texto = texto.strip()
+    if texto.startswith("```"):
+        linhas = texto.splitlines()
+        return "\n".join(linhas[1:-1]).strip()
+    return texto
+
+
+def abrir_no_vscode(caminho):
+    """Abre o arquivo no VS Code (fica em Open Editors)"""
+    try:
+        subprocess.run(["code", caminho], check=False)
+    except Exception as e:
+        print(f"⚠️ Não foi possível abrir no VS Code: {e}")
+
+
+def processar():
+    if not os.path.exists(ARQUIVO_RESPOSTA):
+        print(f"❌ Arquivo '{ARQUIVO_RESPOSTA}' não encontrado.")
+        return
+
+    with open(ARQUIVO_RESPOSTA, "r", encoding="utf-8") as f:
+        conteudo = f.read()
+
+    blocos = re.findall(
+        r'^#([^\s\n]+)\n(.*?)(?=\n#|\Z)',
+        conteudo,
+        re.DOTALL | re.MULTILINE
+    )
+
+    if not blocos:
+        print("⚠️ Nenhum bloco encontrado no formato correto.")
+        return
+
+    for caminho, codigo in blocos:
+        caminho = caminho.strip()
+        codigo = limpar_confirmacao_markdown(codigo)
+
+        diretorio = os.path.dirname(caminho)
+        if diretorio:
+            os.makedirs(diretorio, exist_ok=True)
+
+        # 🔹 Backup se o arquivo já existir
+        if os.path.exists(caminho):
+            caminho_backup = obter_proximo_backup(caminho)
+            shutil.copy2(caminho, caminho_backup)
+            print(f"📦 Backup criado: {caminho_backup}")
+        else:
+            print(f"✨ Novo arquivo criado: {caminho}")
+
+        # 🔹 Escreve o conteúdo no arquivo original
+        with open(caminho, "w", encoding="utf-8") as f:
+            f.write(codigo)
+
+        # 🔹 Garante cópia inicial na pasta Copy
+        copia_inicial = os.path.join(PASTA_COPY, caminho)
+        if not os.path.exists(copia_inicial):
+            os.makedirs(os.path.dirname(copia_inicial), exist_ok=True)
+            shutil.copy2(caminho, copia_inicial)
+
+        # 🔹 Abre no VS Code
+        abrir_no_vscode(caminho)
+
+        print(f"✅ Atualizado: {caminho}\n")
+
+    print("🚀 Processo finalizado com sucesso!")
+
+
+if __name__ == "__main__":
+    processar()
+Ao final deve estar os arquivos da sua resposta nas devidas pastas do meu vscode.
