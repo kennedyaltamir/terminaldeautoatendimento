@@ -11,10 +11,22 @@ const withPWA = withPWAInit({
 const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
-  // Desativa checagem rigorosa no build para evitar quebras por avisos
+  // 🚀 Estas duas linhas abaixo são fundamentais para destravar o deploy
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
-  
+
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Access-Control-Allow-Methods", value: "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        ],
+      },
+    ];
+  },
+
   images: {
     remotePatterns: [{ protocol: "https", hostname: "**" }],
   },
