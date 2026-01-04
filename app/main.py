@@ -24,7 +24,8 @@ from app.routers import admin_audit
 from app.routers import admin_fiscal
 from app.routers import admin_financial
 from app.routers import admin_marketing
-from app.routers import admin_franchise # NOVO
+from app.routers import admin_franchise
+from app.routers import admin_logistics # NOVO
 
 from app.websockets import manager
 from app.core.limiter import limiter
@@ -78,6 +79,7 @@ app.include_router(public.router, prefix="/api", tags=["Public"])
 
 # Admin
 app.include_router(admin_delivery.router, prefix="/api/admin/delivery", tags=["Admin Delivery"])
+app.include_router(admin_logistics.router, prefix="/api/admin/logistics", tags=["Admin Logistics"]) # NOVO
 app.include_router(admin_menu.router, prefix="/api/admin/menu", tags=["Admin Menu"])
 app.include_router(admin_company.router, prefix="/api/admin/company", tags=["Admin Company"])
 app.include_router(admin_tables.router, prefix="/api/admin/tables", tags=["Admin Tables"])
@@ -89,7 +91,7 @@ app.include_router(admin_audit.router, prefix="/api/admin/audit", tags=["Admin A
 app.include_router(admin_fiscal.router, prefix="/api/admin/fiscal", tags=["Admin Fiscal"])
 app.include_router(admin_financial.router, prefix="/api/admin/financial", tags=["Admin Financial"])
 app.include_router(admin_marketing.router, prefix="/api/admin/marketing", tags=["Admin Marketing"])
-app.include_router(admin_franchise.router, prefix="/api/admin/franchise", tags=["Admin Franchise"]) # NOVO
+app.include_router(admin_franchise.router, prefix="/api/admin/franchise", tags=["Admin Franchise"])
 
 # Admin Genérico
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin Orders"])

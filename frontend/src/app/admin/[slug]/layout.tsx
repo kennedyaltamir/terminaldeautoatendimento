@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChefHat, Menu, LogOut, LayoutDashboard, Settings, QrCode, BarChart3, User, History, Package, Smartphone, Users, Bike } from "lucide-react";
+import { ChefHat, Menu, LogOut, LayoutDashboard, Settings, QrCode, BarChart3, User, History, Package, Smartphone, Users, Bike, Building2 } from "lucide-react";
 import { removeToken, isAuthenticated, getUserRole } from "@/lib/auth";
 import OnboardingTour from "@/components/admin/OnboardingTour";
 import { WebSocketProvider } from "@/context/WebSocketContext";
+import { useTerminology } from "@/hooks/useTerminology";
 
 export default function AdminLayout({
   children,
@@ -20,6 +21,7 @@ export default function AdminLayout({
   const router = useRouter();
   const [isAuth, setIsAuth] = useState(false);
   const [role, setRole] = useState<string | null>(null);
+  const terms = useTerminology(); // Hook de Terminologia
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -29,7 +31,6 @@ export default function AdminLayout({
       const userRole = getUserRole();
       setRole(userRole);
 
-      // Redirecionamentos de Segurança por Cargo
       if (userRole === 'cashier') {
         const allowedPaths = ['/waiter', '/waiter/orders', '/waiter/pos'];
         const isAllowed = allowedPaths.some(path => pathname.includes(path));
@@ -51,15 +52,17 @@ export default function AdminLayout({
 
   if (!isAuth) return null;
 
+  // Menu dinâmico baseado na terminologia
   const allNavItems = [
     { name: "Dashboard", href: `/admin/${slug}/dashboard`, icon: BarChart3, id: "nav-dashboard", roles: ['owner', 'manager'] },
-    { name: "Delivery", href: `/admin/${slug}/delivery`, icon: Bike, id: "nav-delivery", roles: ['owner', 'manager'] }, // NOVO
-    { name: "Cozinha", href: `/admin/${slug}/kitchen`, icon: ChefHat, id: "nav-kitchen", roles: ['owner', 'manager', 'kitchen'] },
-    { name: "App Garçom", href: `/admin/${slug}/waiter`, icon: Smartphone, id: "nav-waiter", roles: ['owner', 'manager', 'cashier'] },
+    { name: "Franquia", href: `/admin/franchise`, icon: Building2, id: "nav-franchise", roles: ['owner'] },
+    { name: "Delivery", href: `/admin/${slug}/delivery`, icon: Bike, id: "nav-delivery", roles: ['owner', 'manager'] },
+    { name: terms.kitchen, href: `/admin/${slug}/kitchen`, icon: ChefHat, id: "nav-kitchen", roles: ['owner', 'manager', 'kitchen'] },
+    { name: `App ${terms.waiter}`, href: `/admin/${slug}/waiter`, icon: Smartphone, id: "nav-waiter", roles: ['owner', 'manager', 'cashier'] },
     { name: "Histórico", href: `/admin/${slug}/history`, icon: History, id: "nav-history", roles: ['owner', 'manager'] },
-    { name: "Cardápio", href: `/admin/${slug}/menu`, icon: Menu, id: "nav-menu", roles: ['owner', 'manager'] },
+    { name: terms.menu, href: `/admin/${slug}/menu`, icon: Menu, id: "nav-menu", roles: ['owner', 'manager'] },
     { name: "Estoque", href: `/admin/${slug}/inventory`, icon: Package, id: "nav-inventory", roles: ['owner', 'manager'] },
-    { name: "Mesas", href: `/admin/${slug}/tables`, icon: QrCode, id: "nav-tables", roles: ['owner', 'manager'] },
+    { name: terms.tables, href: `/admin/${slug}/tables`, icon: QrCode, id: "nav-tables", roles: ['owner', 'manager'] },
     { name: "Equipe", href: `/admin/${slug}/team`, icon: Users, id: "nav-team", roles: ['owner'] },
     { name: "Config", href: `/admin/${slug}/settings`, icon: Settings, id: "nav-settings", roles: ['owner'] },
     { name: "Perfil", href: `/admin/${slug}/profile`, icon: User, id: "nav-profile", roles: ['owner', 'manager', 'cashier', 'kitchen', 'driver'] },
@@ -67,17 +70,17 @@ export default function AdminLayout({
 
   const navItems = allNavItems.filter(item => role && item.roles.includes(role));
 
-  // Modos Fullscreen (sem sidebar)
   const isWaiterMode = pathname.includes("/waiter");
   const isKitchenMode = pathname.includes("/kitchen") && role === 'kitchen';
   const isDriverMode = pathname.includes("/driver");
+  const isFranchiseMode = pathname.includes("/franchise");
 
   return (
     <WebSocketProvider slug={slug}>
       <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
         {role === 'owner' && <OnboardingTour />}
         
-        {!isWaiterMode && !isKitchenMode && !isDriverMode && (
+        {!isWaiterMode && !isKitchenMode && !isDriverMode && !isFranchiseMode && (
           <nav className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
             <div className="flex items-center gap-2">
               <div className="bg-orange-600 p-2 rounded-lg">
@@ -109,7 +112,7 @@ export default function AdminLayout({
           </nav>
         )}
         
-        <main className={`flex-1 ${!isWaiterMode && !isKitchenMode && !isDriverMode ? 'p-6 max-w-7xl mx-auto w-full' : ''}`}>
+        <main className={`flex-1 ${!isWaiterMode && !isKitchenMode && !isDriverMode && !isFranchiseMode ? 'p-6 max-w-7xl mx-auto w-full' : ''}`}>
           {children}
         </main>
       </div>

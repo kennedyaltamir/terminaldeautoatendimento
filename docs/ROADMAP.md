@@ -385,3 +385,65 @@
 - [ ] **IA Upselling:** Recomendação inteligente de produtos ("Quem comprou X levou Y").
 - [ ] **Dashboard Multi-loja:** Visão consolidada para franquias.
 - [ ] **Cardápio Multilíngue:** Tradução automática baseada no browser do cliente.
+# 🗺️ Roadmap do Produto: MesaFlow
+
+## ✅ Fase 1 a 4: MVP & Core Operacional (CONCLUÍDO)
+- [x] **Arquitetura Base:** FastAPI + Next.js + PostgreSQL.
+- [x] **Multi-tenancy:** Isolamento total por `company_id`.
+- [x] **KDS & Garçom:** Monitor em tempo real e App Mobile POS.
+- [x] **Financeiro:** Split de Pagamento (Mercado Pago) e Assinaturas (Stripe).
+- [x] **Logística:** App do Entregador e Gestão de Frota.
+
+## ✅ Fase 5: Enterprise & Resiliência (CONCLUÍDO)
+- [x] **KDS Setorizado:** Filtros visuais para Bar vs Cozinha com persistência local.
+- [x] **Escalabilidade:** Migração de WebSockets para Redis Pub/Sub.
+- [x] **Modo Offline:** Implementação de Dexie.js para cache local e sincronização.
+- [x] **Arquitetura Fiscal:** Adapter Pattern para múltiplos provedores (FocusNFe).
+- [x] **Observabilidade:** Integração total com Sentry (Back/Front).
+- [x] **White-Label:** Suporte a domínios personalizados via Middleware.
+- [x] **QA:** Testes E2E com Playwright cobrindo o fluxo crítico.
+
+## 🔄 Fase 6: Diferenciais Competitivos & IA (PRÓXIMOS PASSOS)
+- [ ] **Impressão Nativa (RawBT):** Geração de ESC/POS binário para impressão silenciosa no Android.
+- [ ] **IA Upselling:** Motor de recomendação baseado em Market Basket Analysis (Histórico de vendas).
+- [ ] **Dashboard Multi-loja:** Visão consolidada para franqueadores (Super Admin).
+- [ ] **Cardápio Multilíngue:** Tradução automática baseada na geolocalização/browser.
+- [ ] **Totem de Autoatendimento:** Interface adaptada para totens verticais (Kiosk Mode).
+- [ ] **Integração SmartPOS:** Pagamento direto via Intent em maquininhas Android (Stone/PagSeguro).
+
+## 🚀 Fase 7: Escala Global & IA Avançada (FUTURO)
+- [ ] **IA de Previsão de Demanda:** Alerta de compra de insumos baseado em tendências.
+- [ ] **Voice Ordering:** Pedidos via comando de voz no totem.
+- [ ] **API Pública:** Marketplace para integrações de terceiros.
+
+
+# 🗺️ Roadmap do Produto: MesaFlow
+
+## ✅ Fase 1 a 4: MVP & Core Operacional (CONCLUÍDO)
+- [x] **Arquitetura Base:** FastAPI + Next.js + PostgreSQL.
+- [x] **Multi-tenancy:** Isolamento lógico total por `company_id`.
+- [x] **KDS & Garçom:** Monitor em tempo real e App Mobile POS.
+- [x] **Financeiro:** Split de Pagamento (Mercado Pago) e Assinaturas (Stripe).
+
+## ✅ Fase 5: Enterprise & Resiliência (CONCLUÍDO)
+- [x] **KDS Setorizado:** Filtros visuais para Bar vs Cozinha.
+- [x] **Infraestrutura:** Migração de WebSockets para Redis Pub/Sub.
+- [x] **Modo Offline:** Cache local (Dexie.js) e sincronização.
+- [x] **Arquitetura Fiscal:** Adapter Pattern (FocusNFe).
+- [x] **Observabilidade:** Sentry (Back/Front).
+- [x] **White-Label:** Suporte a domínios personalizados.
+- [x] **Hardening:** Baixa de estoque transacional e segurança de rotas.
+
+## 🔄 Fase 6: Logística & Diferenciais (EM ANDAMENTO)
+- [x] **Gestão de Caixa do Entregador:** Ledger de débitos e pagamentos.
+- [x] **Proof of Delivery (POD):** Código de confirmação de entrega.
+- [x] **Deep Linking:** Integração nativa com Waze/Maps no App do Motorista.
+- [x] **Dashboard Logístico:** KPIs de frota em tempo real (Tempo médio, Entregas/dia).
+- [ ] **Impressão Nativa (RawBT):** Geração de ESC/POS binário.
+- [ ] **IA Upselling:** Motor de recomendação.
+- [ ] **Dashboard Multi-loja:** Visão consolidada para franquias.
+
+## 🚀 Fase 7: Escala Global (FUTURO)
+- [ ] **IA de Previsão de Demanda:** Alerta de compra de insumos.
+- [ ] **Voice Ordering:** Pedidos via comando de voz.
+- [ ] **API Pública:** Marketplace para integrações.

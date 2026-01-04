@@ -3,9 +3,12 @@ import Link from "next/link";
 import { ArrowRight, PlayCircle, CheckCircle2 } from "lucide-react";
 import Typewriter from "@/components/ui/Typewriter";
 import { useLanguage } from "@/context/LanguageContext";
+import { useState } from "react";
+import DemoModal from "./DemoModal";
 
 export default function Hero() {
   const { t } = useLanguage();
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
 
   return (
     <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden min-h-[90vh] flex items-center">
@@ -19,10 +22,8 @@ export default function Hero() {
           muted 
           playsInline 
           className="w-full h-full object-cover"
-          // Poster: Imagem que aparece enquanto o vídeo carrega
           poster="https://images.pexels.com/photos/260922/pexels-photo-260922.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
         >
-          {/* Aponta para o arquivo local na pasta public */}
           <source src="/hero-video.mp4" type="video/mp4" />
         </video>
       </div>
@@ -52,12 +53,12 @@ export default function Hero() {
           >
             {t.hero.cta_primary} <ArrowRight size={20} />
           </Link>
-          <Link 
-            href="/hamburgueria-ze/menu?mesa=1&token=token-seguro-mesa-1" 
+          <button 
+            onClick={() => setIsDemoOpen(true)}
             className="w-full sm:w-auto px-8 py-4 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-xl font-bold text-lg hover:bg-white/20 transition-all flex items-center justify-center gap-2 shadow-sm"
           >
             <PlayCircle size={20} className="text-orange-400" /> {t.hero.cta_secondary}
-          </Link>
+          </button>
         </div>
 
         <div className="mt-12 flex flex-wrap items-center justify-center gap-4 md:gap-8 text-sm font-medium text-gray-300">
@@ -68,6 +69,8 @@ export default function Hero() {
           ))}
         </div>
       </div>
+
+      <DemoModal isOpen={isDemoOpen} onClose={() => setIsDemoOpen(false)} />
     </section>
   );
 }

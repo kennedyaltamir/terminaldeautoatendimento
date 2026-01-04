@@ -88,6 +88,11 @@ class FiscalStatus(str, Enum):
     ERROR = "error"
     CANCELED = "canceled"
 
+class LedgerType(str, Enum):
+    DEBT = "debt"
+    CREDIT = "credit"
+    PAYMENT = "payment"
+
 product_recommendations = SQLTable(
     'product_recommendations',
     Base.metadata,
@@ -114,6 +119,9 @@ class Company(Base):
     trial_ends_at = Column(DateTime(timezone=True), nullable=True)
     is_active = Column(Boolean, default=True)
     
+    # Segurança
+    is_email_verified = Column(Boolean, default=False)
+    
     stripe_customer_id = Column(String(100), nullable=True, index=True)
     stripe_subscription_id = Column(String(100), nullable=True)
     subscription_status = Column(String(50), nullable=True)
@@ -135,6 +143,7 @@ class Company(Base):
     loyalty_percentage = Column(Numeric(5, 2), default=0.0)
     
     service_fee_percentage = Column(Numeric(5, 2), default=10.0)
+    fixed_delivery_fee = Column(Numeric(10, 2), default=0.00)
 
     cnpj = Column(String(20), nullable=True)
     inscricao_estadual = Column(String(20), nullable=True)
@@ -156,6 +165,7 @@ class Company(Base):
     suppliers = relationship("Supplier", back_populates="company", cascade="all, delete-orphan")
     audit_logs = relationship("AuditLog", back_populates="company", cascade="all, delete-orphan")
     service_ledger = relationship("ServiceFeeLedger", back_populates="company", cascade="all, delete-orphan")
+    driver_ledger = relationship("DriverLedger", back_populates="company", cascade="all, delete-orphan")
 
 class Employee(Base):
     __tablename__ = "employees"
@@ -171,6 +181,7 @@ class Employee(Base):
     company = relationship("Company", back_populates="employees")
     deliveries = relationship("Order", back_populates="driver")
     tips = relationship("ServiceFeeLedger", back_populates="employee")
+    driver_transactions = relationship("DriverLedger", back_populates="driver")
     __table_args__ = (Index("idx_employee_email", "email", unique=True),)
 
 class Table(Base):
@@ -321,12 +332,14 @@ class Order(Base):
     order_type = Column(SQLEnum(OrderType), default=OrderType.DINE_IN, nullable=False)
     customer_phone = Column(String(20), nullable=True)
     delivery_address = Column(Text, nullable=True)
+    delivery_code = Column(String(4), nullable=True)
     
     subtotal = Column(Numeric(10, 2), nullable=True)
     discount_amount = Column(Numeric(10, 2), default=0.0)
     cashback_earned = Column(Numeric(10, 2), default=0.0)
     
     service_fee = Column(Numeric(10, 2), default=0.0)
+    delivery_fee = Column(Numeric(10, 2), default=0.0)
     
     status = Column(SQLEnum(OrderStatus), default=OrderStatus.PENDING, nullable=False)
     payment_method = Column(SQLEnum(PaymentMethod), default=PaymentMethod.CASH)
@@ -354,6 +367,7 @@ class Order(Base):
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
     session = relationship("TableSession", back_populates="orders")
     driver = relationship("Employee", back_populates="deliveries")
+    driver_ledger_entries = relationship("DriverLedger", back_populates="order")
 
 class OrderItem(Base):
     __tablename__ = "order_items"
@@ -430,3 +444,37 @@ class ServiceFeeLedger(Base):
 
     company = relationship("Company", back_populates="service_ledger")
     employee = relationship("Employee", back_populates="tips")
+
+class DriverLedger(Base):
+    __tablename__ = "driver_ledger"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    driver_id = Column(Integer, ForeignKey("employees.id"), nullable=False)
+    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=True)
+    
+    type = Column(SQLEnum(LedgerType), nullable=False) # DEBT (Recebeu dinheiro) ou PAYMENT (Pagou ao restaurante)
+    amount = Column(Numeric(10, 2), nullable=False)
+    description = Column(String(255), nullable=True)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    company = relationship("Company", back_populates="driver_ledger")
+    driver = relationship("Employee", back_populates="driver_transactions")
+    order = relationship("Order", back_populates="driver_ledger_entries")
+
+class Lead(Base):
+    __tablename__ = "leads"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(255), nullable=False, index=True)
+    source = Column(String(50), default="landing_page")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+# NOVO: Tabela de Tokens de Recuperação de Senha
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_email = Column(String(255), nullable=False, index=True)
+    token = Column(String(64), nullable=False, unique=True, index=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    used = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -4,35 +4,69 @@ import { getCompanySettings } from "@/lib/api";
 type Segment = "gastro" | "event" | "hotel" | "corp";
 
 interface Terminology {
-  table: string;
-  waiter: string;
-  kitchen: string;
+  table: string;      // Ex: Mesa, Quarto, Assento
+  tables: string;     // Plural
+  waiter: string;     // Ex: Garçom, Camareira, Staff
+  kitchen: string;    // Ex: Cozinha, Bar, Copa
+  customer: string;   // Ex: Cliente, Hóspede
+  menu: string;       // Ex: Cardápio, Menu de Serviços
 }
 
 const DICTIONARY: Record<Segment, Terminology> = {
-  gastro: { table: "Mesa", waiter: "Garçom", kitchen: "Cozinha" },
-  event: { table: "Assento", waiter: "Staff", kitchen: "Bar/Copa" },
-  hotel: { table: "Quarto", waiter: "Serviço", kitchen: "Cozinha" },
-  corp: { table: "Ponto", waiter: "Atendente", kitchen: "Preparo" },
+  gastro: { 
+    table: "Mesa", 
+    tables: "Mesas", 
+    waiter: "Garçom", 
+    kitchen: "Cozinha", 
+    customer: "Cliente",
+    menu: "Cardápio"
+  },
+  hotel: { 
+    table: "Quarto", 
+    tables: "Quartos", 
+    waiter: "Serviço de Quarto", 
+    kitchen: "Cozinha", 
+    customer: "Hóspede",
+    menu: "Room Service"
+  },
+  event: { 
+    table: "Assento", 
+    tables: "Assentos", 
+    waiter: "Staff", 
+    kitchen: "Bar/Copa", 
+    customer: "Espectador",
+    menu: "Cardápio"
+  },
+  corp: { 
+    table: "Ponto", 
+    tables: "Pontos", 
+    waiter: "Atendente", 
+    kitchen: "Preparo", 
+    customer: "Colaborador",
+    menu: "Catálogo"
+  },
 };
 
 export function useTerminology() {
   const [segment, setSegment] = useState<Segment>("gastro");
 
   useEffect(() => {
-    // Tenta pegar do cache local primeiro para evitar flicker
+    // Tenta recuperar do cache local para evitar flicker
     const cached = localStorage.getItem("mesaflow_segment") as Segment;
-    if (cached) setSegment(cached);
+    if (cached && DICTIONARY[cached]) {
+      setSegment(cached);
+    }
 
+    // Atualiza com dados reais da API
     getCompanySettings()
       .then((data) => {
-        if (data.segment) {
+        if (data.segment && DICTIONARY[data.segment as Segment]) {
           setSegment(data.segment as Segment);
           localStorage.setItem("mesaflow_segment", data.segment);
         }
       })
-      .catch(() => {}); // Silently fail if not auth
+      .catch(() => {}); 
   }, []);
 
-  return DICTIONARY[segment] || DICTIONARY.gastro;
+  return DICTIONARY[segment];
 }

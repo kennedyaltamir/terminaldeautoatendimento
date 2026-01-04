@@ -6,7 +6,7 @@ export const loginSchema = z.object({
 });
 
 export const registerSchema = z.object({
-  company_name: z.string().min(3, "Nome do restaurante deve ter no mínimo 3 caracteres"),
+  company_name: z.string().min(3, "Nome do negócio deve ter no mínimo 3 caracteres"),
   company_slug: z
     .string()
     .min(3, "O link deve ter no mínimo 3 caracteres")
@@ -14,8 +14,10 @@ export const registerSchema = z.object({
   owner_email: z.string().email("Digite um e-mail válido"),
   owner_phone: z.string().optional(),
   owner_role: z.string().optional(),
-  // Garante que o segmento seja um dos valores permitidos
+  
+  // Campo essencial para a Verticalização (Hotel, Eventos, etc)
   segment: z.enum(["gastro", "event", "hotel", "corp"]).default("gastro"),
+  
   password: z
     .string()
     .min(8, "A senha deve ter no mínimo 8 caracteres")

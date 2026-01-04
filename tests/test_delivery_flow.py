@@ -12,7 +12,7 @@ def test_delivery_lifecycle():
     Testa o ciclo de vida de uma entrega:
     1. Login como Admin.
     2. Criação de pedido READY.
-    3. Listagem (Verifica se o 403 foi resolvido).
+    3. Listagem.
     4. Despacho e Finalização.
     """
     # 1. Login
@@ -40,13 +40,15 @@ def test_delivery_lifecycle():
     order_id = str(order.id)
     db.close()
 
-    # 3. Listar (Onde dava o erro 403)
+    # 3. Listar
     list_res = client.get("/api/admin/delivery/orders", headers=headers)
     assert list_res.status_code == 200
     
     # 4. Fluxo de Status
-    dispatch_res = client.patch(f"/api/admin/delivery/orders/{order_id}/dispatch", headers=headers)
+    # Enviar json={} para satisfazer o Pydantic (DispatchOrderRequest)
+    dispatch_res = client.patch(f"/api/admin/delivery/orders/{order_id}/dispatch", headers=headers, json={})
     assert dispatch_res.status_code == 200
     
-    complete_res = client.patch(f"/api/admin/delivery/orders/{order_id}/complete", headers=headers)
+    # CORREÇÃO: Enviar json={} para satisfazer o Pydantic (CompleteDeliveryRequest)
+    complete_res = client.patch(f"/api/admin/delivery/orders/{order_id}/complete", headers=headers, json={})
     assert complete_res.status_code == 200

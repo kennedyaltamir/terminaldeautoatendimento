@@ -24,15 +24,20 @@ export const settingsSchema = z.object({
   pix_key: z.string().optional().nullable(),
   mp_access_token: z.string().optional().nullable(),
   
-  // CORREÇÃO DE TIPAGEM:
-  // Usamos z.any() para aceitar a string do input HTML e transformamos em number.
-  // Isso evita o erro "unknown is not assignable to number".
+  // Porcentagens e Taxas (Conversão segura de string para number)
   loyalty_percentage: z.any()
     .transform((val) => {
       const num = Number(val);
       return isNaN(num) ? 0 : num;
     })
     .pipe(z.number().min(0).max(100)),
+
+  fixed_delivery_fee: z.any()
+    .transform((val) => {
+      const num = Number(val);
+      return isNaN(num) ? 0 : num;
+    })
+    .pipe(z.number().min(0)),
 });
 
 export type SettingsSchema = z.infer<typeof settingsSchema>;

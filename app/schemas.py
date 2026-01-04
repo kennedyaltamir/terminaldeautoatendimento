@@ -1,3 +1,4 @@
+# app/schemas.py
 from pydantic import BaseModel, ConfigDict, Field, EmailStr, field_validator
 from typing import List, Optional, Any
 from decimal import Decimal
@@ -44,6 +45,19 @@ class PasswordUpdate(BaseModel):
             raise ValueError('A senha deve conter letras e números')
         return v
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=8)
+
+    @field_validator('new_password')
+    def validate_password_strength(cls, v):
+        if not re.search(r'[A-Za-z]', v) or not re.search(r'[0-9]', v):
+            raise ValueError('A senha deve conter letras e números')
+        return v
+
 class CompanyPublic(BaseModel):
     name: str
     is_active: bool
@@ -77,8 +91,9 @@ class CompanyAdminSettings(CompanyPublic):
     csc_token: Optional[str] = None
     csc_id: Optional[str] = None
     
-    # Gorjeta
+    # Gorjeta & Delivery
     service_fee_percentage: Decimal = Decimal(10.0)
+    fixed_delivery_fee: Decimal = Decimal(0.0)
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -104,8 +119,9 @@ class CompanyUpdate(BaseModel):
     csc_token: Optional[str] = None
     csc_id: Optional[str] = None
     
-    # Gorjeta
+    # Gorjeta & Delivery
     service_fee_percentage: Optional[Decimal] = None
+    fixed_delivery_fee: Optional[Decimal] = None
 
     @field_validator('primary_color')
     def validate_hex_color(cls, v):
@@ -267,7 +283,8 @@ class OrderResponse(BaseModel):
     nfe_url_pdf: Optional[str] = None
     nfe_url_xml: Optional[str] = None
     
-    service_fee: Decimal = Decimal(0) # NOVO
+    service_fee: Decimal = Decimal(0)
+    delivery_fee: Decimal = Decimal(0)
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -290,6 +307,9 @@ class OrderCreate(BaseModel):
 
 class DispatchOrderRequest(BaseModel):
     driver_id: Optional[int] = None
+
+class CompleteDeliveryRequest(BaseModel):
+    code: Optional[str] = None
 
 # --- TABLES & SESSIONS ---
 
@@ -543,3 +563,42 @@ class TipReportItem(BaseModel):
     employee_name: str
     total_tips: float
     order_count: int
+
+# --- LOGISTICS & DRIVER FINANCE ---
+
+class DriverLedgerResponse(BaseModel):
+    id: int
+    type: str
+    amount: Decimal
+    description: Optional[str] = None
+    created_at: datetime
+    order_id: Optional[UUID] = None
+    model_config = ConfigDict(from_attributes=True)
+
+class DriverBalanceResponse(BaseModel):
+    driver_id: int
+    driver_name: str
+    current_debt: Decimal
+    transactions: List[DriverLedgerResponse]
+    model_config = ConfigDict(from_attributes=True)
+
+class SettleDebtRequest(BaseModel):
+    amount: Decimal
+    description: Optional[str] = "Acerto de contas"
+
+class DriverRecommendation(BaseModel):
+    driver_id: int
+    name: str
+    active_deliveries: int
+    last_delivery_time: Optional[datetime] = None
+    model_config = ConfigDict(from_attributes=True)
+
+# --- LEADS ---
+
+class LeadCreate(BaseModel):
+    email: EmailStr
+    source: str = "landing_page"
+
+class LeadResponse(BaseModel):
+    message: str
+    download_url: str

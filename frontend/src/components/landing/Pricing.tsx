@@ -45,7 +45,7 @@ export default function Pricing() {
                 <li className="flex gap-3"><Check size={18} className="text-green-500"/> Cardápio Digital</li>
                 <li className="flex gap-3"><Check size={18} className="text-green-500"/> Pagamento Pix Manual</li>
               </ul>
-              <Link href="/admin/register" className="block w-full py-3 rounded-xl border border-gray-600 text-center font-bold hover:bg-gray-700 transition-colors">Começar Grátis</Link>
+              <Link href="/admin/register?plan=free" className="block w-full py-3 rounded-xl border border-gray-600 text-center font-bold hover:bg-gray-700 transition-colors">Começar Grátis</Link>
             </div>
           </ScrollReveal>
 
@@ -65,7 +65,7 @@ export default function Pricing() {
                 <li className="flex gap-3"><Check size={18} className="text-white"/> Pix Automático & Cartão</li>
                 <li className="flex gap-3"><Check size={18} className="text-white"/> Programa de Fidelidade</li>
               </ul>
-              <Link href="/admin/register" className="block w-full py-3 rounded-xl bg-white text-orange-600 text-center font-bold hover:bg-gray-100 transition-colors">Assinar Pro</Link>
+              <Link href="/admin/register?plan=pro" className="block w-full py-3 rounded-xl bg-white text-orange-600 text-center font-bold hover:bg-gray-100 transition-colors">Assinar Pro</Link>
             </div>
           </ScrollReveal>
 

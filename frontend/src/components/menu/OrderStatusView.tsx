@@ -1,11 +1,14 @@
 "use client";
-import { Clock, ChefHat, CheckCircle2, Banknote, Copy, Loader2, Utensils, Plus } from "lucide-react";
+import { Clock, ChefHat, CheckCircle2, Banknote, Copy, Loader2, Utensils, Plus, MapPin, Navigation } from "lucide-react";
 import { Order } from "@/types";
 import { QRCodeSVG } from "qrcode.react";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import { useState, useCallback } from "react";
 
 export default function OrderStatusView({ order, onNewOrder, primaryColor }: { order: Order, onNewOrder: () => void, primaryColor: string }) {
   const isPaid = order.payment_status === 'paid';
   const isOnline = order.payment_method === 'online';
+  const [driverLocation, setDriverLocation] = useState<{lat: number, lng: number} | null>(null);
 
   const steps = [
     { id: 'pending', label: 'Recebido', icon: Clock },
@@ -13,14 +16,37 @@ export default function OrderStatusView({ order, onNewOrder, primaryColor }: { o
     { id: 'ready', label: 'Pronto', icon: CheckCircle2 },
   ];
 
+  // Adiciona passo de entrega se for delivery
+  if (order.order_type === 'delivery') {
+    steps.push({ id: 'delivering', label: 'Em Rota', icon: MapPin });
+  }
+
   const currentStepIndex = steps.findIndex(s => s.id === order.status) === -1 
-    ? (order.status === 'accepted' ? 0 : (order.status === 'delivered' ? 3 : 0)) 
+    ? (order.status === 'accepted' ? 0 : (order.status === 'delivered' ? steps.length : 0)) 
     : steps.findIndex(s => s.id === order.status);
 
   const copyToClipboard = () => {
     if (order.mp_qr_code) {
       navigator.clipboard.writeText(order.mp_qr_code);
       alert("Código Pix copiado!");
+    }
+  };
+
+  // Listener de Rastreamento
+  const handleWebSocketMessage = useCallback((data: any) => {
+    if (data.type === "driver_location" && data.order_id === order.id) {
+      setDriverLocation({ lat: data.lat, lng: data.lng });
+    }
+  }, [order.id]);
+
+  // Usa o slug da empresa que vem no pedido (precisamos garantir que o objeto order tenha company.slug ou passamos via props)
+  // Como o Order type não tem slug direto, vamos assumir que o contexto WS já está conectado no slug correto pelo layout.
+  // O hook useWebSocket apenas adiciona o listener.
+  useWebSocket("", handleWebSocketMessage); 
+
+  const openTrackingMap = () => {
+    if (driverLocation) {
+      window.open(`https://www.google.com/maps/search/?api=1&query=${driverLocation.lat},${driverLocation.lng}`, '_blank');
     }
   };
 
@@ -59,9 +85,35 @@ export default function OrderStatusView({ order, onNewOrder, primaryColor }: { o
                 );
               })}
             </div>
-            {order.status === 'ready' && (
+            
+            {order.status === 'ready' && order.order_type !== 'delivery' && (
               <div className="mt-6 bg-green-50 text-green-800 p-3 rounded-xl text-center font-bold animate-bounce">
                 🍽️ Seu pedido está pronto!
+              </div>
+            )}
+
+            {order.status === 'delivering' && (
+              <div className="mt-6 space-y-3">
+                <div className="bg-blue-50 text-blue-800 p-3 rounded-xl text-center font-bold flex items-center justify-center gap-2">
+                  <Navigation size={18} className="animate-pulse"/> Motorista a caminho!
+                </div>
+                
+                {driverLocation && (
+                  <button 
+                    onClick={openTrackingMap}
+                    className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
+                  >
+                    <MapPin size={18} /> Ver Localização Atual
+                  </button>
+                )}
+                
+                {order.delivery_code && (
+                  <div className="bg-gray-100 p-4 rounded-xl text-center border border-gray-200">
+                    <p className="text-xs text-gray-500 uppercase font-bold mb-1">Código de Entrega</p>
+                    <p className="text-3xl font-mono font-black tracking-widest text-gray-900">{order.delivery_code}</p>
+                    <p className="text-[10px] text-gray-400 mt-1">Informe ao entregador</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -90,7 +142,9 @@ export default function OrderStatusView({ order, onNewOrder, primaryColor }: { o
               <Banknote className="text-orange-600" size={32} />
             </div>
             <h3 className="font-bold text-orange-900 text-lg">Aguardando Pagamento</h3>
-            <p className="text-orange-700 text-sm mt-1">O garçom irá até sua mesa para receber.</p>
+            <p className="text-orange-700 text-sm mt-1">
+              {order.order_type === 'delivery' ? 'Pagamento na entrega.' : 'O garçom irá até sua mesa.'}
+            </p>
           </div>
         )}
 
@@ -114,6 +168,12 @@ export default function OrderStatusView({ order, onNewOrder, primaryColor }: { o
             ))}
             
             <div className="border-t border-dashed border-gray-200 pt-4 mt-4 space-y-2">
+              {Number(order.delivery_fee) > 0 && (
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Taxa de Entrega</span>
+                  <span>R$ {Number(order.delivery_fee).toFixed(2)}</span>
+                </div>
+              )}
               {Number(order.discount_amount) > 0 && (
                 <div className="flex justify-between text-sm text-green-600">
                   <span>Desconto Fidelidade</span>

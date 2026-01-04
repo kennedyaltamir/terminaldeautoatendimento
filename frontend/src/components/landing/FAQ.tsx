@@ -7,9 +7,12 @@ export default function FAQ() {
 
   const faqs = [
     { q: "Preciso comprar equipamentos específicos?", a: "Não. O MesaFlow roda em qualquer dispositivo com navegador (celular, tablet, notebook). Você pode usar o que já tem." },
-    { q: "Funciona se a internet cair?", a: "O sistema precisa de internet para processar pagamentos e sincronizar a cozinha. Recomendamos ter um 4G de backup." },
-    { q: "Emite Nota Fiscal?", a: "Sim, no plano Enterprise temos integração direta com emissores de NFC-e e SAT." },
-    { q: "Posso usar meu próprio domínio?", a: "Sim, oferecemos White Label completo no plano Enterprise." },
+    { q: "Funciona se a internet cair?", a: "O sistema precisa de internet para processar pagamentos e sincronizar a cozinha. Recomendamos ter um 4G de backup. O modo offline permite lançar pedidos, mas a sincronização ocorre quando a rede volta." },
+    { q: "Emite Nota Fiscal?", a: "Sim, no plano Enterprise temos integração direta com emissores de NFC-e e SAT via parceiros (eNotas/Focus)." },
+    { q: "Posso usar meu próprio domínio?", a: "Sim, oferecemos White Label completo no plano Enterprise (ex: pedidos.suamarca.com)." },
+    { q: "Tem fidelidade ou multa de cancelamento?", a: "Não. Você pode cancelar a qualquer momento diretamente pelo painel administrativo, sem falar com ninguém." },
+    { q: "Integra com iFood?", a: "A integração direta está em nosso roadmap para o próximo trimestre. Por enquanto, você pode usar o MesaFlow para sua operação de salão e delivery próprio." },
+    { q: "Como funciona o suporte?", a: "Clientes Pro e Enterprise têm acesso a suporte prioritário via WhatsApp. Clientes Start contam com nossa base de conhecimento e suporte por e-mail." },
   ];
 
   return (

@@ -6,12 +6,13 @@ from app.models import (
     Company, Category, Table, Product, Order, OrderItem, OrderStatus, 
     Option, OrderItemOption, OptionGroup, PaymentMethod, OrderType, 
     ServiceRequest, ServiceType, CustomerWallet, TableSession, 
-    PaymentStatus, Employee, UserRole
+    PaymentStatus, Employee, UserRole, Lead
 )
 from app.schemas import (
     MenuResponse, OrderCreate, OrderResponse, ServiceRequestCreate, 
     ServiceRequestResponse, WalletResponse, CheckTableRequest, 
-    CheckTableResponse, TableSessionResponse, JoinTableRequest
+    CheckTableResponse, TableSessionResponse, JoinTableRequest,
+    LeadCreate, LeadResponse
 )
 from app.services.payment_service import PaymentService
 from app.services.stock_service import StockService
@@ -38,18 +39,10 @@ def is_restaurant_open(company: Company) -> bool:
 
 @router.get("/resolve-domain")
 def resolve_domain(host: str, db: Session = Depends(get_db)):
-    """
-    Endpoint para o Middleware do Frontend.
-    Recebe um domínio (ex: pedidos.bk.com.br) e retorna o slug (ex: burger-king).
-    """
-    # Remove porta se houver
     clean_host = host.split(":")[0]
-    
     company = db.query(Company).filter(Company.custom_domain == clean_host).first()
-    
     if not company:
         raise HTTPException(status_code=404, detail="Domínio não encontrado")
-        
     return {"slug": company.slug, "valid": True}
 
 @router.get("/{company_slug}/menu", response_model=MenuResponse)
@@ -87,12 +80,10 @@ def get_menu(request: Request, company_slug: str, db: Session = Depends(get_db))
             start = cat.start_time
             end = cat.end_time
             is_active = False
-            
             if start < end:
                 is_active = start <= current_time <= end
             else:
                 is_active = current_time >= start or current_time <= end
-            
             if not is_active:
                 continue
 
@@ -301,15 +292,21 @@ async def create_order(
     subtotal = Decimal(0)
     db_items = []
 
+    # Validação e Construção dos Itens
     for item in order_data.items:
-        product = db.query(Product).join(Category).filter(Product.id == item.product_id, Category.company_id == company.id).with_for_update().first()
+        # Lock para garantir leitura consistente durante a transação
+        product = db.query(Product).join(Category).filter(
+            Product.id == item.product_id, 
+            Category.company_id == company.id
+        ).with_for_update().first()
+
         if not product or not product.is_available:
             raise HTTPException(status_code=400, detail=f"Produto indisponível: {product.name if product else '?'}")
         
+        # Verificação preliminar de estoque do produto (simples)
         if product.track_stock:
             if product.stock_quantity < item.quantity:
                 raise HTTPException(status_code=400, detail=f"Estoque insuficiente: {product.name}")
-            product.stock_quantity -= item.quantity
 
         item_price = product.price
         selected_options_db = []
@@ -342,13 +339,23 @@ async def create_order(
             wallet.balance -= discount_amount
             db.add(wallet)
 
-    total_amount = subtotal - discount_amount
+    # Cálculo da Taxa de Entrega (NOVO)
+    delivery_fee = Decimal(0)
+    if order_data.order_type == OrderType.DELIVERY:
+        delivery_fee = company.fixed_delivery_fee or Decimal(0)
+
+    total_amount = subtotal + delivery_fee - discount_amount
 
     cashback_earned = Decimal(0)
     if company.loyalty_percentage > 0 and total_amount > 0:
         cashback_earned = total_amount * (company.loyalty_percentage / Decimal(100))
 
     initial_status = OrderStatus.ACCEPTED if is_staff else OrderStatus.PENDING
+
+    # Geração do Código de Entrega (POD)
+    delivery_code = None
+    if order_data.order_type == OrderType.DELIVERY:
+        delivery_code = str(random.randint(1000, 9999))
 
     new_order = Order(
         company_id=company.id, 
@@ -358,11 +365,13 @@ async def create_order(
         customer_name=order_data.customer_name,
         customer_phone=clean_phone,
         delivery_address=order_data.delivery_address,
+        delivery_code=delivery_code,
         
         subtotal=subtotal,
         discount_amount=discount_amount,
         total_amount=total_amount,
         cashback_earned=cashback_earned,
+        delivery_fee=delivery_fee, # NOVO
         
         status=initial_status,
         payment_method=order_data.payment_method
@@ -375,9 +384,13 @@ async def create_order(
         db_item.order_id = new_order.id
     db.add_all(db_items)
     
-    stock_service.deduct_stock_for_order(db, db_items, background_tasks)
-
-    db.commit()
+    try:
+        stock_service.deduct_stock_for_order(db, db_items, background_tasks)
+        db.commit()
+    except Exception as e:
+        db.delete(new_order)
+        db.commit()
+        raise e
 
     if order_data.payment_method == "online" and total_amount > 0: 
         try:
@@ -459,3 +472,25 @@ async def request_service(
     }, company_slug)
     
     return existing
+
+# --- LEADS ENDPOINT ---
+@router.post("/leads", response_model=LeadResponse, status_code=201)
+@limiter.limit("5/minute")
+def create_lead(
+    request: Request,
+    lead_data: LeadCreate,
+    db: Session = Depends(get_db)
+):
+    # Verifica se já existe
+    existing = db.query(Lead).filter(Lead.email == lead_data.email).first()
+    if not existing:
+        new_lead = Lead(email=lead_data.email, source=lead_data.source)
+        db.add(new_lead)
+        db.commit()
+    
+    # Em um cenário real, aqui dispararíamos o e-mail com o PDF
+    # Por enquanto, retornamos um link simulado
+    return {
+        "message": "Sucesso! Verifique seu e-mail.",
+        "download_url": "https://mesaflow.com/assets/guia-eficiencia-2026.pdf"
+    }

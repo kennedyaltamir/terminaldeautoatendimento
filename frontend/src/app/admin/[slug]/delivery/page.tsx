@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Order } from "@/types";
-import { Bike, MapPin, CheckCircle2, Navigation, Phone, Clock, User } from "lucide-react";
+import { Bike, MapPin, CheckCircle2, Navigation, Phone, Clock, User, ChefHat } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { getToken } from "@/lib/auth";
 import DispatchModal from "@/components/admin/DispatchModal";
@@ -36,7 +36,7 @@ export default function DeliveryPage({ params }: { params: { slug: string } }) {
 
   useEffect(() => {
     fetchOrders();
-    const interval = setInterval(fetchOrders, 15000); // Polling a cada 15s
+    const interval = setInterval(fetchOrders, 15000);
     return () => clearInterval(interval);
   }, []);
 
@@ -46,7 +46,8 @@ export default function DeliveryPage({ params }: { params: { slug: string } }) {
       const token = getToken();
       await fetch(`${API_URL}/admin/delivery/orders/${id}/complete`, {
         method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ code: null }) // Admin pode bypassar código se necessário, ou implementar modal
       });
       toast.success("Entrega finalizada!");
       fetchOrders();
@@ -63,6 +64,16 @@ export default function DeliveryPage({ params }: { params: { slug: string } }) {
     window.open(`https://wa.me/${phone}`, '_blank');
   };
 
+  const getStatusBadge = (status: string) => {
+    switch(status) {
+        case 'pending': return <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold uppercase">Pendente</span>;
+        case 'preparing': return <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-bold uppercase">Preparando</span>;
+        case 'ready': return <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold uppercase">Pronto</span>;
+        case 'delivering': return <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold uppercase">Em Rota</span>;
+        default: return <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-bold uppercase">{status}</span>;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 pb-20">
       <Toaster position="top-center" richColors />
@@ -71,7 +82,7 @@ export default function DeliveryPage({ params }: { params: { slug: string } }) {
         <h1 className="text-xl font-bold flex items-center gap-2">
           <Bike className="text-orange-500" /> Entregas
         </h1>
-        <p className="text-xs text-gray-400">Pedidos prontos para envio</p>
+        <p className="text-xs text-gray-400">Gestão de Logística</p>
       </div>
 
       <div className="p-4 space-y-4">
@@ -84,16 +95,14 @@ export default function DeliveryPage({ params }: { params: { slug: string } }) {
           </div>
         ) : (
           orders.map(order => (
-            <div key={order.id} className={`bg-white rounded-xl shadow-sm border-l-4 overflow-hidden ${order.status === 'delivering' ? 'border-blue-500' : 'border-green-500'}`}>
+            <div key={order.id} className={`bg-white rounded-xl shadow-sm border-l-4 overflow-hidden ${order.status === 'delivering' ? 'border-blue-500' : order.status === 'ready' ? 'border-green-500' : 'border-yellow-500'}`}>
               <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <h3 className="font-bold text-lg">{order.customer_name}</h3>
                     <p className="text-xs text-gray-500">#{order.id.slice(0,6)} • {new Date(order.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>
                   </div>
-                  <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${order.status === 'delivering' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
-                    {order.status === 'delivering' ? 'Em Rota' : 'Pronto'}
-                  </span>
+                  {getStatusBadge(order.status)}
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded-lg mb-4 border border-gray-100">
@@ -109,7 +118,6 @@ export default function DeliveryPage({ params }: { params: { slug: string } }) {
                   )}
                 </div>
 
-                {/* Exibir Entregador se já estiver em rota */}
                 {order.status === 'delivering' && order.driver_id && (
                    <div className="flex items-center gap-2 mb-4 text-xs text-blue-600 bg-blue-50 p-2 rounded border border-blue-100">
                       <User size={14} />
@@ -125,12 +133,16 @@ export default function DeliveryPage({ params }: { params: { slug: string } }) {
                     >
                       <Bike size={18} /> Iniciar Entrega
                     </button>
-                  ) : (
+                  ) : order.status === 'delivering' ? (
                     <button 
                       onClick={() => handleComplete(order.id)}
                       className="flex-1 bg-green-600 text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-green-700 transition-colors"
                     >
                       <CheckCircle2 size={18} /> Finalizar
+                    </button>
+                  ) : (
+                    <button disabled className="flex-1 bg-gray-200 text-gray-500 py-3 rounded-lg font-bold flex items-center justify-center gap-2 cursor-not-allowed">
+                        <ChefHat size={18} /> Aguardando Cozinha
                     </button>
                   )}
                   

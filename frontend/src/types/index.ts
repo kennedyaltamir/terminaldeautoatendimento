@@ -13,6 +13,7 @@ export interface Company {
   plan_tier: 'free' | 'pro' | 'enterprise';
   stripe_subscription_id?: string;
   subscription_status?: string;
+  fixed_delivery_fee?: number; // NOVO
 }
 
 export interface Option {
@@ -122,7 +123,12 @@ export interface Order {
   items: OrderItemResponse[];
   mp_qr_code?: string;
   mp_qr_code_base64?: string;
-  driver_id?: number; // NOVO
+  driver_id?: number;
+  
+  // Novos campos de Logística
+  delivery_code?: string;
+  delivery_fee?: number;
+  service_fee?: number;
 }
 
 export interface Table {

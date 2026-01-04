@@ -15,11 +15,26 @@ def require_owner(current_user: any = Depends(get_current_user)):
 
 @router.get("/me", response_model=CompanyAdminSettings)
 def get_my_company(current_user: any = Depends(get_current_user)):
-    # Todos podem ver dados básicos (nome, logo), mas dados sensíveis devem ser filtrados no frontend ou aqui
-    # Por simplicidade, retornamos o objeto, mas o frontend do garçom não tem acesso à tela de config.
+    """
+    Retorna os dados da empresa.
+    SEGURANÇA: Mascara o token do Mercado Pago para não expor no frontend.
+    """
+    # Determina a empresa alvo (se for funcionário, pega a empresa dele)
     if isinstance(current_user, Employee):
-        return current_user.company
-    return current_user
+        company = current_user.company
+    else:
+        company = current_user
+    
+    # Converte para Pydantic para manipulação segura
+    settings = CompanyAdminSettings.model_validate(company)
+    
+    # Mascaramento de Credenciais
+    if settings.mp_access_token:
+        # Mantém apenas o prefixo e os últimos 4 dígitos
+        visible_part = settings.mp_access_token[-4:]
+        settings.mp_access_token = f"APP_USR-****{visible_part}"
+        
+    return settings
 
 @router.patch("/me", response_model=CompanyAdminSettings)
 def update_my_company(
@@ -29,10 +44,19 @@ def update_my_company(
 ):
     update_data = company_data.model_dump(exclude_unset=True)
     
+    # Lógica de Segurança para o Token MP
     if "mp_access_token" in update_data:
         token = update_data["mp_access_token"]
+        
+        # Caso 1: Token vazio -> Remover (Desconectar)
         if token == "":
             update_data["mp_access_token"] = None
+            
+        # Caso 2: Token Mascarado -> Ignorar (Usuário não alterou)
+        elif token and "****" in token:
+            del update_data["mp_access_token"]
+            
+        # Caso 3: Novo Token Real -> Validar e Salvar
         elif token and not token.startswith("APP_USR-"):
             raise HTTPException(status_code=400, detail="Token do Mercado Pago inválido. Deve começar com APP_USR-")
 
@@ -41,7 +65,14 @@ def update_my_company(
     
     db.commit()
     db.refresh(current_user)
-    return current_user
+    
+    # Retorna mascarado novamente para manter a consistência na UI
+    settings = CompanyAdminSettings.model_validate(current_user)
+    if settings.mp_access_token:
+        visible_part = settings.mp_access_token[-4:]
+        settings.mp_access_token = f"APP_USR-****{visible_part}"
+        
+    return settings
 
 @router.patch("/me/password", status_code=status.HTTP_200_OK)
 def update_password(

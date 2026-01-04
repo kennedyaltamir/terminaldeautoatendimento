@@ -7,7 +7,7 @@ import { Plus, Trash2, Printer, Copy, Check, Grid, QrCode, User, Clock, DollarSi
 import { QRCodeSVG } from "qrcode.react";
 import Modal from "@/components/ui/Modal";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import { useTerminology } from "@/hooks/useTerminology"; // NOVO
+import { useTerminology } from "@/hooks/useTerminology";
 
 interface TableDashboard extends Table {
   status: 'free' | 'occupied' | 'alert';
@@ -154,7 +154,7 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
       <div className="print:hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Grid className="text-orange-500" /> Mapa de {terms.table}s
+            <Grid className="text-orange-500" /> Mapa de {terms.tables}
           </h1>
           <p className="text-gray-400 text-sm mt-1">Visão geral da operação em tempo real.</p>
         </div>
@@ -177,7 +177,7 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
           )}
 
           <button onClick={() => setIsCreateModalOpen(true)} className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-medium transition-colors text-sm">
-            <Plus size={16} /> {terms.table}s
+            <Plus size={16} /> {terms.tables}
           </button>
           <button onClick={() => window.print()} className="bg-white text-gray-900 px-4 py-2 rounded-xl flex items-center gap-2 font-bold transition-colors text-sm hover:bg-gray-100">
             <Printer size={16} /> QR Codes
@@ -279,7 +279,7 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
           <div className="space-y-4">
             <p className="text-gray-500">Este local está livre. Deseja abrir manualmente?</p>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Nome do Cliente</label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Nome do {terms.customer}</label>
               <input 
                 type="text" 
                 className="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-orange-500"
@@ -312,7 +312,7 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
           <div className="space-y-6">
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
               <div className="flex justify-between mb-2">
-                <span className="text-gray-500">Cliente</span>
+                <span className="text-gray-500">{terms.customer}</span>
                 <span className="font-bold">{selectedTable?.active_session?.customer_name}</span>
               </div>
               <div className="flex justify-between mb-2">
@@ -327,7 +327,7 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
 
             {selectedTable?.status === 'alert' && (
               <div className="bg-yellow-50 text-yellow-800 p-3 rounded-lg text-sm font-bold flex items-center gap-2">
-                <BellRing size={16} /> O cliente solicitou: {selectedTable.service_request === 'bill' ? 'A Conta' : terms.waiter}
+                <BellRing size={16} /> O {terms.customer.toLowerCase()} solicitou: {selectedTable.service_request === 'bill' ? 'A Conta' : terms.waiter}
               </div>
             )}
 
@@ -352,7 +352,7 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
         )}
       </Modal>
 
-      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title={`Adicionar ${terms.table}s`}>
+      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title={`Adicionar ${terms.tables}`}>
         <div className="space-y-6">
           <div>
             <h4 className="font-bold text-sm text-gray-500 mb-2">Individual</h4>
