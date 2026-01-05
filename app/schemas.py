@@ -1,10 +1,19 @@
-# app/schemas.py
 from pydantic import BaseModel, ConfigDict, Field, EmailStr, field_validator
 from typing import List, Optional, Any
 from decimal import Decimal
 from uuid import UUID
 from datetime import time, datetime, date
 import re
+
+# --- VALIDATORS REUTILIZÁVEIS ---
+
+def sanitize_html(v: str | None) -> str | None:
+    """Remove tags HTML para prevenir XSS Stored"""
+    if v is None:
+        return None
+    # Remove qualquer coisa entre < e >
+    clean = re.sub(r'<[^>]*>', '', v)
+    return clean.strip()
 
 # --- AUTH & COMPANY ---
 
@@ -16,6 +25,9 @@ class SignUpRequest(BaseModel):
     owner_phone: Optional[str] = None
     owner_role: Optional[str] = None
     segment: str = "gastro"
+
+    @field_validator('company_name', 'owner_role')
+    def sanitize(cls, v): return sanitize_html(v)
 
     @field_validator('password')
     def validate_password_strength(cls, v):
@@ -64,6 +76,11 @@ class CompanyPublic(BaseModel):
     logo_url: Optional[str] = None
     primary_color: str = "#ea580c"
     banner_url: Optional[str] = None
+    
+    background_color: Optional[str] = "#f9fafb"
+    text_color: Optional[str] = "#111827"
+    accent_color: Optional[str] = "#ea580c"
+
     opens_at: Optional[time] = None
     closes_at: Optional[time] = None
     owner_email: Optional[str] = None
@@ -84,14 +101,12 @@ class CompanyAdminSettings(CompanyPublic):
     stripe_subscription_id: Optional[str] = None
     subscription_status: Optional[str] = None
     
-    # Fiscal
     cnpj: Optional[str] = None
     inscricao_estadual: Optional[str] = None
     fiscal_token: Optional[str] = None
     csc_token: Optional[str] = None
     csc_id: Optional[str] = None
     
-    # Gorjeta & Delivery
     service_fee_percentage: Decimal = Decimal(10.0)
     fixed_delivery_fee: Decimal = Decimal(0.0)
     
@@ -100,8 +115,13 @@ class CompanyAdminSettings(CompanyPublic):
 class CompanyUpdate(BaseModel):
     name: Optional[str] = None
     logo_url: Optional[str] = None
-    primary_color: Optional[str] = None
     banner_url: Optional[str] = None
+    
+    primary_color: Optional[str] = None
+    background_color: Optional[str] = None
+    text_color: Optional[str] = None
+    accent_color: Optional[str] = None
+
     opens_at: Optional[time] = None
     closes_at: Optional[time] = None
     pix_key: Optional[str] = None
@@ -112,18 +132,19 @@ class CompanyUpdate(BaseModel):
     wifi_ssid: Optional[str] = None
     wifi_password: Optional[str] = None
     
-    # Fiscal
     cnpj: Optional[str] = None
     inscricao_estadual: Optional[str] = None
     fiscal_token: Optional[str] = None
     csc_token: Optional[str] = None
     csc_id: Optional[str] = None
     
-    # Gorjeta & Delivery
     service_fee_percentage: Optional[Decimal] = None
     fixed_delivery_fee: Optional[Decimal] = None
 
-    @field_validator('primary_color')
+    @field_validator('name', 'wifi_ssid')
+    def sanitize(cls, v): return sanitize_html(v)
+
+    @field_validator('primary_color', 'background_color', 'text_color', 'accent_color')
     def validate_hex_color(cls, v):
         if v is not None:
             if not re.match(r'^#(?:[0-9a-fA-F]{3}){1,2}$', v):
@@ -192,12 +213,18 @@ class CategoryCreate(BaseModel):
     start_time: Optional[time] = None
     end_time: Optional[time] = None
 
+    @field_validator('name')
+    def sanitize(cls, v): return sanitize_html(v)
+
 class CategoryUpdate(BaseModel):
     name: Optional[str] = None
     order_index: Optional[int] = None
     availability_days: Optional[List[int]] = None
     start_time: Optional[time] = None
     end_time: Optional[time] = None
+
+    @field_validator('name')
+    def sanitize(cls, v): return sanitize_html(v)
 
 class ProductCreate(BaseModel):
     category_id: int
@@ -215,6 +242,9 @@ class ProductCreate(BaseModel):
     cfop: str = "5102"
     recommended_ids: List[int] = []
 
+    @field_validator('name', 'description', 'short_code')
+    def sanitize(cls, v): return sanitize_html(v)
+
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
@@ -230,14 +260,23 @@ class ProductUpdate(BaseModel):
     cfop: Optional[str] = None
     recommended_ids: Optional[List[int]] = None
 
+    @field_validator('name', 'description', 'short_code')
+    def sanitize(cls, v): return sanitize_html(v)
+
 class OptionGroupCreate(BaseModel):
     name: str
     min_selection: int = 0
     max_selection: int = 1
 
+    @field_validator('name')
+    def sanitize(cls, v): return sanitize_html(v)
+
 class OptionCreate(BaseModel):
     name: str
     price: Decimal = Decimal(0)
+
+    @field_validator('name')
+    def sanitize(cls, v): return sanitize_html(v)
 
 # --- ORDERS ---
 
@@ -290,9 +329,12 @@ class OrderResponse(BaseModel):
 
 class OrderItemCreate(BaseModel):
     product_id: int
-    quantity: int
+    quantity: int = Field(..., gt=0, description="Quantidade deve ser positiva")
     notes: Optional[str] = None
     selected_options: List[int] = []
+
+    @field_validator('notes')
+    def sanitize(cls, v): return sanitize_html(v)
 
 class OrderCreate(BaseModel):
     table_id: Optional[int] = None
@@ -304,6 +346,9 @@ class OrderCreate(BaseModel):
     payment_method: str = "cash"
     use_balance: bool = False
     items: List[OrderItemCreate]
+
+    @field_validator('customer_name', 'delivery_address', 'customer_phone')
+    def sanitize(cls, v): return sanitize_html(v)
 
 class DispatchOrderRequest(BaseModel):
     driver_id: Optional[int] = None
@@ -334,6 +379,9 @@ class ServiceRequestCreate(BaseModel):
     qr_token: str
     service_type: str
     notes: Optional[str] = None
+
+    @field_validator('notes')
+    def sanitize(cls, v): return sanitize_html(v)
 
 class ServiceRequestResponse(BaseModel):
     id: int
@@ -375,6 +423,9 @@ class JoinTableRequest(BaseModel):
     customer_name: str
     pin: Optional[str] = None
 
+    @field_validator('customer_name')
+    def sanitize(cls, v): return sanitize_html(v)
+
 class TableSessionSummary(BaseModel):
     id: int
     customer_name: str
@@ -396,6 +447,9 @@ class TableDashboardResponse(BaseModel):
 class OpenTableRequest(BaseModel):
     customer_name: str
 
+    @field_validator('customer_name')
+    def sanitize(cls, v): return sanitize_html(v)
+
 class CloseTableRequest(BaseModel):
     payment_method: str
 
@@ -406,6 +460,9 @@ class TablePositionUpdate(BaseModel):
 
 class SessionUpdate(BaseModel):
     customer_name: str
+
+    @field_validator('customer_name')
+    def sanitize(cls, v): return sanitize_html(v)
 
 class TableSessionDetail(BaseModel):
     id: int
@@ -430,6 +487,9 @@ class IngredientCreate(BaseModel):
     cost_per_unit: Decimal = Decimal(0)
     supplier_id: Optional[int] = None
 
+    @field_validator('name')
+    def sanitize(cls, v): return sanitize_html(v)
+
 class IngredientResponse(BaseModel):
     id: int
     name: str
@@ -453,6 +513,9 @@ class SupplierCreate(BaseModel):
     contact_name: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
+
+    @field_validator('name', 'contact_name')
+    def sanitize(cls, v): return sanitize_html(v)
 
 class SupplierResponse(BaseModel):
     id: int
@@ -482,12 +545,18 @@ class EmployeeCreate(BaseModel):
     password: str = Field(..., min_length=4)
     role: str = "kitchen"
 
+    @field_validator('name')
+    def sanitize(cls, v): return sanitize_html(v)
+
 class EmployeeUpdate(BaseModel):
     name: Optional[str] = None
     email: Optional[EmailStr] = None
     password: Optional[str] = None
     role: Optional[str] = None
     is_active: Optional[bool] = None
+
+    @field_validator('name')
+    def sanitize(cls, v): return sanitize_html(v)
 
 class EmployeeResponse(BaseModel):
     id: int
@@ -585,6 +654,9 @@ class DriverBalanceResponse(BaseModel):
 class SettleDebtRequest(BaseModel):
     amount: Decimal
     description: Optional[str] = "Acerto de contas"
+
+    @field_validator('description')
+    def sanitize(cls, v): return sanitize_html(v)
 
 class DriverRecommendation(BaseModel):
     driver_id: int

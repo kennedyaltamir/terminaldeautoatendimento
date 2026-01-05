@@ -4,6 +4,12 @@ export interface Company {
   logo_url?: string;
   primary_color: string;
   banner_url?: string;
+  
+  // Novos campos de tema
+  background_color?: string;
+  text_color?: string;
+  accent_color?: string;
+
   opens_at?: string;
   closes_at?: string;
   owner_email?: string;
@@ -13,7 +19,11 @@ export interface Company {
   plan_tier: 'free' | 'pro' | 'enterprise';
   stripe_subscription_id?: string;
   subscription_status?: string;
-  fixed_delivery_fee?: number; // NOVO
+  fixed_delivery_fee?: number;
+
+  // Novos campos de Pagamento (Multi-Provedor)
+  payment_provider?: 'mercadopago' | 'efi' | 'stripe' | 'pagarme' | 'none';
+  payment_credentials?: any;
 }
 
 export interface Option {
@@ -125,7 +135,6 @@ export interface Order {
   mp_qr_code_base64?: string;
   driver_id?: number;
   
-  // Novos campos de Logística
   delivery_code?: string;
   delivery_fee?: number;
   service_fee?: number;

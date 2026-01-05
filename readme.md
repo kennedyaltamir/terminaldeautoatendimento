@@ -1,147 +1,110 @@
-# 🚀 MesaFlow
+README.md
+code
+Markdown
+download
+content_copy
+expand_less
+# 🚀 MesaFlow: O Sistema Operacional para Food Service
 
-> **Sistema Operacional de Autoatendimento para Food Service.**
-> Transforme mesas em pontos de venda inteligentes. Sem filas, sem apps, sem espera.
+> **Transforme mesas em pontos de venda inteligentes e elimine a fricção entre o cliente e a cozinha.**
 
-## 🎯 Público-Alvo
-*   🍔 **Hamburguerias e Fast-food** (Giro rápido, KDS vital).
-*   🍺 **Bares e Pubs** (Pedidos recorrentes, divisão de conta).
-*   🍕 **Pizzarias** (Adicionais complexos, Delivery híbrido).
+![MesaFlow Banner](https://placehold.co/1200x400/ea580c/ffffff?text=MesaFlow+OS)
 
-## ✨ Funcionalidades Principais
+## 📝 Sobre o Projeto
+O **MesaFlow** é uma plataforma SaaS (*Software as a Service*) Fullstack desenvolvida para modernizar a operação de ambientes de alto tráfego. Mais do que um cardápio digital, ele é um ecossistema que centraliza a operação em uma única nuvem, conectando o salão, a cozinha, o delivery e o back-office em tempo real.
 
-### 📱 Para o Cliente (Cardápio Digital)
+O grande diferencial é sua **Arquitetura Híbrida**: permite que o autoatendimento (via QR Code) e o atendimento tradicional (via Garçom) coexistam na mesma comanda, garantindo agilidade sem perder a hospitalidade.
+
+---
+
+## ⚙️ Pilares da Solução
+
+### 1. Experiência do Cliente (Autoatendimento)
 *   **Zero App:** Acesso instantâneo via QR Code (PWA).
-*   **UX Nativa:** Navegação fluida, busca instantânea e filtros.
-*   **Carrinho Inteligente:** Edição de itens, persistência offline e upsell.
-*   **Pagamento:** Pix Automático (Mercado Pago) ou Checkout na entrega.
-*   **Social:** Divisão de conta (Split Bill) integrada.
+*   **Autonomia:** Pedido e pagamento (Pix/Cartão) direto pelo celular.
+*   **Status Real-Time:** Acompanhamento do progresso ("Preparando" -> "Pronto").
 
-### 👨‍🍳 Para a Cozinha (KDS)
-*   **Tempo Real:** Pedidos chegam em milissegundos (WebSocket).
-*   **Gestão de SLA:** Cores indicam atrasos (Verde/Amarelo/Vermelho).
-*   **Controle Total:** Botão "86" (Esgotar item) e Recall de pedidos.
-*   **Impressão:** Suporte nativo a impressoras térmicas USB/Bluetooth.
+### 2. Operação Inteligente (KDS & Staff)
+*   **KDS (Kitchen Display System):** Telas interativas na cozinha com controle de SLA e separação por praça (Bar/Cozinha).
+*   **App do Garçom:** Interface móvel para lançar pedidos, fechar contas e receber chamados.
+*   **Logística:** Módulo de Delivery com gestão de entregadores e rastreamento.
 
-### 🏢 Para a Gestão (Admin)
-*   **Mapa de Sala:** Layout visual das mesas (Drag & Drop).
-*   **Cardápio:** Gestão completa de produtos, adicionais e estoque.
-*   **Financeiro:** Relatórios de vendas e controle de caixa.
+### 3. Gestão & Fintech (Back-office)
+*   **Split de Pagamento:** Divisão automática de receita (SaaS vs Restaurante).
+*   **White Label:** Personalização completa de cores e domínio.
+*   **Estoque:** Baixa automática via ficha técnica.
 
-## 🛠️ Tech Stack
-*   **Backend:** Python 3.11+ (FastAPI, SQLAlchemy, WebSockets).
-*   **Frontend:** Next.js 14 (App Router, Tailwind CSS, Lucide Icons).
-*   **Database:** PostgreSQL.
-*   **Infra:** Docker Ready.
+---
 
-## 🚀 Como Rodar
+## 🌍 Versatilidade (Multi-Segmento)
+A arquitetura foi projetada para **escalabilidade vertical**, adaptando-se a diferentes cenários:
 
-1.  **Instalar Dependências:**
-    ```bash
-    pip install -r requirements.txt
-    cd frontend && npm install
-    ```
+| Segmento | Aplicação |
+| :--- | :--- |
+| 🍽️ **Restaurantes** | Gestão de Mesas e Comandas tradicionais. |
+| 🏨 **Hotéis** | *Room Service* digital (QR Code no quarto). |
+| 🏟️ **Eventos** | Venda direta no assento/cadeira (Fila Expressa). |
+| 🏢 **Corporativo** | Gestão de *Coffee Breaks* e praças internas. |
 
-2.  **Configurar Banco de Dados:**
-    Crie um arquivo `.env` na raiz com `DATABASE_URL`.
-    ```bash
-    python scripts/seed.py  # Popula com dados de teste
-    ```
-
-3.  **Iniciar Sistema:**
-    ```bash
-    python run.py
-    ```
-    *   Frontend: `http://localhost:3000`
-    *   Backend: `http://localhost:8000`
-
-## 🧪 Testes
-O projeto possui uma suíte robusta de testes automatizados.
-```bash
-python -m pytest
-
-
-
-
-# 🚀 MesaFlow
-
-> **O Sistema Operacional de Autoatendimento para Food Service.**
-> Transforme mesas em pontos de venda inteligentes. Sem filas, sem apps, sem espera.
-
-## ✨ O que o MesaFlow faz hoje?
-O MesaFlow é uma plataforma SaaS B2B que elimina a necessidade de garçons para anotar pedidos. O cliente escaneia um QR Code, abre o cardápio, personaliza seu prato e paga. O pedido cai instantaneamente na cozinha (KDS).
-
-### 🛠️ Tech Stack
-- **Backend:** Python 3.11 (FastAPI), SQLAlchemy (Async), PostgreSQL, WebSockets.
-- **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, Lucide React.
-- **Real-time:** Comunicação bidirecional via WebSockets para KDS e Chamadas.
-
-### 📱 Funcionalidades Ativas
-- **Cardápio Digital:** Com busca, filtros por tags e lógica de adicionais.
-- **KDS (Kitchen Display System):** Monitor de produção com cronômetro de SLA e Recall.
-- **Gestão de Mesas:** Mapa de sala visual com Drag & Drop.
-- **Híbrido:** Suporte total para Mesa (Comanda) e Delivery.
-- **Landing Page:** Site institucional profissional integrado.
-
-
-
-# 🚀 MesaFlow
-
-> **Sistema Operacional de Autoatendimento para Food Service.**
-> Transforme mesas em pontos de venda inteligentes. Sem filas, sem apps, sem espera.
-
-## 🎯 O que o MesaFlow faz?
-O MesaFlow é uma plataforma SaaS B2B que elimina a necessidade de garçons para anotar pedidos.
-1.  **Cliente:** Escaneia QR Code -> Faz Pedido -> Paga (Pix/Cartão).
-2.  **Cozinha (KDS):** Recebe pedido em tempo real -> Prepara -> Notifica.
-3.  **Gestão:** Controla estoque, faturamento e taxas automaticamente.
-
-## ✨ Funcionalidades (Fase 3 Concluída)
-
-### 📱 Para o Cliente (Cardápio Digital)
-*   **PWA (App Web):** Funciona como app nativo (instalável) sem download da loja.
-*   **UX Fluida:** Busca instantânea, filtros por tags e carrinho persistente.
-*   **Pagamento Split:** O valor é dividido automaticamente entre o Restaurante e a Plataforma (SaaS).
-
-### 👨‍🍳 Para a Operação (KDS & Estoque)
-*   **Ficha Técnica:** Baixa automática de ingredientes (ex: 1 Burger = 0.18kg Carne + 1 Pão).
-*   **Monitor KDS:** Alertas sonoros, cronômetro de SLA e separação por praça (Bar/Cozinha).
-*   **Gestão de Mesas:** Mapa de sala visual com status em tempo real.
-
-### 🏢 Para o Dono (Admin)
-*   **Branding:** Personalização completa de cores, logo e banner.
-*   **Financeiro:** Relatórios de vendas, ticket médio e controle de taxas.
-*   **Segurança:** Proteção contra ataques de força bruta e spam de pedidos.
+---
 
 ## 🛠️ Tech Stack
-*   **Backend:** Python 3.11+ (FastAPI, SQLAlchemy, SlowAPI).
-*   **Frontend:** Next.js 14 (App Router, Tailwind CSS, Framer Motion).
+
+*   **Backend:** Python 3.11+ (FastAPI, SQLAlchemy Async, Pydantic).
+*   **Frontend:** Next.js 14 (App Router, TypeScript, Tailwind CSS).
 *   **Database:** PostgreSQL.
+*   **Real-time:** WebSockets (com fallback para Redis Pub/Sub).
 *   **Infra:** Docker Ready.
 
-## 🚀 Como Rodar
+---
 
-1.  **Instalar Dependências:**
-    ```bash
-    pip install -r requirements.txt
-    cd frontend && npm install
-    ```
+## 🚀 Como Rodar Localmente
 
-2.  **Configurar Banco de Dados:**
-    Certifique-se que o PostgreSQL está rodando e o `.env` está configurado.
-    ```bash
-    python scripts/seed.py  # Popula com dados de teste (Login: admin@mesaflow.com / 123456)
-    ```
+### Pré-requisitos
+*   Python 3.11+
+*   Node.js 18+
+*   PostgreSQL
 
-3.  **Iniciar Sistema:**
-    Use o script gerenciador para subir Backend e Frontend juntos:
-    ```bash
-    python run.py
-    ```
-    *   **Frontend:** `http://localhost:3000`
-    *   **Backend:** `http://localhost:8000`
-
-## 🧪 Testes
-O projeto possui uma suíte robusta de testes automatizados.
+### 1. Instalação
 ```bash
-python -m pytest
+# Backend
+pip install -r requirements.txt
+
+# Frontend
+cd frontend
+npm install
+2. Configuração
+
+Crie um arquivo .env na raiz com a string de conexão do banco:
+
+code
+Ini
+download
+content_copy
+expand_less
+DATABASE_URL=postgresql://user:pass@localhost:5432/mesaflow_db
+SECRET_KEY=sua_chave_secreta
+3. Execução
+
+Utilize o script gerenciador para subir tudo:
+
+code
+Bash
+download
+content_copy
+expand_less
+python run.py
+
+Frontend: http://localhost:3000
+
+API Docs: http://localhost:8000/docs
+
+📄 Licença
+
+Proprietária. Todos os direitos reservados.
+
+code
+Code
+download
+content_copy
+expand_less

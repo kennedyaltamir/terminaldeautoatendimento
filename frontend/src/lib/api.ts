@@ -52,6 +52,7 @@ async function fetchClient(endpoint: string, options: RequestInit = {}) {
   return response;
 }
 
+// ... (Funções existentes mantidas: getMenu, getWallet, etc.) ...
 export async function getMenu(slug: string) {
   const res = await fetch(`${API_BASE_URL}/${slug}/menu`, { cache: "no-store" });
   if (!res.ok) throw new Error("Falha ao carregar cardápio");
@@ -454,9 +455,32 @@ export async function dispatchOrder(orderId: string, driverId?: number) {
   return res.json();
 }
 
-// --- NOVO: Dashboard de Franquia ---
 export async function getFranchiseDashboard() {
   const res = await fetchClient(`/admin/franchise/dashboard`);
   if (!res.ok) throw new Error("Erro ao carregar dashboard de franquia");
+  return res.json();
+}
+
+// --- NOVAS FUNÇÕES DE PAGAMENTO (OAUTH) ---
+
+export async function getPaymentAuthUrl(provider: string) {
+  const res = await fetchClient(`/admin/payment/auth-url/${provider}`);
+  if (!res.ok) throw new Error("Erro ao obter URL de autenticação");
+  return res.json();
+}
+
+export async function connectPaymentProvider(provider: string, code: string) {
+  const res = await fetchClient(`/admin/payment/callback/${provider}?code=${code}`, {
+    method: "POST"
+  });
+  if (!res.ok) throw new Error("Erro ao conectar provedor");
+  return res.json();
+}
+
+export async function disconnectPaymentProvider() {
+  const res = await fetchClient(`/admin/payment/disconnect`, {
+    method: "DELETE"
+  });
+  if (!res.ok) throw new Error("Erro ao desconectar");
   return res.json();
 }

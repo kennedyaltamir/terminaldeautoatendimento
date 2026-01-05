@@ -1,18 +1,16 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { getTablesDashboard, openTable, closeTable, createTable, createTablesBulk, deleteTable, updateTablePositions } from "@/lib/api";
+import { useEffect, useState, useCallback } from "react";
+import { getTablesDashboard, createTable, deleteTable, openTable, closeTable, createTablesBulk } from "@/lib/api";
 import { Table } from "@/types";
-import { Plus, Trash2, Printer, Copy, Check, Grid, QrCode, User, Clock, DollarSign, BellRing, CreditCard, Banknote, Move, Save, Layout } from "lucide-react";
+import { Plus, Trash2, Printer, QrCode, Grid, User, DollarSign, Clock, Copy, Check, Banknote, CreditCard } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import Modal from "@/components/ui/Modal";
-import { useWebSocket } from "@/hooks/useWebSocket";
 import { useTerminology } from "@/hooks/useTerminology";
+import { toast, Toaster } from "sonner";
 
 interface TableDashboard extends Table {
   status: 'free' | 'occupied' | 'alert';
-  position_x: number;
-  position_y: number;
   active_session?: {
     id: number;
     customer_name: string;
@@ -24,23 +22,23 @@ interface TableDashboard extends Table {
 
 export default function TablesPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
-  const terms = useTerminology(); // Hook de Dicionário
+  const terms = useTerminology();
   const [tables, setTables] = useState<TableDashboard[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
-  const [isEditingLayout, setIsEditingLayout] = useState(false);
   
-  const [draggedTable, setDraggedTable] = useState<number | null>(null);
-  const mapRef = useRef<HTMLDivElement>(null);
-  
-  const [selectedTable, setSelectedTable] = useState<TableDashboard | null>(null);
+  // Modais
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [customerName, setCustomerName] = useState("");
+  const [selectedTable, setSelectedTable] = useState<TableDashboard | null>(null);
   
+  // Forms
   const [newTableNum, setNewTableNum] = useState("");
   const [bulkStart, setBulkStart] = useState("");
   const [bulkEnd, setBulkEnd] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  
+  // Estados de UI
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [printMode, setPrintMode] = useState<'all' | 'single'>('all');
 
   const fetchTables = useCallback(async () => {
     try {
@@ -48,352 +46,300 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
       setTables(data);
     } catch (error) {
       console.error(error);
+      toast.error("Erro ao carregar mesas");
     } finally {
       setLoading(false);
     }
   }, [slug]);
 
-  useEffect(() => {
-    fetchTables();
-  }, [fetchTables]);
+  useEffect(() => { fetchTables(); }, [fetchTables]);
 
-  useWebSocket(slug, (data) => {
-    if (data.type === "new_order" || data.type === "order_update" || data.type === "waiter_call") {
-      fetchTables();
-    }
-  });
-
-  const handleMouseDown = (e: React.MouseEvent, tableId: number) => {
-    if (!isEditingLayout) return;
-    setDraggedTable(tableId);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (draggedTable === null || !mapRef.current) return;
-    
-    const rect = mapRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
-    const clampedX = Math.max(0, Math.min(90, x));
-    const clampedY = Math.max(0, Math.min(90, y));
-
-    setTables(prev => prev.map(t => t.id === draggedTable ? { ...t, position_x: clampedX, position_y: clampedY } : t));
-  };
-
-  const handleMouseUp = () => {
-    setDraggedTable(null);
-  };
-
-  const saveLayout = async () => {
-    const positions = tables.map(t => ({ id: t.id, x: t.position_x, y: t.position_y }));
+  // --- HANDLERS ---
+  const handleCreate = async () => {
+    if (!newTableNum) return;
     try {
-      await updateTablePositions(positions);
-      setIsEditingLayout(false);
-      alert("Layout salvo com sucesso!");
-    } catch (e) {
-      alert("Erro ao salvar layout");
-    }
+      await createTable(parseInt(newTableNum));
+      setNewTableNum(""); setIsCreateModalOpen(false); fetchTables();
+      toast.success(`${terms.table} criada!`);
+    } catch (e) { toast.error("Erro ao criar"); }
+  };
+
+  const handleBulkCreate = async () => {
+    if (!bulkStart || !bulkEnd) return;
+    try {
+      await createTablesBulk(parseInt(bulkStart), parseInt(bulkEnd));
+      setBulkStart(""); setBulkEnd(""); setIsCreateModalOpen(false); fetchTables();
+      toast.success("Mesas criadas em lote!");
+    } catch (e) { toast.error("Erro ao criar em lote"); }
   };
 
   const handleOpenTable = async () => {
-    if (!selectedTable || !customerName) return;
+    if (!selectedTable || !customerName) return toast.error("Nome obrigatório");
     try {
       await openTable(selectedTable.id, customerName);
-      setCustomerName("");
-      setSelectedTable(null);
-      fetchTables();
-    } catch (e) { alert("Erro ao abrir " + terms.table.toLowerCase()); }
+      setCustomerName(""); setSelectedTable(null); fetchTables();
+      toast.success("Mesa aberta!");
+    } catch (e) { toast.error("Erro ao abrir mesa"); }
   };
 
   const handleCloseTable = async (method: string) => {
     if (!selectedTable) return;
-    if (!confirm(`Confirmar pagamento em ${method.toUpperCase()} e liberar ${terms.table.toLowerCase()}?`)) return;
+    if (!confirm(`Confirmar pagamento em ${method.toUpperCase()}?`)) return;
     try {
       await closeTable(selectedTable.id, method);
-      setSelectedTable(null);
-      fetchTables();
-    } catch (e) { alert("Erro ao fechar " + terms.table.toLowerCase()); }
-  };
-
-  const handleCreateSingle = async () => {
-    if (!newTableNum) return;
-    await createTable(parseInt(newTableNum));
-    setNewTableNum("");
-    setIsCreateModalOpen(false);
-    fetchTables();
-  };
-
-  const handleCreateBulk = async () => {
-    if (!bulkStart || !bulkEnd) return;
-    await createTablesBulk(parseInt(bulkStart), parseInt(bulkEnd));
-    setBulkStart(""); setBulkEnd(""); setIsCreateModalOpen(false);
-    fetchTables();
+      setSelectedTable(null); fetchTables();
+      toast.success("Mesa liberada!");
+    } catch (e) { toast.error("Erro ao fechar mesa"); }
   };
 
   const handleDelete = async (id: number) => {
-    if(confirm(`Excluir ${terms.table.toLowerCase()}?`)) {
-      await deleteTable(id);
-      fetchTables();
+    if(confirm("Tem certeza? Isso apagará o histórico desta mesa.")) { 
+      await deleteTable(id); 
+      setSelectedTable(null);
+      fetchTables(); 
+      toast.success("Mesa removida");
     }
   };
 
-  const handleCopyUrl = (table: Table) => {
-    if (typeof window === 'undefined') return;
-    const host = window.location.origin;
-    const url = `${host}/${slug}/menu?mesa=${table.table_number}&token=${table.qr_token}`;
-    navigator.clipboard.writeText(url);
-    setCopiedId(table.id);
-    setTimeout(() => setCopiedId(null), 2000);
+  const getQrUrl = (table: Table) => {
+    if (typeof window === 'undefined') return '';
+    return `${window.location.origin}/${slug}/menu?mesa=${table.table_number}&token=${table.qr_token}`;
   };
 
-  if (loading) return <div className="text-center py-20 text-gray-500">Carregando salão...</div>;
+  const handleCopyUrl = (table: Table) => {
+    navigator.clipboard.writeText(getQrUrl(table));
+    setCopiedId(table.id);
+    setTimeout(() => setCopiedId(null), 2000);
+    toast.success("Link copiado!");
+  };
+
+  const handlePrint = (mode: 'all' | 'single') => {
+    setPrintMode(mode);
+    // Pequeno delay para garantir que o React renderizou o layout de impressão
+    setTimeout(() => window.print(), 100);
+  };
+
+  if (loading) return <div className="text-center py-20 text-gray-500">Carregando...</div>;
 
   return (
-    <div className="space-y-8 pb-20" onMouseUp={handleMouseUp} onMouseMove={handleMouseMove}>
-      <div className="print:hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl">
-        <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Grid className="text-orange-500" /> Mapa de {terms.tables}
-          </h1>
-          <p className="text-gray-400 text-sm mt-1">Visão geral da operação em tempo real.</p>
-        </div>
-        <div className="flex gap-3">
-          <div className="bg-gray-900 p-1 rounded-lg flex border border-gray-700">
-            <button onClick={() => setViewMode("grid")} className={`p-2 rounded-md transition-all ${viewMode === "grid" ? "bg-gray-700 text-white" : "text-gray-400 hover:text-white"}`}><Grid size={20}/></button>
-            <button onClick={() => setViewMode("map")} className={`p-2 rounded-md transition-all ${viewMode === "map" ? "bg-gray-700 text-white" : "text-gray-400 hover:text-white"}`}><Layout size={20}/></button>
+    <div className="pb-20">
+      <Toaster position="top-right" richColors />
+
+      {/* =================================================================================
+          CAMADA DE TELA (UI) - Some na impressão (print:hidden)
+         ================================================================================= */}
+      <div className="space-y-8 print:hidden">
+        
+        {/* HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl">
+          <div>
+            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <Grid className="text-orange-500" /> Gestão de {terms.tables}
+            </h1>
+            <p className="text-gray-400 text-sm mt-1">Crie e imprima os códigos para seus clientes.</p>
           </div>
-          
-          {viewMode === "map" && (
-            isEditingLayout ? (
-              <button onClick={saveLayout} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-bold transition-colors text-sm animate-pulse">
-                <Save size={16} /> Salvar Layout
-              </button>
-            ) : (
-              <button onClick={() => setIsEditingLayout(true)} className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-bold transition-colors text-sm">
-                <Move size={16} /> Editar Posições
-              </button>
-            )
-          )}
-
-          <button onClick={() => setIsCreateModalOpen(true)} className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-medium transition-colors text-sm">
-            <Plus size={16} /> {terms.tables}
-          </button>
-          <button onClick={() => window.print()} className="bg-white text-gray-900 px-4 py-2 rounded-xl flex items-center gap-2 font-bold transition-colors text-sm hover:bg-gray-100">
-            <Printer size={16} /> QR Codes
-          </button>
+          <div className="flex gap-3">
+            <button onClick={() => setIsCreateModalOpen(true)} className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-bold transition-colors shadow-lg shadow-orange-900/20">
+              <Plus size={16} /> Nova {terms.table}
+            </button>
+            <button onClick={() => handlePrint('all')} className="bg-white text-gray-900 px-4 py-2 rounded-xl flex items-center gap-2 font-bold transition-colors hover:bg-gray-100">
+              <Printer size={16} /> Imprimir Todos
+            </button>
+          </div>
         </div>
-      </div>
 
-      {viewMode === "grid" && (
-        <div className="print:hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {/* GRID DE MESAS */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {tables.map((table) => {
-            let cardStyle = "bg-white border-gray-200 hover:border-gray-300";
-            let statusIcon = <div className="w-3 h-3 rounded-full bg-green-500"></div>;
-            let statusText = "Livre";
-
-            if (table.status === 'occupied') {
-              cardStyle = "bg-red-50 border-red-200 hover:border-red-300";
-              statusIcon = <div className="w-3 h-3 rounded-full bg-red-500"></div>;
-              statusText = "Ocupada";
-            } else if (table.status === 'alert') {
-              cardStyle = "bg-yellow-50 border-yellow-400 ring-2 ring-yellow-400 animate-pulse";
-              statusIcon = <BellRing size={16} className="text-yellow-600 animate-bounce" />;
-              statusText = table.service_request === 'bill' ? 'Pediu Conta' : 'Chamando';
-            }
-
+            const isOccupied = table.status === 'occupied' || table.status === 'alert';
             return (
               <div 
                 key={table.id} 
                 onClick={() => setSelectedTable(table)}
-                className={`cursor-pointer rounded-xl p-4 border-2 shadow-sm transition-all relative ${cardStyle}`}
+                className={`cursor-pointer rounded-xl p-4 border-2 shadow-sm transition-all relative group hover:-translate-y-1 ${
+                  isOccupied 
+                    ? 'bg-gray-800 border-orange-500/50 hover:border-orange-500' 
+                    : 'bg-gray-800 border-gray-700 hover:border-gray-500'
+                }`}
               >
                 <div className="flex justify-between items-start mb-3">
-                  <span className="text-2xl font-black text-gray-800">#{table.table_number}</span>
-                  <div className="flex items-center gap-1 text-xs font-bold text-gray-500 uppercase">
-                    {statusIcon} {statusText}
-                  </div>
+                  <span className="text-2xl font-black text-white">#{table.table_number}</span>
+                  <div className={`w-3 h-3 rounded-full ${isOccupied ? 'bg-orange-500 animate-pulse' : 'bg-green-500'}`}></div>
                 </div>
 
                 {table.active_session ? (
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-700 font-medium">
-                      <User size={14} /> {table.active_session.customer_name}
+                    <div className="flex items-center gap-2 text-sm text-gray-300 font-medium truncate">
+                      <User size={14} className="text-orange-500" /> {table.active_session.customer_name}
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <Clock size={14} /> {new Date(table.active_session.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Clock size={12} /> {new Date(table.active_session.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </div>
-                    <div className="mt-2 pt-2 border-t border-gray-200/50 flex items-center gap-1 text-lg font-bold text-gray-900">
-                      <DollarSign size={16} className="text-green-600" /> {Number(table.active_session.total_spent).toFixed(2)}
+                    <div className="mt-2 pt-2 border-t border-gray-700 flex items-center gap-1 text-lg font-bold text-green-400">
+                      <DollarSign size={16} /> {Number(table.active_session.total_spent).toFixed(2)}
                     </div>
                   </div>
                 ) : (
-                  <div className="h-20 flex flex-col items-center justify-center text-gray-400 text-xs">
-                    <QrCode size={24} className="mb-1 opacity-50" />
-                    Toque para abrir
+                  <div className="h-20 flex flex-col items-center justify-center text-gray-500 text-xs gap-2">
+                    <QrCode size={32} className="opacity-20 group-hover:opacity-50 transition-opacity" />
+                    <span className="font-medium">Livre</span>
                   </div>
                 )}
               </div>
             );
           })}
         </div>
-      )}
 
-      {viewMode === "map" && (
-        <div 
-          ref={mapRef}
-          className="relative w-full h-[600px] bg-gray-800 rounded-xl border-2 border-gray-700 overflow-hidden shadow-inner bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"
-        >
-          {tables.map((table) => {
-            let bgColor = "bg-green-500";
-            if (table.status === 'occupied') bgColor = "bg-red-500";
-            if (table.status === 'alert') bgColor = "bg-yellow-500 animate-pulse";
-
-            return (
-              <div
-                key={table.id}
-                onMouseDown={(e) => handleMouseDown(e, table.id)}
-                onClick={() => !isEditingLayout && setSelectedTable(table)}
-                className={`absolute w-24 h-24 rounded-full shadow-lg flex flex-col items-center justify-center text-white font-bold transition-transform ${isEditingLayout ? 'cursor-move hover:scale-110 z-50' : 'cursor-pointer hover:scale-105'} ${bgColor}`}
-                style={{ 
-                  left: `${table.position_x}%`, 
-                  top: `${table.position_y}%`,
-                  zIndex: draggedTable === table.id ? 100 : 10
-                }}
-              >
-                <span className="text-2xl">{table.table_number}</span>
-                {table.active_session && <span className="text-[10px] opacity-80">R$ {Number(table.active_session.total_spent).toFixed(0)}</span>}
+        {/* MODAL DE CRIAÇÃO */}
+        <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title={`Adicionar ${terms.tables}`}>
+          <div className="space-y-6">
+            <div>
+              <h4 className="font-bold text-sm text-gray-500 mb-2 uppercase">Individual</h4>
+              <div className="flex gap-2">
+                <input type="number" className="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-3 text-white outline-none focus:ring-2 focus:ring-orange-500" placeholder="Número" value={newTableNum} onChange={e => setNewTableNum(e.target.value)} />
+                <button onClick={handleCreate} className="bg-orange-600 text-white px-6 rounded-lg font-bold hover:bg-orange-700">Criar</button>
               </div>
-            );
-          })}
-          {isEditingLayout && (
-            <div className="absolute bottom-4 right-4 bg-black/50 text-white px-4 py-2 rounded-lg text-xs pointer-events-none">
-              Modo de Edição: Arraste os itens
+            </div>
+            <div className="border-t border-gray-700 pt-4">
+              <h4 className="font-bold text-sm text-gray-500 mb-2 uppercase">Em Lote (Sequência)</h4>
+              <div className="flex gap-2 items-center">
+                <input type="number" className="w-24 bg-gray-900 border border-gray-700 rounded-lg p-3 text-white outline-none focus:ring-2 focus:ring-orange-500" placeholder="De" value={bulkStart} onChange={e => setBulkStart(e.target.value)} />
+                <span className="text-gray-500">até</span>
+                <input type="number" className="w-24 bg-gray-900 border border-gray-700 rounded-lg p-3 text-white outline-none focus:ring-2 focus:ring-orange-500" placeholder="Até" value={bulkEnd} onChange={e => setBulkEnd(e.target.value)} />
+                <button onClick={handleBulkCreate} className="flex-1 bg-gray-700 text-white px-4 py-3 rounded-lg font-bold hover:bg-gray-600">Gerar</button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+
+        {/* MODAL DE GESTÃO DA MESA */}
+        <Modal isOpen={!!selectedTable} onClose={() => setSelectedTable(null)} title={`${terms.table} ${selectedTable?.table_number}`}>
+          {selectedTable && (
+            <div className="space-y-6">
+              
+              {/* Seção de Status */}
+              {selectedTable.status === 'free' ? (
+                <div className="bg-gray-900 p-4 rounded-xl border border-gray-700">
+                  <p className="text-gray-400 text-sm mb-3">Mesa livre. Deseja abrir manualmente?</p>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      className="flex-1 bg-gray-800 border border-gray-600 rounded-lg p-2 text-white outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder={`Nome do ${terms.customer}`}
+                      value={customerName}
+                      onChange={e => setCustomerName(e.target.value)}
+                      autoFocus
+                    />
+                    <button onClick={handleOpenTable} className="bg-green-600 text-white px-4 rounded-lg font-bold hover:bg-green-700">Abrir</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-orange-900/20 p-4 rounded-xl border border-orange-500/30">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <p className="text-orange-200 text-xs font-bold uppercase">Ocupada por</p>
+                      <p className="text-white font-bold text-lg">{selectedTable.active_session?.customer_name}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-orange-200 text-xs font-bold uppercase">Total</p>
+                      <p className="text-white font-black text-2xl">R$ {Number(selectedTable.active_session?.total_spent).toFixed(2)}</p>
+                    </div>
+                  </div>
+                  
+                  <p className="text-gray-400 text-xs font-bold uppercase mb-2">Fechar Conta & Liberar</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button onClick={() => handleCloseTable('cash')} className="bg-gray-800 hover:bg-green-600 text-gray-300 hover:text-white p-2 rounded-lg flex flex-col items-center gap-1 transition-colors border border-gray-700">
+                      <Banknote size={18} /> <span className="text-[10px] font-bold">Dinheiro</span>
+                    </button>
+                    <button onClick={() => handleCloseTable('card')} className="bg-gray-800 hover:bg-blue-600 text-gray-300 hover:text-white p-2 rounded-lg flex flex-col items-center gap-1 transition-colors border border-gray-700">
+                      <CreditCard size={18} /> <span className="text-[10px] font-bold">Cartão</span>
+                    </button>
+                    <button onClick={() => handleCloseTable('pix')} className="bg-gray-800 hover:bg-purple-600 text-gray-300 hover:text-white p-2 rounded-lg flex flex-col items-center gap-1 transition-colors border border-gray-700">
+                      <QrCode size={18} /> <span className="text-[10px] font-bold">Pix</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Seção de QR Code e Links */}
+              <div className="border-t border-gray-700 pt-4">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="bg-white p-2 rounded-lg">
+                    <QRCodeSVG value={getQrUrl(selectedTable)} size={80} />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <button 
+                      onClick={() => handleCopyUrl(selectedTable)}
+                      className={`w-full py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${copiedId === selectedTable.id ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                    >
+                      {copiedId === selectedTable.id ? <Check size={14}/> : <Copy size={14}/>}
+                      {copiedId === selectedTable.id ? "Copiado!" : "Copiar Link"}
+                    </button>
+                    <button 
+                      onClick={() => handlePrint('single')}
+                      className="w-full bg-gray-700 text-gray-300 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-gray-600"
+                    >
+                      <Printer size={14} /> Imprimir QR Code
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Zona de Perigo */}
+              <div className="border-t border-gray-700 pt-4 flex justify-between items-center">
+                <span className="text-xs text-gray-500">ID: {selectedTable.id}</span>
+                <button onClick={() => handleDelete(selectedTable.id)} className="text-red-400 hover:text-red-300 text-xs font-bold flex items-center gap-1 hover:bg-red-900/20 px-3 py-1.5 rounded-lg transition-colors">
+                  <Trash2 size={14} /> Excluir Mesa
+                </button>
+              </div>
             </div>
           )}
-        </div>
-      )}
+        </Modal>
+      </div>
 
-      <Modal isOpen={!!selectedTable} onClose={() => setSelectedTable(null)} title={`${terms.table} ${selectedTable?.table_number}`}>
-        {selectedTable?.status === 'free' ? (
-          <div className="space-y-4">
-            <p className="text-gray-500">Este local está livre. Deseja abrir manualmente?</p>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Nome do {terms.customer}</label>
-              <input 
-                type="text" 
-                className="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-orange-500"
-                placeholder="Ex: João"
-                value={customerName}
-                onChange={e => setCustomerName(e.target.value)}
-                autoFocus
-              />
-            </div>
-            <button onClick={handleOpenTable} className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700">
-              Abrir {terms.table}
-            </button>
-            
-            <div className="border-t pt-4 mt-4">
-              <p className="text-xs text-gray-400 mb-2">Gestão</p>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => selectedTable && handleCopyUrl(selectedTable)}
-                  className={`flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${copiedId === selectedTable?.id ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                >
-                  {copiedId === selectedTable?.id ? <><Check size={14}/> Link Copiado</> : <><Copy size={14}/> Copiar Link</>}
-                </button>
-                <button onClick={() => selectedTable && handleDelete(selectedTable.id)} className="text-red-500 text-sm flex items-center gap-2 hover:underline p-2">
-                  <Trash2 size={14} /> Excluir
-                </button>
+      {/* =================================================================================
+          CAMADA DE IMPRESSÃO (PRINT) - Aparece só na impressão (hidden print:block)
+          Esta div está fora do fluxo principal para não ser afetada por estilos globais
+         ================================================================================= */}
+      <div className="hidden print:block fixed inset-0 bg-white z-[9999] p-0 m-0 overflow-visible">
+        <div className="grid grid-cols-2 gap-8 p-8 w-full h-full">
+          {(printMode === 'single' && selectedTable ? [selectedTable] : tables).map((table) => (
+            <div key={table.id} className="border-4 border-black rounded-3xl p-8 flex flex-col items-center justify-center text-center aspect-[3/4] break-inside-avoid page-break-inside-avoid">
+              <h2 className="text-5xl font-black mb-4 text-black uppercase tracking-tighter">{terms.table} {table.table_number}</h2>
+              <p className="text-xl mb-8 text-gray-600 font-bold uppercase tracking-widest">Escaneie para pedir</p>
+              <QRCodeSVG value={getQrUrl(table)} size={250} />
+              <div className="mt-8 flex items-center gap-2 text-gray-400 font-bold">
+                <span className="text-sm">MesaFlow</span>
               </div>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-              <div className="flex justify-between mb-2">
-                <span className="text-gray-500">{terms.customer}</span>
-                <span className="font-bold">{selectedTable?.active_session?.customer_name}</span>
-              </div>
-              <div className="flex justify-between mb-2">
-                <span className="text-gray-500">Entrada</span>
-                <span className="font-bold">{new Date(selectedTable?.active_session?.start_time || "").toLocaleTimeString()}</span>
-              </div>
-              <div className="flex justify-between text-xl font-black text-gray-900 border-t border-gray-200 pt-2 mt-2">
-                <span>Total</span>
-                <span>R$ {Number(selectedTable?.active_session?.total_spent).toFixed(2)}</span>
-              </div>
-            </div>
-
-            {selectedTable?.status === 'alert' && (
-              <div className="bg-yellow-50 text-yellow-800 p-3 rounded-lg text-sm font-bold flex items-center gap-2">
-                <BellRing size={16} /> O {terms.customer.toLowerCase()} solicitou: {selectedTable.service_request === 'bill' ? 'A Conta' : terms.waiter}
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Receber Pagamento e Liberar</label>
-              <div className="grid grid-cols-3 gap-2">
-                <button onClick={() => handleCloseTable('cash')} className="flex flex-col items-center justify-center p-3 border rounded-lg hover:bg-green-50 hover:border-green-500 hover:text-green-700 transition-all">
-                  <Banknote size={20} />
-                  <span className="text-xs font-bold mt-1">Dinheiro</span>
-                </button>
-                <button onClick={() => handleCloseTable('card')} className="flex flex-col items-center justify-center p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-500 hover:text-blue-700 transition-all">
-                  <CreditCard size={20} />
-                  <span className="text-xs font-bold mt-1">Cartão</span>
-                </button>
-                <button onClick={() => handleCloseTable('pix')} className="flex flex-col items-center justify-center p-3 border rounded-lg hover:bg-purple-50 hover:border-purple-500 hover:text-purple-700 transition-all">
-                  <QrCode size={20} />
-                  <span className="text-xs font-bold mt-1">Pix</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title={`Adicionar ${terms.tables}`}>
-        <div className="space-y-6">
-          <div>
-            <h4 className="font-bold text-sm text-gray-500 mb-2">Individual</h4>
-            <div className="flex gap-2">
-              <input type="number" className="flex-1 border rounded-lg p-2" placeholder="Nº" value={newTableNum} onChange={e => setNewTableNum(e.target.value)} />
-              <button onClick={handleCreateSingle} className="bg-gray-900 text-white px-4 rounded-lg font-bold">Criar</button>
-            </div>
-          </div>
-          <div className="border-t pt-4">
-            <h4 className="font-bold text-sm text-gray-500 mb-2">Em Lote</h4>
-            <div className="flex gap-2 items-center">
-              <input type="number" className="w-20 border rounded-lg p-2" placeholder="De" value={bulkStart} onChange={e => setBulkStart(e.target.value)} />
-              <span>até</span>
-              <input type="number" className="w-20 border rounded-lg p-2" placeholder="Até" value={bulkEnd} onChange={e => setBulkEnd(e.target.value)} />
-              <button onClick={handleCreateBulk} className="flex-1 bg-orange-600 text-white px-4 py-2 rounded-lg font-bold">Gerar</button>
-            </div>
-          </div>
-        </div>
-      </Modal>
-
-      <div className="hidden print:block bg-white absolute top-0 left-0 w-full h-full z-[9999]">
-        <div className="grid grid-cols-3 gap-4 p-8">
-          {tables.map((table) => (
-            <div key={table.id} className="border-2 border-black rounded-xl p-6 flex flex-col items-center justify-center text-center break-inside-avoid page-break-inside-avoid aspect-[3/4]">
-              <h2 className="text-3xl font-black mb-2 text-black">{terms.table} {table.table_number}</h2>
-              <p className="text-sm mb-4 text-gray-600">Escaneie para pedir</p>
-              <QRCodeSVG 
-                value={`${typeof window !== 'undefined' ? window.location.origin : ''}/${slug}/menu?mesa=${table.table_number}&token=${table.qr_token}`}
-                size={180}
-              />
             </div>
           ))}
         </div>
       </div>
-      
+
       <style jsx global>{`
         @media print {
-          body > *:not(.print\\:block) { display: none !important; }
-          body { background: white !important; color: black !important; }
           @page { margin: 0.5cm; size: A4 portrait; }
-          .page-break-inside-avoid { break-inside: avoid; }
+          /* Força o fundo branco e texto preto */
+          body { 
+            background-color: white !important; 
+            color: black !important; 
+            -webkit-print-color-adjust: exact;
+          }
+          
+          /* Garante que a div de impressão ocupe tudo */
+          .print\\:block { 
+            display: block !important; 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+          }
+
+          /* Evita quebra de página no meio do QR Code */
+          .page-break-inside-avoid { 
+            break-inside: avoid; 
+          }
         }
       `}</style>
     </div>

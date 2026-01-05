@@ -25,7 +25,9 @@ from app.routers import admin_fiscal
 from app.routers import admin_financial
 from app.routers import admin_marketing
 from app.routers import admin_franchise
-from app.routers import admin_logistics # NOVO
+from app.routers import admin_logistics
+from app.routers import upload
+from app.routers import admin_payment # NOVO
 
 from app.websockets import manager
 from app.core.limiter import limiter
@@ -35,23 +37,21 @@ sentry_dsn = os.getenv("SENTRY_DSN_BACKEND")
 if sentry_dsn:
     sentry_sdk.init(
         dsn=sentry_dsn,
-        traces_sample_rate=1.0, # Ajustar para 0.1 em produção massiva
+        traces_sample_rate=1.0,
         environment=os.getenv("ENVIRONMENT", "development"),
         profiles_sample_rate=1.0,
     )
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Conecta ao Redis
     await manager.startup()
     yield
-    # Shutdown: Desconecta
     await manager.shutdown()
 
 app = FastAPI(
     title="MesaFlow API",
     description="API de Autoatendimento para Restaurantes",
-    version="0.2.0",
+    version="0.2.2",
     lifespan=lifespan
 )
 
@@ -76,10 +76,11 @@ app.add_middleware(
 # --- ROTAS ---
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(public.router, prefix="/api", tags=["Public"])
+app.include_router(upload.router, prefix="/api/upload", tags=["Uploads"])
 
-# Admin
+# Admin Routers
 app.include_router(admin_delivery.router, prefix="/api/admin/delivery", tags=["Admin Delivery"])
-app.include_router(admin_logistics.router, prefix="/api/admin/logistics", tags=["Admin Logistics"]) # NOVO
+app.include_router(admin_logistics.router, prefix="/api/admin/logistics", tags=["Admin Logistics"])
 app.include_router(admin_menu.router, prefix="/api/admin/menu", tags=["Admin Menu"])
 app.include_router(admin_company.router, prefix="/api/admin/company", tags=["Admin Company"])
 app.include_router(admin_tables.router, prefix="/api/admin/tables", tags=["Admin Tables"])
@@ -92,9 +93,8 @@ app.include_router(admin_fiscal.router, prefix="/api/admin/fiscal", tags=["Admin
 app.include_router(admin_financial.router, prefix="/api/admin/financial", tags=["Admin Financial"])
 app.include_router(admin_marketing.router, prefix="/api/admin/marketing", tags=["Admin Marketing"])
 app.include_router(admin_franchise.router, prefix="/api/admin/franchise", tags=["Admin Franchise"])
-
-# Admin Genérico
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin Orders"])
+app.include_router(admin_payment.router, prefix="/api/admin/payment", tags=["Admin Payment"]) # NOVO
 
 app.include_router(payments.router, prefix="/api/payments", tags=["Payments"])
 app.include_router(webhooks.router, prefix="/api/webhooks", tags=["Webhooks"])
@@ -112,10 +112,5 @@ async def websocket_endpoint(websocket: WebSocket, company_slug: str):
 
 @app.get("/")
 def root():
-    return {"message": "MesaFlow API is running 🚀 (Redis + Sentry Enabled)"}
-
-@app.get("/sentry-debug")
-async def trigger_error():
-    """Rota para testar se o Sentry está capturando erros"""
-    division_by_zero = 1 / 0
-    return division_by_zero
+    return {"message": "MesaFlow API is running 🚀"}
+# Force Reload: 1767582389.3581288

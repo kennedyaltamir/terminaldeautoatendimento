@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { getMenu, createOrder, getOrder, requestService, getWallet, checkTableStatus, getTableSession, joinTable } from "@/lib/api";
-import { MenuResponse, Product, Option, Order, TableSession } from "@/types";
+import { MenuResponse, Product, Option, Order, TableSession, Category } from "@/types";
 import { CartProvider, useCart } from "@/context/CartContext";
 import { Plus, X, AlertCircle, ShoppingBag, CreditCard, Banknote, QrCode, Phone, Bell, FileText, Edit2, Loader2, MapPin } from "lucide-react";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -186,6 +186,8 @@ function MenuContent({ slug }: { slug: string }) {
     }
   }, [customerPhone, slug]);
 
+  // --- FUNÇÕES QUE FALTAVAM ---
+
   const handleAddToCart = (product: Product, quantity: number, notes: string = "", options: Option[] = []) => {
     if (product.recommendations && product.recommendations.length > 0) {
       setPendingItem({ product, quantity, notes, options });
@@ -340,6 +342,8 @@ function MenuContent({ slug }: { slug: string }) {
   const filteredCategories = getFilteredCategories();
   const allTags = Array.from(new Set(menu?.categories.flatMap(c => c.products.flatMap(p => p.tags)) || []));
 
+  // --- RENDERIZAÇÃO ---
+
   if (loading) return <div className="p-8 text-center">Carregando...</div>;
   if (sessionStatus === 'blocked') return <BlockedTableScreen customerName={tableOwnerName} />;
   if (!isDelivery && sessionStatus === 'free') return <CheckInScreen tableId={tableId!} status="free" onJoin={handleJoinTable} segment={menu?.company.segment} />;
@@ -358,30 +362,33 @@ function MenuContent({ slug }: { slug: string }) {
   })();
 
   const primaryColor = menu.company.primary_color || "#ea580c";
+  const bgColor = menu.company.background_color || "#f9fafb";
+  const textColor = menu.company.text_color || "#111827";
 
   if (activeOrder) {
     return <OrderStatusView order={activeOrder} onNewOrder={handleNewOrder} primaryColor={primaryColor} />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 text-gray-900 font-sans">
-      <div className="sticky top-0 z-30 bg-white shadow-sm">
+    <div className="min-h-screen pb-24 font-sans transition-colors duration-300" style={{ backgroundColor: bgColor, color: textColor }}>
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm shadow-sm">
         <header className="p-4 flex justify-between items-center border-b border-gray-100">
             <div className="flex items-center gap-2">
-                {menu.company.logo_url && <img src={menu.company.logo_url} className="w-8 h-8 object-contain" alt="Logo" />}
-                <h1 className="font-bold text-lg truncate max-w-[150px]">{menu.company.name}</h1>
+                {menu.company.logo_url && <img src={menu.company.logo_url} className="w-10 h-10 object-contain rounded-lg" alt="Logo" />}
+                <h1 className="font-bold text-lg truncate max-w-[150px]" style={{ color: textColor }}>{menu.company.name}</h1>
             </div>
             
             <div className="flex items-center gap-3">
                 {!isDelivery && sessionStatus === 'active' && (
-                    <button onClick={() => setIsComandaOpen(true)} className="text-xs font-bold bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-gray-200 transition-colors">
+                    <button onClick={() => setIsComandaOpen(true)} className="text-xs font-bold bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-gray-200 transition-colors text-gray-800">
                     <FileText size={14} /> {labels.bill}
                     </button>
                 )}
                 {!isDelivery && !isClosed && (
                     <button 
                     onClick={() => setIsServiceModalOpen(true)}
-                    className="bg-orange-50 text-orange-600 p-2 rounded-full border border-orange-100 hover:bg-orange-100 transition-colors"
+                    className="p-2 rounded-full border transition-colors"
+                    style={{ borderColor: primaryColor, color: primaryColor, backgroundColor: `${primaryColor}10` }}
                     >
                     <Bell size={18} />
                     </button>
@@ -397,11 +404,12 @@ function MenuContent({ slug }: { slug: string }) {
             <div className="flex overflow-x-auto no-scrollbar px-4 pb-2 gap-2">
                 <button 
                     onClick={() => setActiveTag(null)}
-                    className={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-bold border transition-all ${!activeTag ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-200'}`}
+                    className={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-bold border transition-all ${!activeTag ? 'text-white' : 'bg-white text-gray-500 border-gray-200'}`}
+                    style={{ backgroundColor: !activeTag ? primaryColor : undefined, borderColor: !activeTag ? primaryColor : undefined }}
                 >
                     Todos
                 </button>
-                {allTags.map(tag => (
+                {allTags.map((tag: string) => (
                     <button 
                         key={tag}
                         onClick={() => setActiveTag(activeTag === tag ? null : tag)}
@@ -422,6 +430,13 @@ function MenuContent({ slug }: { slug: string }) {
         />
       </div>
 
+      {menu.company.banner_url && (
+        <div className="w-full h-40 md:h-64 relative">
+            <img src={menu.company.banner_url} className="w-full h-full object-cover" alt="Banner" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+        </div>
+      )}
+
       {isClosed && (
         <div className="bg-red-100 border-b border-red-200 p-4 flex items-center gap-3 text-red-800">
           <AlertCircle size={20} />
@@ -431,23 +446,23 @@ function MenuContent({ slug }: { slug: string }) {
 
       <main className="p-4 space-y-8">
         {filteredCategories.length === 0 ? (
-            <div className="text-center py-10 text-gray-500">
+            <div className="text-center py-10 opacity-60">
                 <p>Nenhum produto encontrado.</p>
             </div>
         ) : (
-            filteredCategories.map((category) => (
+            filteredCategories.map((category: Category) => (
             <section 
                 key={category.id} 
                 id={`category-${category.id}`} 
                 data-category-id={category.id}
                 className="scroll-mt-48"
             >
-                <h2 className="text-lg font-bold mb-4 text-gray-800 flex items-center gap-2">
+                <h2 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: textColor }}>
                     <div className="w-1 h-6 rounded-full" style={{ backgroundColor: primaryColor }}></div>
                     {category.name}
                 </h2>
                 <div className="space-y-4">
-                {category.products.map((product) => {
+                {category.products.map((product: Product) => {
                     const isOutOfStock = product.track_stock && product.stock_quantity <= 0;
                     return (
                     <div 
@@ -465,7 +480,7 @@ function MenuContent({ slug }: { slug: string }) {
                         
                         {product.tags.length > 0 && (
                             <div className="flex gap-1 mt-2 flex-wrap">
-                                {product.tags.map(tag => (
+                                {product.tags.map((tag: string) => (
                                     <span key={tag} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium capitalize">{tag}</span>
                                 ))}
                             </div>
@@ -538,7 +553,7 @@ function MenuContent({ slug }: { slug: string }) {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
           <div className="bg-white w-full max-w-md p-6 rounded-xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
             <div className="flex justify-between items-center mb-4 border-b pb-2">
-                <h2 className="text-xl font-bold">Seu Pedido</h2>
+                <h2 className="text-xl font-bold text-gray-900">Seu Pedido</h2>
                 <button onClick={() => setIsCartOpen(false)} className="text-gray-400"><X size={24} /></button>
             </div>
             
@@ -546,7 +561,7 @@ function MenuContent({ slug }: { slug: string }) {
                 {items.map((item, idx) => (
                 <div key={idx} className="flex justify-between py-3 border-b last:border-0 group">
                     <div className="cursor-pointer flex-1" onClick={() => handleEditCartItem(idx)}>
-                        <p className="font-medium flex items-center gap-2">
+                        <p className="font-medium flex items-center gap-2 text-gray-900">
                             {item.quantity}x {item.product.name}
                             <Edit2 size={12} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </p>
@@ -554,7 +569,7 @@ function MenuContent({ slug }: { slug: string }) {
                         {item.notes && <p className="text-xs text-orange-600 italic">Obs: {item.notes}</p>}
                     </div>
                     <div className="text-right">
-                        <p className="text-sm font-bold">R$ {((Number(item.product.price) + item.selectedOptions.reduce((a,b)=>a+Number(b.price),0)) * item.quantity).toFixed(2)}</p>
+                        <p className="text-sm font-bold text-gray-900">R$ {((Number(item.product.price) + item.selectedOptions.reduce((a,b)=>a+Number(b.price),0)) * item.quantity).toFixed(2)}</p>
                         <button onClick={() => removeFromCart(idx)} className="text-red-500 text-xs mt-1 hover:underline">Remover</button>
                     </div>
                 </div>
@@ -565,7 +580,7 @@ function MenuContent({ slug }: { slug: string }) {
               {!customerName && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Seu Nome (Para a Comanda)</label>
-                  <input type="text" className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500" placeholder="Ex: João" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+                  <input type="text" className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500 text-gray-900" placeholder="Ex: João" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
                 </div>
               )}
 
@@ -573,11 +588,11 @@ function MenuContent({ slug }: { slug: string }) {
                 <div className="animate-in slide-in-from-top-2 space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"><Phone size={14}/> Telefone / WhatsApp</label>
-                    <input type="tel" className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500" placeholder="(00) 90000-0000" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} />
+                    <input type="tel" className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500 text-gray-900" placeholder="(00) 90000-0000" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"><MapPin size={14}/> Endereço de Entrega</label>
-                    <textarea className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500" placeholder="Rua, Número, Bairro, Complemento" rows={2} value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} />
+                    <textarea className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500 text-gray-900" placeholder="Rua, Número, Bairro, Complemento" rows={2} value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} />
                   </div>
                 </div>
               )}
@@ -585,7 +600,7 @@ function MenuContent({ slug }: { slug: string }) {
               {!isDelivery && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"><Phone size={14}/> Telefone (Opcional)</label>
-                  <input type="tel" className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500" placeholder="Para ganhar cashback" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} />
+                  <input type="tel" className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500 text-gray-900" placeholder="Para ganhar cashback" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} />
                 </div>
               )}
 
@@ -619,7 +634,7 @@ function MenuContent({ slug }: { slug: string }) {
             </div>
 
             <div className="mt-6 flex gap-3">
-              <button onClick={() => setIsCartOpen(false)} className="flex-1 border border-gray-300 py-3 rounded-lg font-medium">Voltar</button>
+              <button onClick={() => setIsCartOpen(false)} className="flex-1 border border-gray-300 py-3 rounded-lg font-medium text-gray-700">Voltar</button>
               <button 
                 onClick={handleCheckout} 
                 disabled={processing}

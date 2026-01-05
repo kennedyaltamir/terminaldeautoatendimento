@@ -4,7 +4,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 from datetime import date, datetime, time
 from app.database import get_db
-from app.models import Order, OrderStatus, Company, OrderItem, PaymentStatus, ServiceRequest, Table, Product, Category
+from app.models import Order, OrderStatus, Company, OrderItem, PaymentStatus, ServiceRequest, Table, Product, Category, Employee
 from app.routers.auth import get_current_user
 from app.schemas import OrderResponse, ServiceRequestResponse, ProductResponse
 from app.websockets import manager
@@ -26,14 +26,26 @@ class OrderHistoryResponse(BaseModel):
     limit: int
     data: List[OrderResponse]
 
+def get_company_id(user: any) -> str:
+    """Helper para extrair o ID da empresa seja de um Dono ou Funcionário"""
+    if isinstance(user, Company):
+        return user.id
+    if isinstance(user, Employee):
+        return user.company_id
+    raise HTTPException(status_code=403, detail="Usuário inválido")
+
 @router.get("/{company_slug}/orders", response_model=List[OrderResponse])
 def get_kitchen_orders(
     company_slug: str, 
     db: Session = Depends(get_db),
-    current_user: Company = Depends(get_current_user)
+    current_user: any = Depends(get_current_user)
 ):
-    if current_user.slug != company_slug:
-        raise HTTPException(status_code=403, detail="Sem permissão")
+    # Validação de Slug (Segurança)
+    user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
+    if user_slug != company_slug:
+        raise HTTPException(status_code=403, detail="Sem permissão para esta empresa")
+
+    company_id = get_company_id(current_user)
 
     orders = (
         db.query(Order)
@@ -43,7 +55,7 @@ def get_kitchen_orders(
             selectinload(Order.table)
         )
         .filter(
-            Order.company_id == current_user.id,
+            Order.company_id == company_id,
             Order.status.in_([OrderStatus.PENDING, OrderStatus.ACCEPTED, OrderStatus.PREPARING, OrderStatus.READY])
         )
         .order_by(Order.created_at.asc())
@@ -56,10 +68,13 @@ def get_recent_completed_orders(
     company_slug: str,
     limit: int = 10,
     db: Session = Depends(get_db),
-    current_user: Company = Depends(get_current_user)
+    current_user: any = Depends(get_current_user)
 ):
-    if current_user.slug != company_slug:
+    user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
+    if user_slug != company_slug:
         raise HTTPException(status_code=403, detail="Sem permissão")
+
+    company_id = get_company_id(current_user)
 
     orders = (
         db.query(Order)
@@ -69,7 +84,7 @@ def get_recent_completed_orders(
             selectinload(Order.table)
         )
         .filter(
-            Order.company_id == current_user.id,
+            Order.company_id == company_id,
             Order.status.in_([OrderStatus.DELIVERED, OrderStatus.CANCELED])
         )
         .order_by(Order.finished_at.desc().nulls_last(), Order.created_at.desc())
@@ -82,16 +97,19 @@ def get_recent_completed_orders(
 def get_quick_product_list(
     company_slug: str,
     db: Session = Depends(get_db),
-    current_user: Company = Depends(get_current_user)
+    current_user: any = Depends(get_current_user)
 ):
-    if current_user.slug != company_slug:
+    user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
+    if user_slug != company_slug:
         raise HTTPException(status_code=403, detail="Sem permissão")
+    
+    company_id = get_company_id(current_user)
     
     products = (
         db.query(Product)
         .join(Category)
         .join(Company)
-        .filter(Company.id == current_user.id)
+        .filter(Company.id == company_id)
         .order_by(Product.name)
         .all()
     )
@@ -107,12 +125,14 @@ def get_order_history(
     end_date: Optional[date] = None,
     status: Optional[OrderStatus] = None,
     db: Session = Depends(get_db),
-    current_user: Company = Depends(get_current_user)
+    current_user: any = Depends(get_current_user)
 ):
-    if current_user.slug != company_slug:
+    user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
+    if user_slug != company_slug:
         raise HTTPException(status_code=403, detail="Sem permissão")
 
-    query = db.query(Order).filter(Order.company_id == current_user.id)
+    company_id = get_company_id(current_user)
+    query = db.query(Order).filter(Order.company_id == company_id)
 
     if start_date:
         query = query.filter(Order.created_at >= datetime.combine(start_date, time.min))
@@ -147,11 +167,13 @@ async def update_order_status(
     order_id: str,
     status_update: OrderStatusUpdate,
     db: Session = Depends(get_db),
-    current_user: Company = Depends(get_current_user)
+    current_user: any = Depends(get_current_user)
 ):
+    company_id = get_company_id(current_user)
+    
     order = db.query(Order).options(selectinload(Order.table), selectinload(Order.company)).filter(
         Order.id == order_id,
-        Order.company_id == current_user.id
+        Order.company_id == company_id
     ).first()
 
     if not order:
@@ -165,7 +187,6 @@ async def update_order_status(
     elif status_update.status in [OrderStatus.PREPARING, OrderStatus.PENDING]:
         order.finished_at = None
     
-    # Se o pedido for entregue e já estiver pago, processa fidelidade
     if status_update.status == OrderStatus.DELIVERED and order.payment_status == PaymentStatus.PAID:
         LoyaltyService.process_cashback(db, order)
 
@@ -183,6 +204,7 @@ async def update_order_status(
             )
 
     table_num = order.table.table_number if order.table else "Delivery"
+    user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
     
     await manager.broadcast({
         "type": "order_update",
@@ -191,7 +213,7 @@ async def update_order_status(
         "payment_status": order.payment_status,
         "table": table_num,
         "customer": order.customer_name
-    }, current_user.slug)
+    }, user_slug)
 
     return {"message": "Status atualizado"}
 
@@ -200,11 +222,13 @@ async def update_order_payment(
     order_id: str,
     payment_update: OrderPaymentUpdate,
     db: Session = Depends(get_db),
-    current_user: Company = Depends(get_current_user)
+    current_user: any = Depends(get_current_user)
 ):
+    company_id = get_company_id(current_user)
+    
     order = db.query(Order).filter(
         Order.id == order_id,
-        Order.company_id == current_user.id
+        Order.company_id == company_id
     ).first()
 
     if not order:
@@ -212,18 +236,18 @@ async def update_order_payment(
 
     order.payment_status = payment_update.payment_status
     
-    # Se o pagamento for confirmado manualmente, processa fidelidade
     if payment_update.payment_status == PaymentStatus.PAID:
         LoyaltyService.process_cashback(db, order)
 
     db.commit()
 
+    user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
     await manager.broadcast({
         "type": "order_update",
         "order_id": str(order.id),
         "status": order.status,
         "payment_status": order.payment_status
-    }, current_user.slug)
+    }, user_slug)
 
     return {"message": "Pagamento atualizado"}
 
@@ -231,13 +255,16 @@ async def update_order_payment(
 def get_active_service_requests(
     company_slug: str,
     db: Session = Depends(get_db),
-    current_user: Company = Depends(get_current_user)
+    current_user: any = Depends(get_current_user)
 ):
-    if current_user.slug != company_slug:
+    user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
+    if user_slug != company_slug:
         raise HTTPException(status_code=403, detail="Sem permissão")
 
+    company_id = get_company_id(current_user)
+
     requests = db.query(ServiceRequest).join(Table).filter(
-        ServiceRequest.company_id == current_user.id,
+        ServiceRequest.company_id == company_id,
         ServiceRequest.status == "pending"
     ).all()
 
@@ -257,11 +284,13 @@ def get_active_service_requests(
 def resolve_service_request(
     request_id: int,
     db: Session = Depends(get_db),
-    current_user: Company = Depends(get_current_user)
+    current_user: any = Depends(get_current_user)
 ):
+    company_id = get_company_id(current_user)
+    
     req = db.query(ServiceRequest).filter(
         ServiceRequest.id == request_id,
-        ServiceRequest.company_id == current_user.id
+        ServiceRequest.company_id == company_id
     ).first()
 
     if not req:

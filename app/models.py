@@ -1,4 +1,3 @@
-#app/models.py
 import uuid
 from enum import Enum
 
@@ -11,6 +10,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.database import Base 
+
+# --- ENUMS ---
 
 class PlanTier(str, Enum):
     FREE = "free"
@@ -93,12 +94,24 @@ class LedgerType(str, Enum):
     CREDIT = "credit"
     PAYMENT = "payment"
 
+# NOVO: Enum para Provedores de Pagamento
+class PaymentProvider(str, Enum):
+    MERCADO_PAGO = "mercadopago"
+    EFI = "efi"
+    STRIPE = "stripe"
+    PAGARME = "pagarme"
+    NONE = "none"
+
+# --- TABELAS DE ASSOCIAÇÃO ---
+
 product_recommendations = SQLTable(
     'product_recommendations',
     Base.metadata,
     Column('source_product_id', Integer, ForeignKey('products.id'), primary_key=True),
     Column('target_product_id', Integer, ForeignKey('products.id'), primary_key=True)
 )
+
+# --- MODELS ---
 
 class Company(Base):
     __tablename__ = "companies"
@@ -122,29 +135,42 @@ class Company(Base):
     # Segurança
     is_email_verified = Column(Boolean, default=False)
     
+    # Assinatura SaaS (Stripe)
     stripe_customer_id = Column(String(100), nullable=True, index=True)
     stripe_subscription_id = Column(String(100), nullable=True)
     subscription_status = Column(String(50), nullable=True)
     
+    # Identidade Visual
     logo_url = Column(String(500), nullable=True)
-    primary_color = Column(String(7), default="#ea580c")
     banner_url = Column(String(500), nullable=True)
+    primary_color = Column(String(7), default="#ea580c")
+    background_color = Column(String(7), default="#f9fafb")
+    text_color = Column(String(7), default="#111827")
+    accent_color = Column(String(7), default="#ea580c")
     
+    # Marketing & Contato
     instagram_url = Column(String(255), nullable=True)
     whatsapp_number = Column(String(20), nullable=True)
     wifi_ssid = Column(String(100), nullable=True)
     wifi_password = Column(String(100), nullable=True)
     
+    # --- GATEWAY DE PAGAMENTO (NOVO) ---
+    payment_provider = Column(SQLEnum(PaymentProvider), default=PaymentProvider.NONE, nullable=False)
+    payment_credentials = Column(JSON, nullable=True) # Armazena tokens, refresh_tokens, keys de forma flexível
+    
+    # Campos Legados (Mantidos para migração, usar payment_credentials no futuro)
     pix_key = Column(String(255), nullable=True)
     mp_access_token = Column(String(255), nullable=True)
     mp_user_id = Column(String(50), nullable=True)
+    
+    # Configurações Financeiras
     marketplace_fee_percentage = Column(Numeric(5, 2), default=0.0)
     pending_commission_balance = Column(Numeric(10, 2), default=0.00)
     loyalty_percentage = Column(Numeric(5, 2), default=0.0)
-    
     service_fee_percentage = Column(Numeric(5, 2), default=10.0)
     fixed_delivery_fee = Column(Numeric(10, 2), default=0.00)
 
+    # Fiscal
     cnpj = Column(String(20), nullable=True)
     inscricao_estadual = Column(String(20), nullable=True)
     fiscal_token = Column(String(255), nullable=True)
@@ -155,6 +181,7 @@ class Company(Base):
     closes_at = Column(Time, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+    # Relacionamentos
     tables = relationship("Table", back_populates="company", cascade="all, delete-orphan")
     categories = relationship("Category", back_populates="company", cascade="all, delete-orphan")
     orders = relationship("Order", back_populates="company")
@@ -469,7 +496,6 @@ class Lead(Base):
     source = Column(String(50), default="landing_page")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-# NOVO: Tabela de Tokens de Recuperação de Senha
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
     id = Column(Integer, primary_key=True, autoincrement=True)

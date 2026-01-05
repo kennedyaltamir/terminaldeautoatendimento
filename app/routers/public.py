@@ -46,7 +46,7 @@ def resolve_domain(host: str, db: Session = Depends(get_db)):
     return {"slug": company.slug, "valid": True}
 
 @router.get("/{company_slug}/menu", response_model=MenuResponse)
-@limiter.limit("60/minute")
+@limiter.limit("30/minute") # Limite razoável para navegação humana
 def get_menu(request: Request, company_slug: str, db: Session = Depends(get_db)):
     company = db.query(Company).filter(Company.slug == company_slug).first()
     if not company:
@@ -95,7 +95,8 @@ def get_menu(request: Request, company_slug: str, db: Session = Depends(get_db))
     }
 
 @router.get("/{company_slug}/wallet/{phone}", response_model=WalletResponse)
-def get_customer_wallet(company_slug: str, phone: str, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def get_customer_wallet(request: Request, company_slug: str, phone: str, db: Session = Depends(get_db)):
     company = db.query(Company).filter(Company.slug == company_slug).first()
     if not company:
         raise HTTPException(status_code=404, detail="Empresa não encontrada")
@@ -113,7 +114,9 @@ def get_customer_wallet(company_slug: str, phone: str, db: Session = Depends(get
     }
 
 @router.post("/{company_slug}/check-table", response_model=CheckTableResponse)
+@limiter.limit("20/minute")
 def check_table_status(
+    request: Request,
     company_slug: str,
     data: CheckTableRequest,
     db: Session = Depends(get_db)
@@ -161,7 +164,9 @@ def check_table_status(
     }
 
 @router.post("/{company_slug}/join-table", response_model=TableSessionResponse)
+@limiter.limit("5/minute")
 def join_table(
+    request: Request,
     company_slug: str,
     data: JoinTableRequest,
     db: Session = Depends(get_db)
@@ -200,8 +205,8 @@ def join_table(
 
 @router.get("/{company_slug}/session/{session_token}", response_model=TableSessionResponse)
 def get_table_session(
-    company_slug: str,
     session_token: str,
+    company_slug: str,
     db: Session = Depends(get_db)
 ):
     session = db.query(TableSession).filter(
@@ -292,9 +297,7 @@ async def create_order(
     subtotal = Decimal(0)
     db_items = []
 
-    # Validação e Construção dos Itens
     for item in order_data.items:
-        # Lock para garantir leitura consistente durante a transação
         product = db.query(Product).join(Category).filter(
             Product.id == item.product_id, 
             Category.company_id == company.id
@@ -303,7 +306,6 @@ async def create_order(
         if not product or not product.is_available:
             raise HTTPException(status_code=400, detail=f"Produto indisponível: {product.name if product else '?'}")
         
-        # Verificação preliminar de estoque do produto (simples)
         if product.track_stock:
             if product.stock_quantity < item.quantity:
                 raise HTTPException(status_code=400, detail=f"Estoque insuficiente: {product.name}")
@@ -339,7 +341,6 @@ async def create_order(
             wallet.balance -= discount_amount
             db.add(wallet)
 
-    # Cálculo da Taxa de Entrega (NOVO)
     delivery_fee = Decimal(0)
     if order_data.order_type == OrderType.DELIVERY:
         delivery_fee = company.fixed_delivery_fee or Decimal(0)
@@ -352,7 +353,6 @@ async def create_order(
 
     initial_status = OrderStatus.ACCEPTED if is_staff else OrderStatus.PENDING
 
-    # Geração do Código de Entrega (POD)
     delivery_code = None
     if order_data.order_type == OrderType.DELIVERY:
         delivery_code = str(random.randint(1000, 9999))
@@ -371,7 +371,7 @@ async def create_order(
         discount_amount=discount_amount,
         total_amount=total_amount,
         cashback_earned=cashback_earned,
-        delivery_fee=delivery_fee, # NOVO
+        delivery_fee=delivery_fee,
         
         status=initial_status,
         payment_method=order_data.payment_method
@@ -473,7 +473,6 @@ async def request_service(
     
     return existing
 
-# --- LEADS ENDPOINT ---
 @router.post("/leads", response_model=LeadResponse, status_code=201)
 @limiter.limit("5/minute")
 def create_lead(
@@ -481,15 +480,12 @@ def create_lead(
     lead_data: LeadCreate,
     db: Session = Depends(get_db)
 ):
-    # Verifica se já existe
     existing = db.query(Lead).filter(Lead.email == lead_data.email).first()
     if not existing:
         new_lead = Lead(email=lead_data.email, source=lead_data.source)
         db.add(new_lead)
         db.commit()
     
-    # Em um cenário real, aqui dispararíamos o e-mail com o PDF
-    # Por enquanto, retornamos um link simulado
     return {
         "message": "Sucesso! Verifique seu e-mail.",
         "download_url": "https://mesaflow.com/assets/guia-eficiencia-2026.pdf"
