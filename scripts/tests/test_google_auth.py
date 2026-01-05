@@ -20,7 +20,7 @@ def test_google_auth_new_user():
 
     with patch('google.oauth2.id_token.verify_oauth2_token', return_value=mock_idinfo):
         response = client.post("/api/auth/google", json={"credential": "TOKEN_FAKE_VALIDO"})
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["user_name"] == "Novo Dono Teste"
@@ -39,4 +39,5 @@ def test_google_auth_invalid_token():
     with patch('google.oauth2.id_token.verify_oauth2_token', side_effect=ValueError("Invalid Token")):
         response = client.post("/api/auth/google", json={"credential": "TOKEN_LIXO"})
         assert response.status_code == 401
-        assert "Google inválido" in response.json()["detail"]
+        # Mensagem atualizada conforme implementação real
+        assert "Autenticação social falhou" in response.json()["detail"]

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
+from uuid import UUID
 from app.database import get_db, SessionLocal
 from app.models import Company, Order, FiscalStatus
 from app.schemas import FiscalEmissionResponse
@@ -17,14 +18,14 @@ def require_admin(current_user: any = Depends(get_current_user)):
 
 @router.post("/orders/{order_id}/emit", response_model=FiscalEmissionResponse)
 async def emit_fiscal_document(
-    order_id: str,
+    order_id: UUID,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: any = Depends(require_admin)
 ):
     # Identificar Company ID
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    
+
     # Buscar Pedido
     order = db.query(Order).filter(Order.id == order_id, Order.company_id == company_id).first()
     if not order:
@@ -48,7 +49,7 @@ async def emit_fiscal_document(
         str(company_id), 
         SessionLocal
     )
-    
+
     return {
         "status": "processing",
         "message": "Emissão solicitada. Aguarde o processamento.",

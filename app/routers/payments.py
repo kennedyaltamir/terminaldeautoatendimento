@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from uuid import UUID
-import uuid  # <--- Correção: Importando o módulo uuid
+import uuid
 import time
 
 from app.database import get_db
@@ -26,8 +26,8 @@ def process_payment(
     Simula o processamento de um pagamento online.
     Em produção, aqui chamaríamos Stripe/MercadoPago.
     """
-    
-    # 1. Buscar o pedido
+
+    # 1. Buscar o pedido (O Pydantic já converteu order_id para UUID)
     order = db.query(Order).filter(Order.id == payment_data.order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
@@ -46,7 +46,7 @@ def process_payment(
 
     # 4. Sucesso: Atualizar Status
     order.payment_status = PaymentStatus.PAID
-    
+
     # Se pagou online, o pedido é aceito automaticamente (pula a etapa de "Aceitar" do garçom)
     if order.status == OrderStatus.PENDING:
         order.status = OrderStatus.ACCEPTED

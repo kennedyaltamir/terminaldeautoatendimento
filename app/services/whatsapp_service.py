@@ -1,7 +1,7 @@
 import httpx
 import os
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -103,6 +103,22 @@ class WhatsAppService:
             f"Olá *{customer_name}*! 🛵\n\n"
             f"Seu pedido acabou de sair para entrega{driver_info}! 🎉\n\n"
             f"📍 *Acompanhe em tempo real:* {tracking_url}"
+        )
+        return await self._send_http_request(phone, msg, config)
+
+    async def notify_low_stock(self, phone: str, ingredient_name: str, affected_products: List[str], current_stock: float, unit: str, company_settings: Any = None):
+        """Notifica o dono sobre estoque baixo/zerado."""
+        if not phone: return False
+        config = self._get_config(company_settings)
+        
+        products_list = "\n".join([f"- {p}" for p in affected_products])
+        
+        msg = (
+            f"⚠️ *ALERTA DE ESTOQUE: {ingredient_name}*\n\n"
+            f"O estoque chegou a {current_stock} {unit}.\n"
+            f"Os seguintes produtos foram *pausados automaticamente*:\n\n"
+            f"{products_list}\n\n"
+            f"Reponha o estoque e reative os produtos no painel."
         )
         return await self._send_http_request(phone, msg, config)
 

@@ -1,27 +1,35 @@
 from fastapi.testclient import TestClient
 from app.main import app
+from app.database import SessionLocal
+from app.models import Product, Company
 
 client = TestClient(app)
 
 def test_menu_returns_tags():
     """
     Verifica se o endpoint do menu retorna as tags dos produtos.
-    Isso é essencial para o funcionamento do filtro de tags no frontend.
     """
-    # 1. Buscar Menu Público
+    # 1. Setup: Garantir que existe um produto com tag
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.slug == "hamburgueria-ze").first()
+    
+    # Adicionar tag a um produto
+    product = db.query(Product).filter(Product.category.has(company_id=company.id)).first()
+    product.tags = ["promo", "novo"]
+    db.commit()
+    db.close()
+
+    # 2. Buscar Menu Público
     response = client.get("/api/hamburgueria-ze/menu")
     assert response.status_code == 200
     data = response.json()
+
+    # 3. Verificar
+    found = False
+    for cat in data["categories"]:
+        for p in cat["products"]:
+            if "promo" in p["tags"]:
+                found = True
+                break
     
-    # 2. Verificar se produtos têm tags
-    # O seed adicionou tags ao X-Bacon, Coca e Batata
-    
-    # Encontrar X-Bacon
-    xbacon = next(p for cat in data["categories"] for p in cat["products"] if p["name"] == "X-Bacon")
-    assert "tags" in xbacon
-    assert "promo" in xbacon["tags"]
-    assert "carne" in xbacon["tags"]
-    
-    # Encontrar Batata
-    batata = next(p for cat in data["categories"] for p in cat["products"] if p["name"] == "Batata Frita")
-    assert "vegano" in batata["tags"]
+    assert found, "Tag 'promo' não encontrada no menu"

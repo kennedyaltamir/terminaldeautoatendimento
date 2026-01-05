@@ -1,13 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session, selectinload
 from typing import List
+from uuid import UUID
 from app.database import get_db
-from app.models import Order, OrderStatus, Company, OrderType, OrderItem, Employee, UserRole, PaymentStatus
+from app.models import Order, OrderStatus, Company, OrderType, OrderItem, Employee, UserRole, PaymentStatus, DriverLedger, LedgerType
 from app.routers.auth import get_current_user
 from app.schemas import OrderResponse, DispatchOrderRequest, CompleteDeliveryRequest
 from app.services.whatsapp_service import WhatsAppService
 from app.websockets import manager
 from datetime import datetime
+from decimal import Decimal
 
 router = APIRouter()
 whatsapp_service = WhatsAppService()
@@ -39,7 +41,7 @@ def get_delivery_orders(
 
 @router.patch("/orders/{order_id}/dispatch", status_code=200)
 async def dispatch_order(
-    order_id: str,
+    order_id: UUID,
     dispatch_data: DispatchOrderRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
@@ -53,7 +55,7 @@ async def dispatch_order(
         selectinload(Order.driver),
         selectinload(Order.company)
     ).filter(Order.id == order_id).first()
-    
+
     if not order: raise HTTPException(404, "Pedido não encontrado")
 
     order.status = OrderStatus.DELIVERING
@@ -80,7 +82,7 @@ async def dispatch_order(
 
 @router.patch("/orders/{order_id}/complete", status_code=200)
 async def complete_delivery(
-    order_id: str,
+    order_id: UUID,
     data: CompleteDeliveryRequest,
     db: Session = Depends(get_db),
     current_user: any = Depends(require_delivery_access)
@@ -92,15 +94,29 @@ async def complete_delivery(
     if not order: raise HTTPException(404, "Pedido não encontrado")
 
     if order.order_type == OrderType.DELIVERY:
-        if not data.code:
-            raise HTTPException(status_code=400, detail="Código de confirmação é obrigatório")
-        if order.delivery_code != data.code:
-            raise HTTPException(status_code=403, detail="Código de confirmação incorreto")
+        if order.delivery_code and order.delivery_code != data.code:
+             if not data.code:
+                 raise HTTPException(status_code=400, detail="Código de confirmação é obrigatório")
+             raise HTTPException(status_code=403, detail="Código de confirmação incorreto")
 
     order.status = OrderStatus.DELIVERED
     order.payment_status = PaymentStatus.PAID
     order.finished_at = datetime.now()
+
+    # Lógica de Ledger (Dívida do Motorista)
+    # Se o pagamento for em dinheiro e tiver motorista, cria dívida
+    if order.payment_method == "cash" and order.driver_id:
+        ledger = DriverLedger(
+            company_id=order.company_id,
+            driver_id=order.driver_id,
+            order_id=order.id,
+            type=LedgerType.DEBT,
+            amount=order.total_amount,
+            description=f"Entrega #{str(order.id)[:6]}"
+        )
+        db.add(ledger)
+
     db.commit()
-    
+
     await manager.broadcast({"type": "order_update", "order_id": str(order.id), "status": order.status}, slug)
     return {"message": "Entrega finalizada"}

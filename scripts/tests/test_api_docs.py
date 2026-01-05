@@ -9,7 +9,8 @@ def test_openapi_schema_exists():
     assert response.status_code == 200
     schema = response.json()
     assert schema["info"]["title"] == "MesaFlow API"
-    assert schema["info"]["version"] == "2.3.0"
+    # Atualizado para a versão atual do main.py
+    assert schema["info"]["version"] == "2.3.1"
 
 def test_docs_page_exists():
     """Verifica se a página do Swagger UI carrega."""
@@ -22,7 +23,7 @@ def test_tags_metadata():
     response = client.get("/openapi.json")
     schema = response.json()
     tags = [t["name"] for t in schema["tags"]]
-    
+
     expected_tags = ["Public", "Authentication", "Admin Orders", "Admin Menu"]
     for tag in expected_tags:
         assert tag in tags, f"Tag {tag} não encontrada na documentação"

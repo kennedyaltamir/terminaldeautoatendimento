@@ -5,11 +5,43 @@ from sqlalchemy import (
     Column, String, Integer, Boolean, DateTime, ForeignKey,
     Enum as SQLEnum, Numeric, Text, Index, Time, Table as SQLTable, JSON
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.types import TypeDecorator, CHAR
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql import func
 
 from app.database import Base 
+
+# --- CUSTOM TYPES (SQLite Compatibility) ---
+
+class GUID(TypeDecorator):
+    """
+    Platform-independent GUID type.
+    Uses PostgreSQL's UUID type, otherwise uses CHAR(36), storing as stringified hex values.
+    """
+    impl = CHAR
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            return dialect.type_descriptor(PGUUID())
+        return dialect.type_descriptor(CHAR(36))
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        if dialect.name == 'postgresql':
+            return str(value)
+        if not isinstance(value, uuid.UUID):
+            return str(uuid.UUID(value))
+        return str(value)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return None
+        if not isinstance(value, uuid.UUID):
+            return uuid.UUID(value)
+        return value
 
 # --- ENUMS ---
 
@@ -114,7 +146,7 @@ product_recommendations = SQLTable(
 
 class Company(Base):
     __tablename__ = "companies"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False)
     slug = Column(String(255), nullable=False, unique=True, index=True)
     custom_domain = Column(String(255), unique=True, nullable=True, index=True)
@@ -188,7 +220,7 @@ class Company(Base):
 class Employee(Base):
     __tablename__ = "employees"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    company_id = Column(GUID(), ForeignKey("companies.id"), nullable=False)
     name = Column(String(100), nullable=False)
     email = Column(String(255), nullable=False)
     password_hash = Column(String(255), nullable=False)
@@ -205,7 +237,7 @@ class Employee(Base):
 class Table(Base):
     __tablename__ = "tables"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    company_id = Column(GUID(), ForeignKey("companies.id"), nullable=False)
     table_number = Column(Integer, nullable=False)
     qr_token = Column(String(64), nullable=False, index=True)
     is_active = Column(Boolean, default=True)
@@ -220,7 +252,7 @@ class Table(Base):
 class Category(Base):
     __tablename__ = "categories"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    company_id = Column(GUID(), ForeignKey("companies.id"), nullable=False)
     name = Column(String(100), nullable=False)
     order_index = Column(Integer, default=0)
     availability_days = Column(JSON, nullable=True)
@@ -261,7 +293,7 @@ class Product(Base):
 class Supplier(Base):
     __tablename__ = "suppliers"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    company_id = Column(GUID(), ForeignKey("companies.id"), nullable=False)
     name = Column(String(255), nullable=False)
     contact_name = Column(String(100), nullable=True)
     phone = Column(String(20), nullable=True)
@@ -273,7 +305,7 @@ class Supplier(Base):
 class Ingredient(Base):
     __tablename__ = "ingredients"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    company_id = Column(GUID(), ForeignKey("companies.id"), nullable=False)
     supplier_id = Column(Integer, ForeignKey("suppliers.id"), nullable=True)
     name = Column(String(255), nullable=False)
     unit = Column(SQLEnum(UnitOfMeasure), default=UnitOfMeasure.UN, nullable=False)
@@ -317,7 +349,7 @@ class Option(Base):
 class TableSession(Base):
     __tablename__ = "table_sessions"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    company_id = Column(GUID(), ForeignKey("companies.id"), nullable=False)
     table_id = Column(Integer, ForeignKey("tables.id", ondelete="CASCADE"), nullable=False)
     opened_by_employee_id = Column(Integer, ForeignKey("employees.id"), nullable=True)
     customer_name = Column(String(100), nullable=False)
@@ -335,8 +367,8 @@ class TableSession(Base):
 
 class Order(Base):
     __tablename__ = "orders"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    company_id = Column(GUID(), ForeignKey("companies.id"), nullable=False)
     table_id = Column(Integer, ForeignKey("tables.id"), nullable=True)
     session_id = Column(Integer, ForeignKey("table_sessions.id"), nullable=True)
     driver_id = Column(Integer, ForeignKey("employees.id"), nullable=True)
@@ -388,7 +420,7 @@ class Order(Base):
 class OrderItem(Base):
     __tablename__ = "order_items"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=False)
+    order_id = Column(GUID(), ForeignKey("orders.id"), nullable=False)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     quantity = Column(Integer, nullable=False)
     unit_price = Column(Numeric(10, 2), nullable=False)
@@ -396,7 +428,7 @@ class OrderItem(Base):
     order = relationship("Order", back_populates="items")
     product = relationship("Product")
     selected_options = relationship("OrderItemOption", back_populates="order_item", cascade="all, delete-orphan")
-    
+
     __table_args__ = (Index("idx_order_items_order_id", "order_id"),)
 
 class OrderItemOption(Base):
@@ -411,7 +443,7 @@ class OrderItemOption(Base):
 class ServiceRequest(Base):
     __tablename__ = "service_requests"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    company_id = Column(GUID(), ForeignKey("companies.id"), nullable=False)
     table_id = Column(Integer, ForeignKey("tables.id"), nullable=False)
     service_type = Column(SQLEnum(ServiceType), default=ServiceType.HELP, nullable=False)
     notes = Column(Text, nullable=True)
@@ -424,7 +456,7 @@ class ServiceRequest(Base):
 class CustomerWallet(Base):
     __tablename__ = "customer_wallets"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    company_id = Column(GUID(), ForeignKey("companies.id"), nullable=False)
     customer_phone = Column(String(20), nullable=False)
     balance = Column(Numeric(10, 2), default=0.00)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -435,7 +467,7 @@ class CustomerWallet(Base):
 class AuditLog(Base):
     __tablename__ = "audit_logs"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    company_id = Column(GUID(), ForeignKey("companies.id"), nullable=False)
     user_name = Column(String(100), nullable=False)
     user_role = Column(String(50), nullable=False)
     action = Column(SQLEnum(AuditAction), nullable=False)
@@ -451,9 +483,9 @@ class AuditLog(Base):
 class ServiceFeeLedger(Base):
     __tablename__ = "service_fee_ledger"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    company_id = Column(GUID(), ForeignKey("companies.id"), nullable=False)
     employee_id = Column(Integer, ForeignKey("employees.id"), nullable=False)
-    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=True)
+    order_id = Column(GUID(), ForeignKey("orders.id"), nullable=True)
     amount = Column(Numeric(10, 2), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -463,9 +495,9 @@ class ServiceFeeLedger(Base):
 class DriverLedger(Base):
     __tablename__ = "driver_ledger"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    company_id = Column(GUID(), ForeignKey("companies.id"), nullable=False)
     driver_id = Column(Integer, ForeignKey("employees.id"), nullable=False)
-    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=True)
+    order_id = Column(GUID(), ForeignKey("orders.id"), nullable=True)
     type = Column(SQLEnum(LedgerType), nullable=False) 
     amount = Column(Numeric(10, 2), nullable=False)
     description = Column(String(255), nullable=True)
@@ -494,8 +526,8 @@ class PasswordResetToken(Base):
 class OrderFeedback(Base):
     __tablename__ = "order_feedbacks"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), unique=True, nullable=False)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    order_id = Column(GUID(), ForeignKey("orders.id"), unique=True, nullable=False)
+    company_id = Column(GUID(), ForeignKey("companies.id"), nullable=False)
     score = Column(Integer, nullable=False) # 1-5
     comment = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

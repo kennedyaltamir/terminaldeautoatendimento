@@ -42,3 +42,52 @@
 **Solução:**
 - Use a versão 3.2+ do script (já corrigida para encoding UTF-8 e paths do Windows).
 - Evite ter pastas abertas no Explorer enquanto roda o script.
+# 🆘 Guia de Solução de Problemas (Troubleshooting)
+
+## 1. WebSockets não conectam
+**Sintoma:** O KDS não atualiza sozinho. Erro no console: `WebSocket connection failed`.
+**Causa:**
+1.  O Backend não está rodando.
+2.  Firewall bloqueando porta 8000.
+3.  Uso de `https` no frontend mas `ws` (inseguro) no backend (Mixed Content).
+**Solução:**
+- Verifique se `python run.py` está ativo.
+- Em produção (Render/Vercel), garanta que `NEXT_PUBLIC_WS_URL` comece com `wss://`.
+
+## 2. Erro de Banco de Dados "Locked" ou "Connection Refused"
+**Sintoma:** API retorna erro 500 em tudo.
+**Causa:**
+1.  PostgreSQL caiu.
+2.  Muitas conexões abertas (Pool Exhausted).
+**Solução:**
+- Reinicie o Docker: `docker-compose restart db`.
+- Verifique a URL no `.env`.
+
+## 3. Frontend "Build Failed"
+**Sintoma:** `npm run build` falha.
+**Causa:**
+1.  Erro de tipagem TypeScript.
+2.  Variáveis de ambiente faltando no momento do build.
+**Solução:**
+- Rode `npm run lint` para ver os erros.
+- No Render/Vercel, adicione as variáveis do `.env` no painel do projeto.
+
+## 4. Testes Falhando com "AsyncMock"
+**Sintoma:** `AssertionError: expected call not found` em testes que usam `await`.
+**Causa:**
+O `unittest.mock` às vezes cria novas instâncias de mocks ao acessar atributos.
+**Solução:**
+Atribua o mock explicitamente antes de passar para o patch:
+```python
+mock_post = AsyncMock()
+mock_client.post = mock_post
+# ... executa código ...
+assert mock_post.called
+```
+
+## 5. Erro de UUID no SQLite
+**Sintoma:** `AttributeError: 'str' object has no attribute 'hex'`.
+**Causa:**
+O SQLite não tem tipo UUID nativo e salva como string. O SQLAlchemy tenta tratar como objeto UUID.
+**Solução:**
+Use o tipo customizado `GUID` definido em `app/models.py` que trata essa compatibilidade automaticamente.

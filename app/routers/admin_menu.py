@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
+from typing import List
 from app.database import get_db
 from app.models import Company, Category, Product, OptionGroup, Option, AuditAction
 from app.schemas import (
@@ -9,7 +10,7 @@ from app.schemas import (
 from app.routers.auth import get_current_user
 from app.core.saas_limits import SaasLimits
 from app.services.audit_service import AuditService
-from app.core.cache import CacheService # NOVO
+from app.core.cache import CacheService
 
 router = APIRouter()
 
@@ -17,6 +18,19 @@ def get_slug(user: any) -> str:
     if isinstance(user, Company):
         return user.slug
     return user.company.slug
+
+@router.get("/products", response_model=List[ProductResponse])
+def get_all_products(
+    db: Session = Depends(get_db),
+    current_user: any = Depends(get_current_user)
+):
+    """
+    Lista todos os produtos da empresa (Flat List).
+    Útil para gestão de estoque e testes.
+    """
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    products = db.query(Product).join(Category).filter(Category.company_id == company_id).all()
+    return products
 
 @router.post("/categories", response_model=CategoryResponse, status_code=201)
 def create_category(
@@ -43,8 +57,7 @@ def create_category(
         db, current_user, AuditAction.CREATE, "Category", str(new_category.id),
         details={"name": new_category.name}, request=request
     )
-    
-    # Invalida Cache
+
     CacheService.invalidate_menu(get_slug(current_user))
 
     return new_category
@@ -60,14 +73,14 @@ def update_category(
     category = db.query(Category).filter(Category.id == category_id, Category.company_id == company_id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
-    
+
     update_data = category_data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(category, key, value)
-    
+
     db.commit()
     db.refresh(category)
-    
+
     CacheService.invalidate_menu(get_slug(current_user))
     return category
 
@@ -96,7 +109,7 @@ def create_product(
     category = db.query(Category).filter(Category.id == product_data.category_id, Category.company_id == company_id).first()
     if not category:
         raise HTTPException(status_code=400, detail="Categoria inválida")
-    
+
     new_product = Product(
         category_id=product_data.category_id, 
         name=product_data.name, 
@@ -110,7 +123,7 @@ def create_product(
         tags=product_data.tags,
         short_code=product_data.short_code
     )
-    
+
     if product_data.recommended_ids:
         recs = db.query(Product).filter(Product.id.in_(product_data.recommended_ids)).all()
         new_product.recommendations = recs
@@ -123,7 +136,7 @@ def create_product(
         db, current_user, AuditAction.CREATE, "Product", str(new_product.id),
         details={"name": new_product.name, "price": float(new_product.price)}, request=request
     )
-    
+
     CacheService.invalidate_menu(get_slug(current_user))
     return new_product
 
@@ -139,7 +152,7 @@ def update_product(
     product = db.query(Product).join(Category).filter(Product.id == product_id, Category.company_id == company_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
-    
+
     update_data = product_data.model_dump(exclude_unset=True)
     diff = AuditService.diff(product, update_data)
 
@@ -151,7 +164,7 @@ def update_product(
 
     for key, value in update_data.items():
         setattr(product, key, value)
-    
+
     db.commit()
     db.refresh(product)
 
@@ -175,7 +188,7 @@ def delete_product(
     product = db.query(Product).join(Category).filter(Product.id == product_id, Category.company_id == company_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
-    
+
     AuditService.log(
         db, current_user, AuditAction.DELETE, "Product", str(product.id),
         details={"name": product.name}, request=request

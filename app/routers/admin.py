@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session, selectinload
 from typing import List, Optional
 from pydantic import BaseModel
 from datetime import date, datetime, time
+from uuid import UUID
 from app.database import get_db
 from app.models import Order, OrderStatus, Company, OrderItem, PaymentStatus, ServiceRequest, Table, Product, Category, Employee
 from app.routers.auth import get_current_user
@@ -20,7 +21,7 @@ class OrderStatusUpdate(BaseModel):
 class OrderPaymentUpdate(BaseModel):
     payment_status: PaymentStatus
 
-def get_company_id(user: any) -> str:
+def get_company_id(user: any) -> UUID:
     if isinstance(user, Company):
         return user.id
     if isinstance(user, Employee):
@@ -55,6 +56,39 @@ def get_kitchen_orders(
     )
     return orders
 
+@router.get("/{company_slug}/orders/recent-completed", response_model=List[OrderResponse])
+def get_recent_completed_orders(
+    company_slug: str,
+    db: Session = Depends(get_db),
+    current_user: any = Depends(get_current_user)
+):
+    """
+    Retorna os últimos 10 pedidos finalizados para a função de Recall.
+    Necessário para o teste test_kds_recall.py.
+    """
+    user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
+    if user_slug != company_slug:
+        raise HTTPException(status_code=403, detail="Sem permissão")
+
+    company_id = get_company_id(current_user)
+
+    orders = (
+        db.query(Order)
+        .options(
+            selectinload(Order.items).selectinload(OrderItem.product),
+            selectinload(Order.items).selectinload(OrderItem.selected_options),
+            selectinload(Order.table)
+        )
+        .filter(
+            Order.company_id == company_id,
+            Order.status.in_([OrderStatus.DELIVERED, OrderStatus.CANCELED])
+        )
+        .order_by(Order.finished_at.desc())
+        .limit(10)
+        .all()
+    )
+    return orders
+
 @router.get("/{company_slug}/history", response_model=OrderPagination)
 def get_order_history(
     company_slug: str,
@@ -68,11 +102,11 @@ def get_order_history(
         raise HTTPException(status_code=403, detail="Sem permissão para esta empresa")
 
     company_id = get_company_id(current_user)
-    
+
     query = db.query(Order).filter(Order.company_id == company_id)
-    
+
     total = query.count()
-    
+
     orders = (
         query
         .options(
@@ -85,7 +119,7 @@ def get_order_history(
         .limit(limit)
         .all()
     )
-    
+
     return {
         "data": orders,
         "total": total,
@@ -95,14 +129,14 @@ def get_order_history(
 
 @router.patch("/orders/{order_id}", status_code=200)
 async def update_order_status(
-    order_id: str,
+    order_id: UUID,
     status_update: OrderStatusUpdate,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: any = Depends(get_current_user)
 ):
     company_id = get_company_id(current_user)
-    
+
     # Carrega a empresa junto para ter acesso às configs de WhatsApp
     order = db.query(Order).options(
         selectinload(Order.table), 
@@ -117,10 +151,10 @@ async def update_order_status(
 
     old_status = order.status
     order.status = status_update.status
-    
+
     if status_update.status in [OrderStatus.DELIVERED, OrderStatus.CANCELED]:
         order.finished_at = datetime.now()
-    
+
     if status_update.status == OrderStatus.DELIVERED and order.payment_status == PaymentStatus.PAID:
         LoyaltyService.process_cashback(db, order)
 
@@ -130,7 +164,7 @@ async def update_order_status(
     if status_update.status == OrderStatus.READY and old_status != OrderStatus.READY:
         if order.customer_phone:
             table_num = str(order.table.table_number) if order.table else "Balcão"
-            
+
             # Passa o objeto company para o serviço resolver a configuração correta
             background_tasks.add_task(
                 whatsapp_service.notify_order_ready,
@@ -143,7 +177,7 @@ async def update_order_status(
 
     table_num = order.table.table_number if order.table else "Delivery"
     user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
-    
+
     await manager.broadcast({
         "type": "order_update",
         "order_id": str(order.id),
@@ -157,7 +191,7 @@ async def update_order_status(
 
 @router.patch("/orders/{order_id}/payment", status_code=200)
 async def update_order_payment(
-    order_id: str,
+    order_id: UUID,
     payment_update: OrderPaymentUpdate,
     db: Session = Depends(get_db),
     current_user: any = Depends(get_current_user)

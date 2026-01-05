@@ -68,3 +68,44 @@ Atualização massiva focada na monetização da plataforma e na operação móv
 ### 🛠️ Técnico
 - **Testes de Integração:** Novos testes cobrindo o payload do Mercado Pago e o ciclo de vida do Stripe.
 - **Refatoração de API:** Otimização dos endpoints de métricas para performance em escala.
+
+# Changelog - MesaFlow
+
+## [2.3.2] - 2026-01-05 - "CI/CD Stabilization"
+Foco na confiabilidade da infraestrutura de testes e automação de deploy.
+
+### 🛠️ Engenharia & DevOps
+- **Pipeline CI/CD:** Correção de 29 erros na suíte de testes (`pytest`).
+- **Database Testing:** Implementação de `GUID` híbrido para compatibilidade total entre SQLite (Testes) e PostgreSQL (Produção).
+- **Mocking Strategy:** Refatoração dos testes de integração (Redis/HTTPX) para suportar chamadas assíncronas complexas.
+- **Hardening:** Correção de rotas administrativas e validação de payloads financeiros.
+
+---
+
+## [2.2.0] - 2026-01-03 - "Fintech & Mobile Operations"
+Atualização massiva focada na monetização da plataforma e na operação móvel dos garçons.
+
+### 💰 Motor Financeiro (SaaS)
+- **Split de Pagamento (Pix):** Implementada divisão automática de receita via Mercado Pago.
+- **Gestão de Assinaturas (Stripe):** Integração completa com Checkout e Portal do Cliente.
+- **Dashboard Financeiro Real:** Métricas SQL nativas.
+
+### 👨‍🍳 App do Garçom (Mobile POS)
+- **Interface Mobile-First:** Redesign completo da rota `/waiter`.
+- **Módulo QuickPOS:** Venda Balcão e Novo Delivery.
+- **Gestão de Mesas:** Transferência e Merge de comandas.
+
+---
+
+## [2.1.0] - 2026-01-02 - "Enterprise Polish"
+Foco total em experiência do usuário (UX), resiliência e operações de cozinha.
+
+### ✨ Novidades (Frontend)
+- **Menu:** Navegação "Sticky" e Busca em tempo real.
+- **KDS:** SLA Timer e Recall de pedidos.
+- **Infra:** WebSocket com reconexão automática.
+
+---
+
+## [2.0.0] - 2025-12-31 - "MVP Híbrido"
+Lançamento da versão base com suporte a Mesa e Delivery.

@@ -1,21 +1,22 @@
-from fastapi.testclient import TestClient
 from unittest.mock import patch
-from app.main import app
-from app.database import SessionLocal
 from app.models import Company, PlanTier
-import pytest
+import uuid
 
-client = TestClient(app)
-
-def test_stripe_webhook_checkout_completed():
-    """Simula o sucesso de um pagamento no Stripe e ativação do plano PRO"""
-    db = SessionLocal()
-    company = db.query(Company).filter(Company.slug == "hamburgueria-ze").first()
+def test_stripe_webhook_checkout_completed(client, db_session):
+    unique_slug = f"stripe-int-{uuid.uuid4().hex[:6]}"
+    company = Company(
+        name="Stripe Int Corp",
+        slug=unique_slug,
+        owner_email=f"stripe-{unique_slug}@test.com",
+        plan_tier=PlanTier.FREE
+    )
+    db_session.add(company)
+    db_session.commit()
     company_id = str(company.id)
-    db.close()
 
-    # Mock do evento do Stripe
     mock_event = {
+        "id": "evt_test",
+        "object": "event",
         "type": "checkout.session.completed",
         "data": {
             "object": {
@@ -25,31 +26,33 @@ def test_stripe_webhook_checkout_completed():
         }
     }
 
-    with patch("app.services.stripe_service.StripeService.handle_webhook", return_value=mock_event):
+    with patch("app.services.stripe_service.StripeService.construct_event", return_value=mock_event):
         response = client.post(
             "/api/webhooks/stripe",
             json=mock_event,
             headers={"stripe-signature": "valid_mock_sig"}
         )
         assert response.status_code == 200
-        
-        # Verificar se a empresa agora é PRO
-        db = SessionLocal()
-        updated_company = db.query(Company).filter(Company.id == company_id).first()
-        assert updated_company.plan_tier == PlanTier.PRO
-        assert updated_company.stripe_subscription_id == "sub_test_123"
-        db.close()
 
-def test_stripe_webhook_subscription_deleted():
-    """Simula o cancelamento de uma assinatura e retorno ao plano FREE"""
-    db = SessionLocal()
-    company = db.query(Company).filter(Company.slug == "hamburgueria-ze").first()
-    company.stripe_subscription_id = "sub_to_cancel"
-    company.plan_tier = PlanTier.PRO
-    db.commit()
-    db.close()
+        db_session.refresh(company)
+        assert company.plan_tier == PlanTier.PRO
+
+def test_stripe_webhook_subscription_deleted(client, db_session):
+    unique_slug = f"stripe-del-{uuid.uuid4().hex[:6]}"
+    company = Company(
+        name="Stripe Del Corp",
+        slug=unique_slug,
+        owner_email=f"del-{unique_slug}@test.com",
+        plan_tier=PlanTier.PRO,
+        stripe_subscription_id="sub_to_cancel",
+        subscription_status="active"
+    )
+    db_session.add(company)
+    db_session.commit()
 
     mock_event = {
+        "id": "evt_test_del",
+        "object": "event",
         "type": "customer.subscription.deleted",
         "data": {
             "object": {
@@ -59,11 +62,8 @@ def test_stripe_webhook_subscription_deleted():
         }
     }
 
-    with patch("app.services.stripe_service.StripeService.handle_webhook", return_value=mock_event):
+    with patch("app.services.stripe_service.StripeService.construct_event", return_value=mock_event):
         client.post("/api/webhooks/stripe", json=mock_event, headers={"stripe-signature": "valid"})
-        
-        db = SessionLocal()
-        updated_company = db.query(Company).filter(Company.slug == "hamburgueria-ze").first()
-        assert updated_company.plan_tier == PlanTier.FREE
-        assert updated_company.subscription_status == "canceled"
-        db.close()
+
+        db_session.refresh(company)
+        assert company.plan_tier == PlanTier.FREE

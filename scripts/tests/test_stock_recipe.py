@@ -1,84 +1,73 @@
-from fastapi.testclient import TestClient
-from app.main import app
-from app.database import SessionLocal
-from app.models import Ingredient, Product, Company, TableSession, Table
+from app.models import Ingredient, Product, Company, TableSession, Table, ProductRecipe
 from decimal import Decimal
 import uuid
 
-client = TestClient(app)
-
-def test_recipe_deduction():
+def test_recipe_deduction(client, db_session):
     """
     Testa se ao vender um produto, os ingredientes da ficha técnica são baixados.
-    Cenário:
-    1. Verifica estoque inicial.
-    2. Abre sessão na mesa (Check-in).
-    3. Faz pedido.
-    4. Verifica baixa no estoque.
     """
-    # 1. Login (apenas para garantir token se precisar no futuro)
-    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
-    token = login_res.json()["access_token"]
+    # 1. Setup do Banco de Dados
+    unique_slug = f"recipe-{uuid.uuid4().hex[:6]}"
+    company = Company(name="Recipe Corp", slug=unique_slug, owner_email=f"recipe-{unique_slug}@test.com")
+    db_session.add(company)
+    db_session.commit()
 
-    # 2. Setup do Banco de Dados
-    db = SessionLocal()
-    company = db.query(Company).filter(Company.owner_email == "admin@mesaflow.com").first()
+    # Ingrediente: Carne (10kg)
+    carne = Ingredient(
+        company_id=company.id,
+        name="Carne Moída",
+        unit="kg",
+        current_stock=Decimal("10.000"),
+        cost_per_unit=Decimal("20.00")
+    )
+    db_session.add(carne)
+    db_session.commit()
+
+    # Produto: X-Bacon
+    from app.models import Category
+    cat = Category(company_id=company.id, name="Lanches")
+    db_session.add(cat)
+    db_session.commit()
     
-    # Verificar estoque inicial da Carne (10kg)
-    carne = db.query(Ingredient).filter(Ingredient.name == "Carne Moída", Ingredient.company_id == company.id).first()
-    initial_stock = float(carne.current_stock)
-    assert initial_stock == 10.000
-    
-    # Pegar ID do X-Bacon
-    xbacon = db.query(Product).filter(Product.name == "X-Bacon", Product.category.has(company_id=company.id)).first()
-    xbacon_id = xbacon.id
-    
-    # Pegar a Mesa 1
-    table = db.query(Table).filter(Table.table_number == 1, Table.company_id == company.id).first()
-    
-    # Extrair dados antes de fechar a sessão ou usar o objeto
-    table_id = table.id
-    table_qr = table.qr_token
-    company_id = company.id
-    
-    # --- CORREÇÃO: CRIAR SESSÃO DE MESA ATIVA ---
-    # O sistema exige check-in para pedidos na mesa. Vamos simular isso no banco.
-    active_session = TableSession(
-        company_id=company_id,
-        table_id=table_id,
+    xbacon = Product(category_id=cat.id, name="X-Bacon", price=Decimal("20.00"), track_stock=False)
+    db_session.add(xbacon)
+    db_session.commit()
+
+    # Receita: 0.180kg por unidade
+    recipe = ProductRecipe(product_id=xbacon.id, ingredient_id=carne.id, quantity_required=Decimal("0.180"))
+    db_session.add(recipe)
+    db_session.commit()
+
+    # Mesa e Sessão
+    table = Table(company_id=company.id, table_number=1, qr_token="token")
+    db_session.add(table)
+    db_session.commit()
+
+    session = TableSession(
+        company_id=company.id,
+        table_id=table.id,
         customer_name="Stock Tester",
         session_token=str(uuid.uuid4()),
         access_pin="1234",
         is_active=True
     )
-    db.add(active_session)
-    db.commit()
-    
-    db.close() # Agora podemos fechar, pois já temos os IDs
+    db_session.add(session)
+    db_session.commit()
 
     # 3. Vender 2 X-Bacon
-    # Receita: 0.180kg por unidade -> Total 0.360kg
     order_payload = {
-        "table_id": table_id,
-        "qr_token": table_qr,
+        "table_id": table.id,
+        "qr_token": table.qr_token,
         "customer_name": "Stock Tester",
-        "items": [{"product_id": xbacon_id, "quantity": 2}]
+        "items": [{"product_id": xbacon.id, "quantity": 2}]
     }
-    
-    res_order = client.post("/api/hamburgueria-ze/orders", json=order_payload)
-    
-    # Debug caso falhe novamente
-    if res_order.status_code != 201:
-        print(f"❌ Erro no pedido: {res_order.json()}")
-        
+
+    res_order = client.post(f"/api/{unique_slug}/orders", json=order_payload)
     assert res_order.status_code == 201
 
     # 4. Verificar estoque final
-    db = SessionLocal()
-    carne_updated = db.query(Ingredient).filter(Ingredient.name == "Carne Moída").first()
-    expected_stock = initial_stock - (0.180 * 2)
+    db_session.refresh(carne)
+    expected_stock = 10.000 - (0.180 * 2)
     
     # Usar float para comparação simples
-    assert float(carne_updated.current_stock) == expected_stock
-    
-    db.close()
+    assert float(carne.current_stock) == expected_stock

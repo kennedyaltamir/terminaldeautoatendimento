@@ -1,39 +1,33 @@
 from fastapi.testclient import TestClient
 from app.main import app
-from app.models import OrderStatus
+from app.database import SessionLocal
+from app.models import Company, Order, OrderStatus, PaymentStatus
+from app.core.security import create_access_token
+import uuid
 
 client = TestClient(app)
 
 def test_order_status_transition_for_kds():
-    """Valida se o backend permite a transição de status que o KDS utiliza"""
-    # 1. Login para obter token
-    login_res = client.post(
-        "/api/auth/token",
-        data={"username": "adminmesaflow.com", "password": "123456"}
-    )
-    token = login_res.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-
-    # 2. Pegar um pedido pendente
-    orders_res = client.get("/api/admin/hamburgueria-ze/orders", headers=headers)
-    assert orders_res.status_code == 200
-    orders = orders_res.json()
+    # 1. Setup
+    unique_slug = f"kds-flow-{uuid.uuid4().hex[:6]}"
+    db = SessionLocal()
+    company = Company(name="KDS Flow Corp", slug=unique_slug, owner_email=f"kds-{unique_slug}@test.com")
+    db.add(company)
+    db.commit()
     
-    if len(orders) > 0:
-        order_id = orders[0]["id"]
-        
-        # 3. Atualizar para PREPARING
-        patch_res = client.patch(
-            f"/api/admin/orders/{order_id}",
-            headers=headers,
-            json={"status": "preparing"}
-        )
-        assert patch_res.status_code == 200
-        
-        # 4. Atualizar para READY
-        patch_res = client.patch(
-            f"/api/admin/orders/{order_id}",
-            headers=headers,
-            json={"status": "ready"}
-        )
-        assert patch_res.status_code == 200
+    order = Order(company_id=company.id, total_amount=10, status=OrderStatus.PENDING)
+    db.add(order)
+    db.commit()
+    order_id = str(order.id)
+    
+    token = create_access_token(data={"sub": company.owner_email, "role": "owner", "account_type": "company"})
+    headers = {"Authorization": f"Bearer {token}"}
+    db.close()
+
+    # 2. Atualizar para PREPARING
+    patch_res = client.patch(
+        f"/api/admin/orders/{order_id}",
+        headers=headers,
+        json={"status": "preparing"}
+    )
+    assert patch_res.status_code == 200

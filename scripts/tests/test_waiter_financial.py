@@ -1,87 +1,70 @@
-from fastapi.testclient import TestClient
-from app.main import app
-from app.database import SessionLocal
-from app.models import Company, Table, TableSession, Order, OrderStatus, PaymentStatus
+from app.models import Company, Table, TableSession, Order, OrderStatus, PaymentStatus, Employee, UserRole
+from app.core.security import create_access_token
+from decimal import Decimal
 import uuid
 
-client = TestClient(app)
-
-def test_waiter_close_table_with_cash():
+def test_waiter_close_table_with_cash(client, db_session):
     """
     Testa o fluxo financeiro do garçom:
     1. Abre mesa.
     2. Faz pedido.
-    3. Fecha mesa com dinheiro (simulando que o troco foi calculado no front).
-    4. Verifica se o pedido foi marcado como PAGO.
+    3. Fecha mesa com dinheiro.
     """
-    # 1. Login Admin
-    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
-    token = login_res.json()["access_token"]
+    # 1. Setup
+    unique_slug = f"waiter-fin-{uuid.uuid4().hex[:6]}"
+    company = Company(name="Waiter Fin Corp", slug=unique_slug, owner_email=f"wf-{unique_slug}@test.com")
+    db_session.add(company)
+    db_session.commit()
+
+    waiter = Employee(
+        company_id=company.id,
+        name="Garçom Teste",
+        email=f"waiter-{unique_slug}@test.com",
+        password_hash="hash",
+        role=UserRole.CASHIER
+    )
+    db_session.add(waiter)
+    db_session.commit()
+
+    table = Table(company_id=company.id, table_number=1, qr_token="token")
+    db_session.add(table)
+    db_session.commit()
+
+    # Token do Garçom
+    token = create_access_token(data={"sub": waiter.email, "role": "cashier", "account_type": "employee", "company_id": str(company.id)})
     headers = {"Authorization": f"Bearer {token}"}
 
-    # 2. Setup
-    db = SessionLocal()
-    company = db.query(Company).filter(Company.owner_email == "admin@mesaflow.com").first()
-    table = db.query(Table).filter(Table.table_number == 1, Table.company_id == company.id).first()
+    # 2. Abrir Mesa
+    client.post(f"/api/admin/tables/{table.id}/open", headers=headers, json={"customer_name": "Cash Payer"})
     
-    # Limpar
-    db.query(TableSession).filter(TableSession.table_id == table.id).update({"is_active": False})
-    db.commit()
-    
-    # Abrir Sessão
-    session = TableSession(
-        company_id=company.id,
-        table_id=table.id,
-        customer_name="Cash Payer",
-        session_token=str(uuid.uuid4()),
-        access_pin="0000",
-        is_active=True
-    )
-    db.add(session)
-    db.commit()
-    
-    # Pedido Pendente
+    # Recuperar sessão
+    session = db_session.query(TableSession).filter(TableSession.table_id == table.id, TableSession.is_active == True).first()
+
+    # 3. Pedido Pendente
     order = Order(
         company_id=company.id,
         session_id=session.id,
         table_id=table.id,
-        total_amount=50.00,
+        total_amount=Decimal("50.00"),
         status=OrderStatus.DELIVERED,
         payment_status=PaymentStatus.PENDING
     )
-    db.add(order)
-    db.commit()
-    
-    table_id = table.id
-    order_id = order.id
-    db.close()
+    db_session.add(order)
+    db_session.commit()
+    order_id = str(order.id)
 
-    # 3. Fechar Mesa (Pagamento em Dinheiro)
+    # 4. Fechar Mesa (Pagamento em Dinheiro)
     close_res = client.post(
-        f"/api/admin/tables/{table_id}/close", 
+        f"/api/admin/tables/{table.id}/close", 
         headers=headers, 
         json={"payment_method": "cash"}
     )
     assert close_res.status_code == 200
 
-    # 4. Verificar se o pedido foi pago
-    # Precisamos verificar no banco ou via API de detalhes
-    # Vamos usar a API de histórico recente que já temos
-    history_res = client.get("/api/admin/hamburgueria-ze/orders/recent-completed", headers=headers)
-    recent_orders = history_res.json()
+    # 5. Verificar se o pedido foi pago
+    db_session.refresh(order)
+    assert order.payment_status == PaymentStatus.PAID
     
-    target_order = next((o for o in recent_orders if o["id"] == str(order_id)), None)
-    
-    # Se não estiver no recent-completed (pode ser que o status DELIVERED já o coloque lá antes),
-    # verificamos se o payment_status mudou.
-    # O endpoint close_table atualiza payment_status para PAID.
-    
-    # Vamos checar via endpoint de detalhes do pedido (se existir) ou confiar no close_res.
-    # O close_res retorna {"message": "Mesa fechada"}.
-    
-    # Vamos verificar o status da mesa no dashboard
-    dash_res = client.get("/api/admin/tables/dashboard", headers=headers)
-    tables = dash_res.json()
-    table_data = next(t for t in tables if t["id"] == table_id)
-    
-    assert table_data["status"] == "free" # Mesa deve estar livre
+    # Verificar se a mesa foi liberada
+    db_session.refresh(session)
+    assert session.is_active is False

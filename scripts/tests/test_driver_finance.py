@@ -17,15 +17,15 @@ def test_driver_finance_flow():
     4. Verificação de saldo zerado.
     """
     # --- FASE 1: ACÚMULO DE DÍVIDA ---
-    
+
     # 1. Setup
     unique_id = uuid.uuid4().hex[:6]
     db = SessionLocal()
-    
+
     company = Company(name=f"Log Fin {unique_id}", slug=f"logfin-{unique_id}", owner_email=f"logfin-{unique_id}@test.com")
     db.add(company)
     db.commit()
-    
+
     driver = Employee(
         company_id=company.id,
         name=f"Driver {unique_id}", # Nome único para evitar colisão
@@ -35,7 +35,7 @@ def test_driver_finance_flow():
     )
     db.add(driver)
     db.commit()
-    
+
     # Pedido em Dinheiro (R$ 50)
     order = Order(
         company_id=company.id,
@@ -43,26 +43,29 @@ def test_driver_finance_flow():
         status=OrderStatus.DELIVERING,
         payment_method=PaymentMethod.CASH,
         total_amount=Decimal("50.00"),
-        driver_id=driver.id
+        driver_id=driver.id,
+        delivery_code="1234" # Código necessário para finalizar
     )
     db.add(order)
     db.commit()
-    
+
     order_id = str(order.id)
     driver_id = driver.id
-    
+
     token = create_access_token(data={"sub": company.owner_email, "role": "owner", "account_type": "company"})
     headers = {"Authorization": f"Bearer {token}"}
-    
+
     db.close()
 
     # 2. Finalizar Entrega (Gera Dívida)
-    res = client.patch(f"/api/admin/delivery/orders/{order_id}/complete", headers=headers)
+    res = client.patch(f"/api/admin/delivery/orders/{order_id}/complete", headers=headers, json={"code": "1234"})
     assert res.status_code == 200
 
     # 3. Verificar Ledger no Banco
     db = SessionLocal()
+    # Força refresh para garantir que o ledger foi criado
     ledger = db.query(DriverLedger).filter(DriverLedger.driver_id == driver_id).first()
+    
     assert ledger is not None
     assert ledger.type == LedgerType.DEBT
     assert ledger.amount == Decimal("50.00")

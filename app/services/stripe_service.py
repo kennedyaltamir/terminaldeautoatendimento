@@ -2,7 +2,8 @@ import stripe
 import os
 import logging
 from fastapi import HTTPException
-from app.models import Company
+from sqlalchemy.orm import Session
+from app.models import Company, PlanTier
 
 # Configuração de Logs para Rastreabilidade Financeira
 logger = logging.getLogger("StripeService")
@@ -18,7 +19,6 @@ class StripeService:
     def create_checkout_session(company: Company) -> str:
         """
         Gera uma sessão de checkout do Stripe para upgrade de plano.
-        Cria o cliente no Stripe se não existir.
         """
         try:
             if not STRIPE_PRO_PRICE_ID:
@@ -32,8 +32,7 @@ class StripeService:
                     metadata={"company_id": str(company.id), "slug": company.slug}
                 )
                 company.stripe_customer_id = customer.id
-            
-            # Verifica se já existe assinatura ativa para evitar duplicidade
+
             if company.subscription_status == 'active':
                 raise HTTPException(status_code=400, detail="Empresa já possui assinatura ativa.")
 
@@ -64,12 +63,10 @@ class StripeService:
 
     @staticmethod
     def create_portal_session(company: Company) -> str:
-        """
-        Gera link para o Portal do Cliente (Troca de cartão, cancelamento, faturas).
-        """
+        """Gera link para o Portal do Cliente."""
         if not company.stripe_customer_id:
             raise HTTPException(status_code=400, detail="Cliente não vinculado ao sistema de pagamento.")
-            
+
         try:
             session = stripe.billing_portal.Session.create(
                 customer=company.stripe_customer_id,
@@ -82,7 +79,7 @@ class StripeService:
 
     @staticmethod
     def construct_event(payload: bytes, sig_header: str):
-        """Valida a assinatura do Webhook para garantir segurança."""
+        """Valida a assinatura do Webhook."""
         try:
             return stripe.Webhook.construct_event(
                 payload, sig_header, STRIPE_WEBHOOK_SECRET
@@ -93,21 +90,48 @@ class StripeService:
             raise HTTPException(status_code=400, detail="Assinatura do webhook inválida")
 
     @staticmethod
-    def report_usage(company: Company, amount: float):
+    def process_webhook_event(event: dict, db: Session):
         """
-        Adiciona um valor extra à próxima fatura do cliente no Stripe.
-        Usado para cobrar as comissões de vendas em dinheiro.
+        Processa a lógica de negócio do evento Stripe.
+        Isolado para facilitar testes unitários.
         """
-        if not company.stripe_customer_id or amount <= 0:
-            return
+        event_type = event["type"]
+        data_object = event["data"]["object"]
 
-        try:
-            stripe.InvoiceItem.create(
-                customer=company.stripe_customer_id,
-                amount=int(amount * 100), # Stripe usa centavos
-                currency="brl",
-                description="Comissões sobre vendas em Dinheiro/Cartão Físico"
-            )
-            logger.info(f"Cobrança extra agendada: R$ {amount} para {company.name}")
-        except Exception as e:
-            logger.error(f"Erro ao reportar uso ao Stripe: {e}")
+        if event_type == "checkout.session.completed":
+            metadata = data_object.get("metadata", {})
+            company_id = metadata.get("company_id")
+            subscription_id = data_object.get("subscription")
+
+            if company_id:
+                company = db.query(Company).filter(Company.id == company_id).first()
+                if company:
+                    company.plan_tier = PlanTier.PRO
+                    company.stripe_subscription_id = subscription_id
+                    company.subscription_status = "active"
+                    db.commit()
+                    logger.info(f"Upgrade confirmado para empresa {company_id}")
+
+        elif event_type == "customer.subscription.updated":
+            # Busca pela subscription ID pois o metadata pode não vir no update
+            company = db.query(Company).filter(Company.stripe_subscription_id == data_object["id"]).first()
+            if company:
+                status = data_object["status"]
+                company.subscription_status = status
+
+                if status in ["active", "trialing"]:
+                    company.plan_tier = PlanTier.PRO
+                elif status in ["past_due", "unpaid", "canceled"]:
+                    company.plan_tier = PlanTier.FREE
+                
+                db.commit()
+                logger.info(f"Status de assinatura atualizado: {status} para {company.id}")
+
+        elif event_type == "customer.subscription.deleted":
+            company = db.query(Company).filter(Company.stripe_subscription_id == data_object["id"]).first()
+            if company:
+                company.subscription_status = "canceled"
+                company.plan_tier = PlanTier.FREE
+                company.stripe_subscription_id = None
+                db.commit()
+                logger.info(f"Assinatura cancelada para {company.id}")
