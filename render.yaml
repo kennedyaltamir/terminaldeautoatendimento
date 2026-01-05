@@ -1,0 +1,49 @@
+services:
+  # --------------------------------------------------------------------------------
+  # BACKEND (FastAPI)
+  # --------------------------------------------------------------------------------
+  - type: web
+    name: mesaflow-api
+    env: python
+    region: oregon # Escolha a região mais próxima do seu banco Neon
+    plan: starter # Recomendado para evitar cold starts (Free tier dorme após 15min)
+    
+    # Configuração de Build
+    buildCommand: pip install -r requirements.txt
+    
+    # Configuração de Runtime (Gunicorn com Uvicorn Workers para performance)
+    startCommand: gunicorn app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+    
+    # Variáveis de Ambiente (Secrets devem ser inseridos no Dashboard do Render)
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: ENVIRONMENT
+        value: production
+      - key: ALLOWED_ORIGINS
+        value: "https://mesaflow.vercel.app,https://app.mesaflow.com.br"
+      - key: DOCS_URL
+        value: "/docs" # Deixe vazio para desativar Swagger em prod
+      
+      # Placeholder para forçar o usuário a configurar no painel
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: MP_ACCESS_TOKEN
+        sync: false
+
+  # --------------------------------------------------------------------------------
+  # WORKER (Opcional - Para tarefas pesadas de background se escalar muito)
+  # Por enquanto, usamos BackgroundTasks do FastAPI no mesmo serviço web.
+  # --------------------------------------------------------------------------------
+
+# Redis gerenciado pelo Render (Opcional - Pode usar Upstash externo)
+# databases:
+#   - name: mesaflow-cache
+#     plan: free
+#     ipAllowList: [] # Apenas interno

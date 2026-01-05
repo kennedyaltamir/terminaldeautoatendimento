@@ -1,36 +1,20 @@
 import os
 import pytest
-from gerartxt import redact, ProjectIntelligence
+from gerartxt import check_secrets, is_ignored
 
-def test_redact_secrets():
-    content = "STRIPE_KEY = 'sk_live_123456789012345678901234'"
-    redacted = redact(content)
-    assert "REDACTED_STRIPE_KEY" in redacted
-    assert "sk_live" not in redacted
+def test_check_secrets():
+    # Caso Seguro
+    assert len(check_secrets("const a = 10;", "test.js")) == 0
 
-def test_intelligence_props_extraction():
-    intel = ProjectIntelligence()
-    content = "interface ButtonProps { label: string; active: boolean; }"
-    intel.analyze("Button.tsx", content)
-    assert "Button.tsx" in intel.component_props
-    assert "ButtonProps" in str(intel.component_props["Button.tsx"])
+    # Caso Perigoso (Simulação)
+    content = "STRIPE_SECRET_KEY = 'sk_live_123456789012345678901234'"
+    warnings = check_secrets(content, "config.py")
+    assert len(warnings) > 0
+    assert "POSSÍVEL SEGREDO" in warnings[0]
 
-def test_dead_code_detection():
-    intel = ProjectIntelligence()
-    # Simula arquivos e referências
-    # Teste de importação estilo Python (sem aspas)
-    intel.analyze("main.py", "import helper")
-    intel.analyze("helper.py", "def run(): pass")
-    
-    # Teste de importação estilo JS/TS (com aspas)
-    intel.analyze("App.tsx", "import { UI } from './UI'")
-    intel.analyze("UI.tsx", "export const UI = () => {}")
-    
-    # Arquivo que não é importado por ninguém
-    intel.analyze("unused.py", "def ghost(): pass")
-    
-    dead = intel.get_dead_code()
-    
-    assert "unused.py" in dead
-    assert "helper.py" not in dead
-    assert "UI.tsx" not in dead
+def test_ignore_logic_v6():
+    # Teste de lógica de ignore atualizada
+    patterns = []
+    assert is_ignored("node_modules/react/index.js", patterns) is True
+    assert is_ignored(".git/config", patterns) is True
+    assert is_ignored("app/main.py", patterns) is False

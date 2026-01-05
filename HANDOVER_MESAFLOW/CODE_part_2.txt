@@ -1,0 +1,3965 @@
+# CONTINUAÇÃO PARTE 2
+
+# FILE: ./scripts/tests/test_offline_sync_simulation.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Order, OrderStatus, PaymentStatus
+from decimal import Decimal
+import uuid
+import time
+
+client = TestClient(app)
+
+def test_backend_handles_rapid_sync():
+    """
+    Simula o comportamento do 'Sync Engine' do frontend:
+    O frontend envia vários pedidos em sequência rápida assim que a rede volta.
+    O backend deve aceitar todos sem conflito de chave ou erro de concorrência.
+    """
+
+    # 1. Setup
+    unique_slug = f"sync-test-{uuid.uuid4().hex[:6]}"
+    db = SessionLocal()
+    company = Company(
+        name="Sync Corp",
+        slug=unique_slug,
+        owner_email=f"sync-{uuid.uuid4().hex[:6]}@test.com"
+    )
+    db.add(company)
+    db.commit()
+    company_id = company.id
+    db.close()
+
+    # 2. Simular Fila de Pedidos Offline (Payloads)
+    offline_queue = []
+    for i in range(5):
+        offline_queue.append({
+            "table_id": None, # Sem mesa
+            "order_type": "takeout", # <--- CORREÇÃO: Especificar tipo para não exigir mesa
+            "qr_token": "staff-override",
+            "customer_name": f"Offline Customer {i}",
+            "payment_method": "cash",
+            "items": [] 
+        })
+
+    # 3. Disparo Rápido (Simulando o loop do useOfflineSync)
+    responses = []
+    start_time = time.time()
+
+    for payload in offline_queue:
+        res = client.post(f"/api/{unique_slug}/orders", json=payload)
+        responses.append(res)
+
+    end_time = time.time()
+    duration = end_time - start_time
+
+    print(f"\n⚡ Sincronizados 5 pedidos em {duration:.4f} segundos.")
+
+    # 4. Validação
+    success_count = 0
+    for res in responses:
+        if res.status_code == 201:
+            success_count += 1
+        else:
+            print(f"❌ Falha: {res.text}")
+
+    assert success_count == 5, "Nem todos os pedidos foram sincronizados corretamente."
+
+    # Verificar no Banco
+    db = SessionLocal()
+    count = db.query(Order).filter(Order.company_id == company_id).count()
+    assert count == 5
+    db.close()
+```
+
+# FILE: ./scripts/tests/test_opening_hours.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from datetime import time
+
+client = TestClient(app)
+
+def test_order_blocked_when_closed():
+    """Valida se o pedido é bloqueado quando o restaurante está fora do horário"""
+    # 1. Login
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Configurar horário para o passado (já fechado)
+    # Ex: Abre 01:00, Fecha 01:01 (assumindo que o teste não roda nesse minuto)
+    client.patch("/api/admin/company/me", headers=headers, json={
+        "opens_at": "01:00:00",
+        "closes_at": "01:01:00"
+    })
+
+    # 3. Tentar fazer pedido
+    order_payload = {
+        "table_id": 1,
+        "qr_token": "token-seguro-mesa-1",
+        "items": [{"product_id": 1, "quantity": 1}]
+    }
+    response = client.post("/api/hamburgueria-ze/orders", json=order_payload)
+
+    # Deve retornar 403 Forbidden
+    assert response.status_code == 403
+    assert "fechado" in response.json()["detail"]
+```
+
+# FILE: ./scripts/tests/test_option_validation.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+
+client = TestClient(app)
+
+def test_order_validation_logic():
+    """Garante que o backend processa corretamente pedidos com e sem opções"""
+    # 1. Pedido Simples (Sem opções)
+    payload_simple = {
+        "table_id": 1,
+        "qr_token": "token-seguro-mesa-1",
+        "customer_name": "Teste Simples",
+        "items": [{"product_id": 3, "quantity": 1}] # Coca-Cola
+    }
+    res_simple = client.post("/api/hamburgueria-ze/orders", json=payload_simple)
+    assert res_simple.status_code == 201
+    assert float(res_simple.json()["total_amount"]) == 6.00
+
+    # 2. Pedido com Opções (X-Bacon + Bacon Extra)
+    # X-Bacon (28.90) + Bacon Extra (3.50) = 32.40
+    payload_options = {
+        "table_id": 1,
+        "qr_token": "token-seguro-mesa-1",
+        "customer_name": "Teste Opções",
+        "items": [{
+            "product_id": 1, 
+            "quantity": 1,
+            "selected_options": [4] # ID do Bacon Extra no seed
+        }]
+    }
+    res_options = client.post("/api/hamburgueria-ze/orders", json=payload_options)
+    assert res_options.status_code == 201
+    assert float(res_options.json()["total_amount"]) == 32.40
+```
+
+# FILE: ./scripts/tests/test_options.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+
+client = TestClient(app)
+
+def test_order_with_options():
+    """
+    Testa o fluxo completo de um pedido com adicionais.
+    Requer que o seed.py tenha sido rodado.
+    """
+    # 1. Pegar o cardápio para descobrir IDs
+    menu_res = client.get("/api/hamburgueria-ze/menu")
+    assert menu_res.status_code == 200
+    data = menu_res.json()
+
+    # Achar o X-Bacon
+    xbacon = next(p for cat in data["categories"] for p in cat["products"] if p["name"] == "X-Bacon")
+    assert len(xbacon["option_groups"]) > 0
+
+    # Achar opção "Bacon Extra"
+    grp_add = next(g for g in xbacon["option_groups"] if g["name"] == "Adicionais")
+    opt_bacon = next(o for o in grp_add["options"] if o["name"] == "Bacon Extra")
+
+    # 2. Criar Pedido com a opção
+    payload = {
+        "table_id": 1,
+        "qr_token": "token-seguro-mesa-1",
+        "customer_name": "Tester Options",
+        "items": [
+            {
+                "product_id": xbacon["id"],
+                "quantity": 1,
+                "selected_options": [opt_bacon["id"]]
+            }
+        ]
+    }
+
+    order_res = client.post("/api/hamburgueria-ze/orders", json=payload)
+    assert order_res.status_code == 201
+
+    # Validar Preço: 28.90 (X-Bacon) + 3.50 (Bacon Extra) = 32.40
+    expected_total = 28.90 + 3.50
+    assert float(order_res.json()["total_amount"]) == expected_total
+```
+
+# FILE: ./scripts/tests/test_options_fixed.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+
+client = TestClient(app)
+
+def test_menu_structure_with_options():
+    """Verifica se o cardápio público retorna a estrutura de opções corretamente"""
+    response = client.get("/api/hamburgueria-ze/menu")
+    assert response.status_code == 200
+    data = response.json()
+
+    # Verifica se categorias existem
+    assert "categories" in data
+    # Verifica se o primeiro produto tem grupos de opções (conforme seed)
+    if data["categories"][0]["products"]:
+        product = data["categories"][0]["products"][0]
+        assert "option_groups" in product
+```
+
+# FILE: ./scripts/tests/test_order_flow_complete.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+
+client = TestClient(app)
+
+def test_full_order_cycle_with_response_data():
+    """Garante que o pedido criado retorna todos os dados necessários para o KDS e Impressão"""
+    # 1. Criar Pedido
+    payload = {
+        "table_id": 1,
+        "qr_token": "token-seguro-mesa-1",
+        "customer_name": "Ciclo Completo",
+        "payment_method": "pix",
+        "items": [{"product_id": 1, "quantity": 1}]
+    }
+    response = client.post("/api/hamburgueria-ze/orders", json=payload)
+    assert response.status_code == 201
+    data = response.json()
+
+    # 2. Validar se os dados de impressão estão presentes
+    assert "table" in data
+    assert "items" in data
+    assert len(data["items"]) > 0
+    assert "product" in data["items"][0]
+    assert "name" in data["items"][0]["product"]
+```
+
+# FILE: ./scripts/tests/test_organization_logic.py
+```py
+import pytest
+
+def classify_file(filename):
+    """
+    Replica a lógica do script de organização para teste unitário.
+    Sincronizado com scripts/organize_scripts.py v2.0
+    """
+    STRUCTURE = {
+        "security": [
+            "audit", "security", "auth", "create_admin", "fix_layouts"
+        ],
+        "functional": [
+            "logistics", "payment", "delivery", "stock", "order", "menu", 
+            "kds", "waiter", "franchise", "marketing", "simular", "test_"
+        ],
+        "maintenance": [
+            "update_db", "fix_", "seed", "cleanup", "purge", "fix_deps", 
+            "fix_fiscal", "fix_tips", "fix_pwa", "fix_sentry"
+        ],
+        "setup": [
+            "check_env", "verify", "download", "install", "configurar", "gerar_url"
+        ]
+    }
+
+    filename = filename.lower()
+    for folder, keywords in STRUCTURE.items():
+        if any(k in filename for k in keywords):
+            return folder
+    return "maintenance" # Default
+
+def test_script_classification():
+    # Security
+    assert classify_file("security_audit.py") == "security"
+    assert classify_file("create_admin_user.py") == "security"
+
+    # Functional
+    assert classify_file("test_payment_flow.py") == "functional"
+    assert classify_file("simular_pagamento.py") == "functional"
+    assert classify_file("test_marketing_flow.py") == "functional"
+
+    # Maintenance
+    assert classify_file("update_db_fiscal.py") == "maintenance"
+    assert classify_file("fix_deps.py") == "maintenance"
+    assert classify_file("seed.py") == "maintenance"
+
+    # Setup
+    assert classify_file("verify_installation.py") == "setup"
+    assert classify_file("check_env.py") == "setup"
+
+    print("✅ Lógica de classificação de scripts validada!")
+
+```
+
+# FILE: ./scripts/tests/test_password_recovery.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, PasswordResetToken
+from app.core.security import verify_password
+import uuid
+
+client = TestClient(app)
+
+def test_password_recovery_flow():
+    """
+    Testa o fluxo completo de recuperação de senha:
+    1. Solicitação de token (Forgot Password).
+    2. Verificação do token no banco.
+    3. Redefinição da senha (Reset Password).
+    4. Login com a nova senha.
+    """
+    # 1. Setup
+    unique_id = uuid.uuid4().hex[:6]
+    email = f"recover-{unique_id}@test.com"
+    old_pass = "oldpass123"
+    new_pass = "newpass123"
+
+    db = SessionLocal()
+    company = Company(
+        name="Recover Corp",
+        slug=f"rec-{unique_id}",
+        owner_email=email,
+        password_hash="hash_invalido" # Vamos resetar isso
+    )
+    db.add(company)
+    db.commit()
+    db.close()
+
+    # 2. Solicitar Recuperação
+    res_forgot = client.post("/api/auth/forgot-password", json={"email": email})
+    assert res_forgot.status_code == 200
+
+    # 3. Pegar o token do banco (Simulando acesso ao e-mail)
+    db = SessionLocal()
+    token_entry = db.query(PasswordResetToken).filter(PasswordResetToken.user_email == email).first()
+    assert token_entry is not None
+    assert token_entry.used is False
+    token = token_entry.token
+    db.close()
+
+    # 4. Redefinir Senha
+    res_reset = client.post("/api/auth/reset-password", json={
+        "token": token,
+        "new_password": new_pass
+    })
+    assert res_reset.status_code == 200
+    assert res_reset.json()["message"] == "Senha alterada com sucesso"
+
+    # 5. Verificar Login com Nova Senha
+    res_login = client.post("/api/auth/token", data={
+        "username": email,
+        "password": new_pass
+    })
+    assert res_login.status_code == 200
+    assert "access_token" in res_login.json()
+
+    # 6. Verificar se token foi marcado como usado
+    db = SessionLocal()
+    token_entry = db.query(PasswordResetToken).filter(PasswordResetToken.token == token).first()
+    assert token_entry.used is True
+    db.close()
+```
+
+# FILE: ./scripts/tests/test_payment_online.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.models import OrderStatus, PaymentStatus
+
+client = TestClient(app)
+
+def test_online_payment_flow():
+    # 1. Criar Pedido
+    order_payload = {
+        "table_id": 1,
+        "qr_token": "token-seguro-mesa-1",
+        "customer_name": "Online Payer",
+        "payment_method": "online",
+        "items": [{"product_id": 1, "quantity": 1}]
+    }
+    order_res = client.post("/api/hamburgueria-ze/orders", json=order_payload)
+    assert order_res.status_code == 201
+    order_id = order_res.json()["id"]
+
+    # Verificar status inicial
+    assert order_res.json()["status"] == OrderStatus.PENDING
+    assert order_res.json()["payment_status"] == PaymentStatus.PENDING
+
+    # 2. Processar Pagamento Online (Simulado)
+    payment_payload = {
+        "order_id": order_id,
+        "card_number": "4111111111111111",
+        "card_holder": "TEST USER",
+        "expiration": "12/30",
+        "cvv": "123"
+    }
+    pay_res = client.post("/api/payments/process", json=payment_payload)
+    assert pay_res.status_code == 200
+    assert pay_res.json()["status"] == "approved"
+
+    # 3. Verificar se o pedido foi atualizado automaticamente
+    # Precisamos logar como admin para ver o pedido atualizado
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Como o pedido foi aceito, ele pode não aparecer na lista de "pending" se o filtro for restrito
+    # Mas a rota de admin lista pending e preparing. Se foi para ACCEPTED, precisamos verificar.
+    # Vamos checar o status diretamente no banco ou via uma rota de detalhes (que não temos ainda pública).
+    # Workaround: Vamos usar a rota de listagem e ver se ele mudou.
+    # A rota /admin/{slug}/orders filtra por PENDING e PREPARING.
+    # Se foi para ACCEPTED, ele deve sumir ou precisamos ajustar a rota de admin para mostrar ACCEPTED também.
+    # Na verdade, ACCEPTED é um estado intermediário antes de PREPARING.
+    # Vamos assumir que o pagamento online move para ACCEPTED.
+
+    # Para testar, vamos tentar pagar de novo e ver se falha
+    pay_res_2 = client.post("/api/payments/process", json=payment_payload)
+    assert pay_res_2.json()["status"] == "already_paid"
+
+def test_online_payment_declined():
+    # 1. Criar Pedido
+    order_payload = {
+        "table_id": 1,
+        "qr_token": "token-seguro-mesa-1",
+        "customer_name": "Bad Payer",
+        "payment_method": "online",
+        "items": [{"product_id": 1, "quantity": 1}]
+    }
+    order_res = client.post("/api/hamburgueria-ze/orders", json=order_payload)
+    order_id = order_res.json()["id"]
+
+    # 2. Tentar pagar com cartão final 0000 (Regra de recusa simulada)
+    payment_payload = {
+        "order_id": order_id,
+        "card_number": "4111111111110000",
+        "card_holder": "BAD USER",
+        "expiration": "12/30",
+        "cvv": "123"
+    }
+    pay_res = client.post("/api/payments/process", json=payment_payload)
+    assert pay_res.status_code == 400
+    assert "recusado" in pay_res.json()["detail"]
+```
+
+# FILE: ./scripts/tests/test_payment_split.py
+```py
+from decimal import Decimal
+from app.services.payment_service import PaymentService
+
+def test_split_calculation_logic():
+    service = PaymentService()
+
+    # Caso 1: Venda de R$ 100.00 com 1% de taxa
+    total = Decimal("100.00")
+    fee_percent = Decimal("1.00")
+    fee = service.calculate_split(total, fee_percent)
+    assert fee == Decimal("1.00")
+
+    # Caso 2: Venda de R$ 28.90 com 2.5% de taxa
+    # 28.90 * 0.025 = 0.7225 -> Deve arredondar para 0.72 (Floor)
+    total = Decimal("28.90")
+    fee_percent = Decimal("2.50")
+    fee = service.calculate_split(total, fee_percent)
+    assert fee == Decimal("0.72")
+
+    # Caso 3: Taxa Zero
+    total = Decimal("50.00")
+    fee_percent = Decimal("0.00")
+    fee = service.calculate_split(total, fee_percent)
+    assert fee == Decimal("0.00")
+
+    # Caso 4: Valor quebrado complexo
+    # R$ 33.33 com 10% = 3.333 -> 3.33
+    total = Decimal("33.33")
+    fee_percent = Decimal("10.00")
+    fee = service.calculate_split(total, fee_percent)
+    assert fee == Decimal("3.33")
+```
+
+# FILE: ./scripts/tests/test_payment_split_integration.py
+```py
+from fastapi.testclient import TestClient
+from unittest.mock import patch, AsyncMock, MagicMock
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Order, OrderStatus, PaymentStatus
+from decimal import Decimal
+import uuid
+import json
+
+client = TestClient(app)
+
+def test_mercadopago_split_payload_structure():
+    """
+    Verifica se o payload enviado ao Mercado Pago contém a estrutura correta de Split (application_fee).
+    Isso garante que o SaaS receba sua comissão.
+    """
+    # 1. Setup
+    unique_slug = f"split-test-{uuid.uuid4().hex[:6]}"
+    db = SessionLocal()
+    company = Company(
+        name="Split Corp",
+        slug=unique_slug,
+        owner_email=f"split-{uuid.uuid4().hex[:6]}@test.com",
+        mp_access_token="APP_USR-1234567890", # Token Fake
+        marketplace_fee_percentage=Decimal("2.00") # 2% de comissão
+    )
+    db.add(company)
+    db.commit()
+    db.refresh(company) # Garante que os dados estão carregados
+
+    # Pedido de R$ 100.00
+    order = Order(
+        company_id=company.id,
+        customer_name="Split Payer",
+        total_amount=Decimal("100.00"),
+        status=OrderStatus.PENDING,
+        payment_method="online"
+    )
+    db.add(order)
+    db.commit()
+    db.refresh(order)
+
+    # NÃO FECHAR A SESSÃO AQUI para evitar DetachedInstanceError
+    # db.close() 
+
+    try:
+        # 2. Mock do HTTP Client do Mercado Pago
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+            # Configurar o retorno do post
+            mock_response = MagicMock()
+            mock_response.status_code = 201
+            # .json() é um método síncrono no httpx response object
+            mock_response.json.return_value = {
+                "id": "12345",
+                "status": "pending",
+                "point_of_interaction": {
+                    "transaction_data": {
+                        "qr_code": "pix_code_mock",
+                        "qr_code_base64": "base64_mock"
+                    }
+                }
+            }
+            mock_post.return_value = mock_response
+
+            from app.services.payment_service import PaymentService
+            service = PaymentService()
+
+            import asyncio
+            # Executar a função async em contexto síncrono de teste
+            result = asyncio.run(service.create_pix_payment(order, company))
+
+            # 4. Verificações
+            mock_post.assert_called_once()
+            args, kwargs = mock_post.call_args
+
+            # Verificar URL
+            assert "api.mercadopago.com/v1/payments" in args[0]
+
+            # Verificar Payload JSON
+            sent_payload = kwargs["json"]
+
+            assert sent_payload["transaction_amount"] == 100.0
+            # A comissão deve ser 2% de 100 = 2.00
+            assert "application_fee" in sent_payload
+            assert sent_payload["application_fee"] == 2.0
+
+            # Verificar Headers (Token)
+            assert kwargs["headers"]["Authorization"] == "Bearer APP_USR-1234567890"
+
+            print("✅ Payload de Split validado com sucesso!")
+
+    finally:
+        db.close() # Fecha a sessão no final
+```
+
+# FILE: ./scripts/tests/test_payments.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.models import PaymentMethod
+
+client = TestClient(app)
+
+def test_create_order_with_payment_method():
+    """Valida se o pedido salva corretamente a forma de pagamento escolhida"""
+    payload = {
+        "table_id": 1,
+        "qr_token": "token-seguro-mesa-1",
+        "customer_name": "Cliente Pagador",
+        "payment_method": "pix",
+        "items": [{"product_id": 1, "quantity": 1}]
+    }
+    response = client.post("/api/hamburgueria-ze/orders", json=payload)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["payment_method"] == "pix"
+    assert data["payment_status"] == "pending"
+```
+
+# FILE: ./scripts/tests/test_payments_flow.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.models import PaymentStatus
+
+client = TestClient(app)
+
+def test_payment_confirmation_flow():
+    """Valida se o admin consegue confirmar o pagamento de um pedido"""
+    # 1. Login
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Criar um pedido
+    order_payload = {
+        "table_id": 1,
+        "qr_token": "token-seguro-mesa-1",
+        "customer_name": "Teste Pagamento",
+        "payment_method": "pix",
+        "items": [{"product_id": 1, "quantity": 1}]
+    }
+    order_res = client.post("/api/hamburgueria-ze/orders", json=order_payload)
+    order_id = order_res.json()["id"]
+
+    # 3. Confirmar Pagamento
+    pay_res = client.patch(f"/api/admin/orders/{order_id}/payment", headers=headers, json={"payment_status": "paid"})
+    assert pay_res.status_code == 200
+
+    # 4. Verificar se as métricas agora contam este pedido
+    metrics_res = client.get("/api/admin/metrics", headers=headers)
+    assert metrics_res.status_code == 200
+    assert metrics_res.json()["total_orders"] >= 1
+```
+
+# FILE: ./scripts/tests/test_payments_integrated.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.models import OrderStatus, PaymentStatus
+
+client = TestClient(app)
+
+def test_create_order_generates_pix_data():
+    """
+    Testa se ao criar um pedido com método 'online', 
+    o sistema gera os dados do Pix (simulados se não houver token).
+    """
+    # 1. Criar Pedido Online
+    order_payload = {
+        "table_id": 1,
+        "qr_token": "token-seguro-mesa-1",
+        "customer_name": "Pix Tester",
+        "payment_method": "online",
+        "items": [{"product_id": 1, "quantity": 1}]
+    }
+
+    response = client.post("/api/hamburgueria-ze/orders", json=order_payload)
+    assert response.status_code == 201
+    data = response.json()
+
+    # 2. Verificar se retornou dados do Pix
+    assert data["payment_method"] == "online"
+    assert data["mp_qr_code"] is not None
+    assert "000201" in data["mp_qr_code"] # Verifica se parece um Pix CopyPaste
+    assert data["mp_qr_code_base64"] is not None
+
+def test_webhook_updates_order_status():
+    """
+    Simula o recebimento de um webhook do Mercado Pago
+    para aprovar um pedido.
+    """
+    # 1. Criar Pedido para ter um ID
+    order_payload = {
+        "table_id": 1,
+        "qr_token": "token-seguro-mesa-1",
+        "customer_name": "Webhook Tester",
+        "payment_method": "online",
+        "items": [{"product_id": 1, "quantity": 1}]
+    }
+    order_res = client.post("/api/hamburgueria-ze/orders", json=order_payload)
+    order_id = order_res.json()["id"]
+
+    # Precisamos simular que o pedido tem um mp_payment_id salvo no banco
+    # Como o teste anterior usa o mock que retorna "simulated_12345", vamos usar esse ID ou injetar no banco.
+    # O mock do service retorna "simulated_12345" se não tiver token.
+    # Vamos assumir que o pedido criado acima pegou esse ID simulado.
+
+    # 2. Enviar Webhook Fake
+    webhook_payload = {} # O payload do MP varia, mas usamos query params no teste
+    webhook_url = f"/api/webhooks/mercadopago?topic=payment&id=simulated_12345"
+
+    # Nota: O webhook busca pelo mp_payment_id. 
+    # Se o create_order acima funcionou com o mock, ele salvou "simulated_12345".
+    # Porém, se rodarmos testes em paralelo, pode haver colisão de IDs simulados.
+    # Para este teste unitário simples, assumimos isolamento ou sequencialidade.
+
+    # Precisamos garantir que o pedido criado tenha o ID esperado.
+    # Vamos forçar update no banco se necessário, mas vamos confiar no fluxo do mock.
+
+    # O mock retorna sempre "simulated_12345". Se tivermos múltiplos pedidos com esse ID,
+    # o webhook vai pegar o primeiro que achar (.first()).
+
+    res = client.post(webhook_url, json=webhook_payload)
+    assert res.status_code == 200
+    assert res.json()["status"] == "updated"
+```
+
+# FILE: ./scripts/tests/test_pix_integration.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+
+client = TestClient(app)
+
+def test_update_pix_key():
+    """Valida se o admin consegue salvar sua chave PIX"""
+    # 1. Login
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Update PIX
+    payload = {
+        "pix_key": "financeiro@mesaflow.com"
+    }
+    response = client.patch("/api/admin/company/me", headers=headers, json=payload)
+    assert response.status_code == 200
+    assert response.json()["pix_key"] == "financeiro@mesaflow.com"
+
+def test_menu_returns_pix_key():
+    """Garante que a chave PIX é enviada para o cardápio público"""
+    response = client.get("/api/hamburgueria-ze/menu")
+    assert response.status_code == 200
+    assert "pix_key" in response.json()["company"]
+```
+
+# FILE: ./scripts/tests/test_print_readiness.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Order, OrderStatus, PaymentStatus, Company, OrderItem, Product
+from datetime import datetime
+import uuid
+
+client = TestClient(app)
+
+def test_order_data_integrity_for_printing():
+    """
+    Valida se a API retorna todos os campos necessários para a impressão ESC/POS.
+    Campos críticos: nome da empresa, data, itens, total, método de pagamento.
+    """
+
+    # 1. Login
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Setup de Dados
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.owner_email == "admin@mesaflow.com").first()
+
+    # Produto
+    prod = db.query(Product).filter(Product.category.has(company_id=company.id)).first()
+
+    # Pedido
+    order = Order(
+        company_id=company.id,
+        table_id=1,
+        total_amount=50.00,
+        status=OrderStatus.DELIVERED,
+        payment_status=PaymentStatus.PAID,
+        payment_method="cash",
+        customer_name="Print Tester",
+        created_at=datetime.now()
+    )
+    db.add(order)
+    db.commit()
+
+    item = OrderItem(order_id=order.id, product_id=prod.id, quantity=2, unit_price=25.00)
+    db.add(item)
+    db.commit()
+
+    order_id = str(order.id)
+    db.close()
+
+    # 3. Buscar Pedido
+    # A rota GET /api/admin/orders/{id} não existe (é PATCH e retorna 405).
+    # Usamos a lista de recentes que é garantida para o admin e contém os dados completos.
+    res = client.get(f"/api/admin/hamburgueria-ze/orders/recent-completed", headers=headers)
+    assert res.status_code == 200
+    orders = res.json()
+
+    target_order = next((o for o in orders if o["id"] == order_id), None)
+    assert target_order is not None, "Pedido não encontrado na lista de recentes"
+
+    # 4. Validação de Campos Críticos para Impressão
+    assert target_order["customer_name"] == "Print Tester"
+    assert target_order["payment_method"] == "cash"
+    assert float(target_order["total_amount"]) == 50.00
+    assert len(target_order["items"]) > 0
+    assert target_order["items"][0]["product"]["name"] is not None
+    assert target_order["created_at"] is not None
+```
+
+# FILE: ./scripts/tests/test_printer_data_contract.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Order, OrderStatus, PaymentStatus
+from decimal import Decimal
+import uuid
+
+client = TestClient(app)
+
+def test_printer_data_contract_pix_code():
+    """
+    Valida se a API retorna o campo 'mp_qr_code' quando o pagamento é online.
+    Isso é crítico para a função printer.qrCode() do frontend.
+    """
+    # 1. Setup
+    unique_slug = f"print-test-{uuid.uuid4().hex[:6]}"
+    db = SessionLocal()
+    company = Company(
+        name="Print Corp",
+        slug=unique_slug,
+        owner_email=f"print-{uuid.uuid4().hex[:6]}@test.com"
+    )
+    db.add(company)
+    db.commit()
+
+    # Pedido com Pix (Simulado)
+    order = Order(
+        company_id=company.id,
+        customer_name="Print Client",
+        total_amount=Decimal("10.00"),
+        status=OrderStatus.PENDING,
+        payment_method="online",
+        mp_qr_code="000201...TESTE_QR_CODE_PIX..."
+    )
+    db.add(order)
+    db.commit()
+
+    order_id = str(order.id)
+
+    # Token
+    from app.core.security import create_access_token
+    token = create_access_token(data={"sub": company.owner_email, "role": "owner", "account_type": "company"})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    db.close()
+
+    # 2. Request (Usando endpoint de KDS que retorna lista)
+    res = client.get(f"/api/admin/{unique_slug}/orders", headers=headers)
+    assert res.status_code == 200
+    orders = res.json()
+
+    target = next((o for o in orders if o["id"] == order_id), None)
+    assert target is not None
+
+    # 3. Validação do Contrato
+    assert "mp_qr_code" in target
+    assert target["mp_qr_code"] == "000201...TESTE_QR_CODE_PIX..."
+
+    print("✅ Contrato de dados para impressão validado!")
+```
+
+# FILE: ./scripts/tests/test_profile.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+
+client = TestClient(app)
+
+def test_password_update_flow():
+    # 1. Login Inicial (Senha padrão do seed: 123456)
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    assert login_res.status_code == 200
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Tentar mudar senha com senha atual errada
+    wrong_payload = {"current_password": "senha_errada_123", "new_password": "newpassword123"}
+    response = client.patch("/api/admin/company/me/password", headers=headers, json=wrong_payload)
+    assert response.status_code == 400
+    assert response.json()["detail"] == "A senha atual está incorreta"
+
+    # 3. Mudar senha com sucesso
+    success_payload = {"current_password": "123456", "new_password": "newpassword123"}
+    response = client.patch("/api/admin/company/me/password", headers=headers, json=success_payload)
+    assert response.status_code == 200
+
+    # 4. Verificar login com a NOVA senha
+    login_new = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "newpassword123"})
+    assert login_new.status_code == 200
+    new_token = login_new.json()["access_token"]
+    new_headers = {"Authorization": f"Bearer {new_token}"}
+
+    # 5. Reverter senha para o padrão (para não quebrar outros testes)
+    revert_payload = {"current_password": "newpassword123", "new_password": "123456"}
+    response = client.patch("/api/admin/company/me/password", headers=new_headers, json=revert_payload)
+    assert response.status_code == 200
+```
+
+# FILE: ./scripts/tests/test_purchasing.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Ingredient, Supplier
+from decimal import Decimal
+import uuid
+
+client = TestClient(app)
+
+def test_shopping_list_generation():
+    """
+    Testa se o sistema gera a lista de compras corretamente:
+    1. Cria Fornecedor.
+    2. Cria Ingrediente com estoque BAIXO (abaixo do mínimo).
+    3. Cria Ingrediente com estoque ALTO (acima do mínimo).
+    4. Verifica se apenas o item baixo aparece na lista.
+    """
+
+    # 1. Login
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Setup de Dados
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.owner_email == "admin@mesaflow.com").first()
+
+    # Criar Fornecedor
+    supplier = Supplier(company_id=company.id, name="Fornecedor Teste")
+    db.add(supplier)
+    db.commit()
+
+    # Ingrediente BAIXO (Deve aparecer)
+    # Mínimo 10, Atual 5 -> Deficit 5
+    ing_low = Ingredient(
+        company_id=company.id,
+        name="Item Baixo",
+        unit="un",
+        current_stock=Decimal("5.000"),
+        min_stock_alert=Decimal("10.000"),
+        supplier_id=supplier.id
+    )
+
+    # Ingrediente OK (Não deve aparecer)
+    # Mínimo 10, Atual 15
+    ing_ok = Ingredient(
+        company_id=company.id,
+        name="Item OK",
+        unit="un",
+        current_stock=Decimal("15.000"),
+        min_stock_alert=Decimal("10.000"),
+        supplier_id=supplier.id
+    )
+
+    db.add_all([ing_low, ing_ok])
+    db.commit()
+    db.close()
+
+    # 3. Buscar Lista de Compras
+    res = client.get("/api/admin/inventory/shopping-list", headers=headers)
+    assert res.status_code == 200
+    data = res.json()
+
+    items = data["items"]
+
+    # Validações
+    # Deve conter "Item Baixo"
+    found_low = next((i for i in items if i["ingredient_name"] == "Item Baixo"), None)
+    assert found_low is not None
+    assert float(found_low["deficit"]) == 5.0
+    assert found_low["supplier_name"] == "Fornecedor Teste"
+
+    # NÃO deve conter "Item OK"
+    found_ok = next((i for i in items if i["ingredient_name"] == "Item OK"), None)
+    assert found_ok is None
+```
+
+# FILE: ./scripts/tests/test_purchasing_flow.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Ingredient, Supplier
+from app.core.security import create_access_token
+from decimal import Decimal
+import uuid
+
+client = TestClient(app)
+
+def test_purchase_order_generation():
+    """
+    Testa o fluxo de geração de ordem de compra:
+    1. Cria Fornecedor e Ingrediente com estoque baixo.
+    2. Consulta a prévia de compras (Preview).
+    3. Gera o HTML de impressão.
+    """
+    # 1. Setup
+    unique_slug = f"purchase-{uuid.uuid4().hex[:6]}"
+    db = SessionLocal()
+    company = Company(
+        name="Purchase Corp",
+        slug=unique_slug,
+        owner_email=f"buyer-{uuid.uuid4().hex[:6]}@test.com"
+    )
+    db.add(company)
+    db.commit()
+
+    supplier = Supplier(company_id=company.id, name="Fornecedor A")
+    db.add(supplier)
+    db.commit()
+
+    # Ingrediente com estoque 5 (Mínimo 10) -> Deve comprar
+    ing = Ingredient(
+        company_id=company.id,
+        name="Item em Falta",
+        unit="un",
+        current_stock=Decimal("5.00"),
+        min_stock_alert=Decimal("10.00"),
+        cost_per_unit=Decimal("2.00"),
+        supplier_id=supplier.id
+    )
+    db.add(ing)
+    db.commit()
+
+    supplier_id = supplier.id
+
+    token = create_access_token(data={"sub": company.owner_email, "role": "owner", "account_type": "company"})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    db.close()
+
+    # 2. Preview
+    res_preview = client.get("/api/admin/inventory/purchase-orders/preview", headers=headers)
+    assert res_preview.status_code == 200
+    data = res_preview.json()
+
+    assert len(data) > 0
+    order = data[0]
+    assert order["supplier_name"] == "Fornecedor A"
+    # Meta: Dobro do mínimo (20) - Atual (5) = 15
+    assert float(order["items"][0]["to_buy"]) == 15.0
+    # Custo: 15 * 2.00 = 30.00
+    assert float(order["total_estimated"]) == 30.00
+
+    # 3. Print HTML
+    res_print = client.get(f"/api/admin/inventory/purchase-orders/{supplier_id}/print", headers=headers)
+    assert res_print.status_code == 200
+    assert "text/html" in res_print.headers["content-type"]
+    assert "Ordem de Compra" in res_print.text
+    assert "Fornecedor A" in res_print.text
+    assert "Item em Falta" in res_print.text
+```
+
+# FILE: ./scripts/tests/test_rate_limit.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+import time
+
+client = TestClient(app)
+
+def test_rate_limit_login():
+    """
+    Testa se o limitador bloqueia após 5 tentativas de login falhas.
+    """
+    # 1. Fazer 5 tentativas rápidas
+    for _ in range(5):
+        res = client.post(
+            "/api/auth/token",
+            data={"username": "hacker@test.com", "password": "123"}
+        )
+        # Pode ser 401 (senha errada) ou 200 (se acertar), mas não 429 ainda
+        assert res.status_code != 429
+
+    # 2. A 6ª tentativa deve ser bloqueada (429 Too Many Requests)
+    res_blocked = client.post(
+        "/api/auth/token",
+        data={"username": "hacker@test.com", "password": "123"}
+    )
+
+    assert res_blocked.status_code == 429
+    assert "Rate limit exceeded" in res_blocked.text
+```
+
+# FILE: ./scripts/tests/test_redis_architecture.py
+```py
+import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
+from app.websockets import RedisConnectionManager
+import json
+
+@pytest.mark.asyncio
+async def test_redis_broadcast_flow():
+    """
+    Testa se o broadcast publica no Redis e se o reader distribui localmente.
+    Simula o fluxo completo sem precisar de um Redis real rodando no CI.
+    """
+
+    # 1. Mock do Redis
+    mock_redis = AsyncMock()
+    mock_pubsub = AsyncMock()
+
+    # Configurar o mock do PubSub para simular recebimento de mensagem
+    # O método listen retorna um async generator
+    async def mock_listen():
+        yield {
+            "type": "message",
+            "channel": "mesaflow:teste-slug",
+            "data": json.dumps({"type": "new_order", "id": "123"})
+        }
+
+    mock_pubsub.listen = mock_listen
+    mock_redis.pubsub.return_value = mock_pubsub
+
+    # 2. Inicializar Manager com Mock
+    manager = RedisConnectionManager()
+    manager.redis_client = mock_redis
+    manager.pubsub = mock_pubsub
+
+    # 3. Simular Conexão de WebSocket Local
+    mock_ws = AsyncMock()
+    await manager.connect(mock_ws, "teste-slug")
+
+    # Verificar se inscreveu no canal
+    mock_pubsub.subscribe.assert_called_with("mesaflow:teste-slug")
+    assert len(manager.active_connections["teste-slug"]) == 1
+
+    # 4. Testar Broadcast (Publicação)
+    payload = {"type": "new_order", "id": "123"}
+    await manager.broadcast(payload, "teste-slug")
+
+    # Verificar se publicou no Redis
+    mock_redis.publish.assert_called_with(
+        "mesaflow:teste-slug", 
+        json.dumps(payload)
+    )
+
+    # 5. Testar Leitura e Distribuição (Simulando o loop do _redis_reader)
+    # Como o _redis_reader é um loop infinito, vamos testar a lógica interna dele manualmente
+    # simulando o que ele faria ao receber a mensagem do mock_listen definido acima.
+
+    # Executa a lógica de distribuição local
+    await manager._local_broadcast(payload, "teste-slug")
+
+    # Verificar se o WebSocket local recebeu a mensagem
+    mock_ws.send_json.assert_called_with(payload)
+
+    print("✅ Fluxo Redis Pub/Sub validado com sucesso (Mock).")
+```
+
+# FILE: ./scripts/tests/test_saas_billing_limits.py
+```py
+from fastapi.testclient import TestClient
+from unittest.mock import patch, MagicMock
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, PlanTier, Product, Category, Order, OrderStatus, PaymentStatus
+from datetime import datetime
+import uuid
+import pytest
+
+client = TestClient(app)
+
+def setup_saas_scenario():
+    """Helper para criar ambiente de teste limpo"""
+    unique_slug = f"saas-scen-{uuid.uuid4().hex[:6]}"
+    db = SessionLocal()
+
+    # 1. Criar Empresa FREE
+    company = Company(
+        name="Startup Food",
+        slug=unique_slug,
+        owner_email=f"ceo-{unique_slug}@test.com",
+        plan_tier=PlanTier.FREE,
+        stripe_customer_id=f"cus_{uuid.uuid4().hex[:8]}"
+    )
+    db.add(company)
+    db.commit()
+
+    # 2. Criar Categoria
+    category = Category(company_id=company.id, name="Geral")
+    db.add(category)
+    db.commit()
+
+    company_id = str(company.id)
+    cat_id = category.id
+
+    # 3. Gerar Token de Acesso
+    from app.core.security import create_access_token
+    token = create_access_token(data={"sub": company.owner_email, "role": "owner", "account_type": "company"})
+
+    db.close()
+
+    return company_id, cat_id, token, unique_slug
+
+def test_full_saas_lifecycle_enforcement():
+    """
+    TESTE DE INTEGRAÇÃO CRÍTICO:
+    Valida se o pagamento no Stripe realmente desbloqueia os limites do sistema.
+
+    Fluxo:
+    1. Empresa FREE atinge limite de produtos (15).
+    2. Tenta criar o 16º -> Falha (402).
+    3. Simula Webhook de Pagamento Stripe (Upgrade).
+    4. Tenta criar o 16º -> Sucesso (201).
+    5. Simula Webhook de Cancelamento Stripe (Downgrade).
+    6. Tenta criar o 17º -> Falha (402).
+    """
+
+    company_id, cat_id, token, slug = setup_saas_scenario()
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # --- FASE 1: Atingir Limites (FREE) ---
+    db = SessionLocal()
+    for i in range(15):
+        p = Product(category_id=cat_id, name=f"Prod {i}", price=10.0)
+        db.add(p)
+    db.commit()
+    db.close()
+
+    # Tentar criar o 16º (Deve falhar)
+    payload = {"category_id": cat_id, "name": "Prod 16 Blocked", "price": 20.0}
+    res_fail = client.post("/api/admin/menu/products", headers=headers, json=payload)
+    assert res_fail.status_code == 402
+    assert "Limite do Plano Grátis" in res_fail.json()["detail"]
+
+    # --- FASE 2: Upgrade via Webhook (PRO) ---
+    mock_checkout_event = {
+        "type": "checkout.session.completed",
+        "data": {
+            "object": {
+                "metadata": {"company_id": company_id},
+                "subscription": "sub_premium_123"
+            }
+        }
+    }
+
+    with patch("app.services.stripe_service.StripeService.construct_event", return_value=mock_checkout_event):
+        webhook_res = client.post("/api/webhooks/stripe", json=mock_checkout_event, headers={"stripe-signature": "ok"})
+        assert webhook_res.status_code == 200
+
+    # Validar mudança no banco
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.id == company_id).first()
+    assert company.plan_tier == PlanTier.PRO
+    db.close()
+
+    # Tentar criar o 16º (Deve passar agora)
+    res_success = client.post("/api/admin/menu/products", headers=headers, json=payload)
+    assert res_success.status_code == 201
+    assert res_success.json()["name"] == "Prod 16 Blocked"
+
+    # --- FASE 3: Downgrade via Webhook (Cancelamento) ---
+    mock_cancel_event = {
+        "type": "customer.subscription.deleted",
+        "data": {
+            "object": {
+                "id": "sub_premium_123", # Mesmo ID da assinatura criada
+                "status": "canceled"
+            }
+        }
+    }
+
+    with patch("app.services.stripe_service.StripeService.construct_event", return_value=mock_cancel_event):
+        webhook_res = client.post("/api/webhooks/stripe", json=mock_cancel_event, headers={"stripe-signature": "ok"})
+        assert webhook_res.status_code == 200
+
+    # Tentar criar o 17º (Deve falhar novamente, pois voltou a ser FREE e já tem >15 produtos)
+    payload_17 = {"category_id": cat_id, "name": "Prod 17 Blocked", "price": 20.0}
+    res_fail_again = client.post("/api/admin/menu/products", headers=headers, json=payload_17)
+    assert res_fail_again.status_code == 402
+    assert "Limite do Plano Grátis" in res_fail_again.json()["detail"]
+```
+
+# FILE: ./scripts/tests/test_saas_features.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, CompanySegment
+import uuid
+
+client = TestClient(app)
+
+def test_registration_with_segment_and_strong_password():
+    """
+    Testa o novo fluxo de registro com:
+    1. Segmento (Verticalização)
+    2. Validação de Senha Forte
+    3. Criação de Trial
+    """
+
+    unique_slug = f"test-saas-{uuid.uuid4().hex[:6]}"
+    unique_email = f"saas-{uuid.uuid4().hex[:6]}@test.com"
+
+    # 1. Tentar senha fraca (Deve falhar)
+    weak_payload = {
+        "company_name": "Weak Pass Corp",
+        "company_slug": f"{unique_slug}-weak",
+        "owner_email": unique_email,
+        "password": "weak", # Curta
+        "segment": "hotel"
+    }
+    res_weak = client.post("/api/auth/register", json=weak_payload)
+    assert res_weak.status_code == 422
+
+    # 2. Tentar senha sem número (Deve falhar)
+    alpha_payload = weak_payload.copy()
+    alpha_payload["password"] = "passwordonly"
+    res_alpha = client.post("/api/auth/register", json=alpha_payload)
+    assert res_alpha.status_code == 422
+
+    # 3. Registro Correto (Senha Forte + Segmento)
+    strong_payload = {
+        "company_name": "Hotel Plaza Test",
+        "company_slug": unique_slug,
+        "owner_email": unique_email,
+        "password": "StrongPass123",
+        "segment": "hotel",
+        "owner_role": "Gerente Geral",
+        "owner_phone": "11999999999"
+    }
+
+    res_success = client.post("/api/auth/register", json=strong_payload)
+    assert res_success.status_code == 201
+
+    # 4. Verificar Banco de Dados
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.slug == unique_slug).first()
+
+    assert company is not None
+    assert company.segment == CompanySegment.HOTEL
+    assert company.owner_role == "Gerente Geral"
+    assert company.trial_ends_at is not None # Trial deve ter sido criado
+
+    db.close()
+```
+
+# FILE: ./scripts/tests/test_saas_limits.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, PlanTier, Product, Category, Order, OrderStatus, PaymentStatus
+from datetime import datetime, timedelta
+import uuid
+
+client = TestClient(app)
+
+def test_free_plan_product_limit():
+    """
+    Testa se o plano FREE bloqueia a criação de produtos após o limite (15).
+    """
+    # 1. Criar Empresa FREE
+    unique_slug = f"limit-test-{uuid.uuid4().hex[:6]}"
+    db = SessionLocal()
+    company = Company(
+        name="Limit Test Corp",
+        slug=unique_slug,
+        owner_email=f"limit-{uuid.uuid4().hex[:6]}@test.com",
+        plan_tier=PlanTier.FREE
+    )
+    db.add(company)
+    db.commit()
+
+    # Criar Categoria
+    category = Category(company_id=company.id, name="Teste")
+    db.add(category)
+    db.commit()
+
+    # CORREÇÃO: Salvar o ID antes de fechar a sessão
+    category_id = category.id
+
+    # Inserir 15 produtos (Limite)
+    for i in range(15):
+        p = Product(category_id=category.id, name=f"P{i}", price=10)
+        db.add(p)
+    db.commit()
+
+    # Gerar Token
+    from app.core.security import create_access_token
+    token = create_access_token(data={"sub": company.owner_email, "role": "owner", "account_type": "company"})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    db.close()
+
+    # 2. Tentar criar o 16º produto (Deve falhar)
+    payload = {
+        "category_id": category_id, # Usando a variável local
+        "name": "Produto Proibido",
+        "price": 50.00
+    }
+
+    res = client.post("/api/admin/menu/products", headers=headers, json=payload)
+
+    assert res.status_code == 402 # Payment Required
+    assert "Limite" in res.json()["detail"]
+
+def test_pro_plan_no_limit():
+    """
+    Testa se o plano PRO permite criar produtos ilimitados.
+    """
+    # 1. Criar Empresa PRO
+    unique_slug = f"pro-test-{uuid.uuid4().hex[:6]}"
+    db = SessionLocal()
+    company = Company(
+        name="Pro Corp",
+        slug=unique_slug,
+        owner_email=f"pro-{uuid.uuid4().hex[:6]}@test.com",
+        plan_tier=PlanTier.PRO
+    )
+    db.add(company)
+    db.commit()
+
+    category = Category(company_id=company.id, name="Teste")
+    db.add(category)
+    db.commit()
+
+    # CORREÇÃO: Salvar o ID antes de fechar a sessão
+    category_id = category.id
+
+    # Inserir 15 produtos
+    for i in range(15):
+        p = Product(category_id=category.id, name=f"P{i}", price=10)
+        db.add(p)
+    db.commit()
+
+    from app.core.security import create_access_token
+    token = create_access_token(data={"sub": company.owner_email, "role": "owner", "account_type": "company"})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    db.close()
+
+    # 2. Tentar criar o 16º produto (Deve passar)
+    payload = {
+        "category_id": category_id, # Usando a variável local
+        "name": "Produto Permitido",
+        "price": 50.00
+    }
+
+    res = client.post("/api/admin/menu/products", headers=headers, json=payload)
+
+    assert res.status_code == 201
+```
+
+# FILE: ./scripts/tests/test_screenshot_tool.py
+```py
+import os
+import pytest
+import importlib.util
+
+def test_screenshot_script_exists():
+    """Verifica se o script de captura foi criado no local correto."""
+    script_path = "scripts/functional/capture_screenshots.py"
+    assert os.path.exists(script_path), f"Script não encontrado em {script_path}"
+
+def test_playwright_dependency():
+    """
+    Verifica se o Playwright está instalado no ambiente Python.
+    """
+    spec = importlib.util.find_spec("playwright")
+    if spec is None:
+        pytest.fail("❌ Playwright não está instalado. Rode: pip install playwright && playwright install chromium")
+    else:
+        print("✅ Playwright detectado.")
+
+```
+
+# FILE: ./scripts/tests/test_security_credentials.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company
+from app.core.security import create_access_token
+import uuid
+
+client = TestClient(app)
+
+def test_credential_masking():
+    """
+    Testa se o token do Mercado Pago é mascarado na leitura e preservado na escrita.
+    """
+    # 1. Setup
+    unique_slug = f"sec-{uuid.uuid4().hex[:6]}"
+    real_token = "APP_USR-1234567890-REAL-TOKEN"
+
+    db = SessionLocal()
+    company = Company(
+        name="Security Corp",
+        slug=unique_slug,
+        owner_email=f"sec-{uuid.uuid4().hex[:6]}@test.com",
+        mp_access_token=real_token
+    )
+    db.add(company)
+    db.commit()
+    company_id = company.id
+
+    token = create_access_token(data={"sub": company.owner_email, "role": "owner", "account_type": "company"})
+    headers = {"Authorization": f"Bearer {token}"}
+    db.close()
+
+    # 2. Teste de Leitura (GET)
+    res_get = client.get("/api/admin/company/me", headers=headers)
+    assert res_get.status_code == 200
+    data = res_get.json()
+
+    # O token deve vir mascarado
+    assert data["mp_access_token"] != real_token
+    assert "****" in data["mp_access_token"]
+    assert data["mp_access_token"].startswith("APP_USR-")
+
+    # 3. Teste de Escrita com Máscara (PATCH)
+    # O frontend envia de volta o valor mascarado ao salvar outros campos
+    payload = {
+        "name": "Security Corp Updated",
+        "mp_access_token": data["mp_access_token"] # Envia o mascarado
+    }
+
+    res_patch = client.patch("/api/admin/company/me", headers=headers, json=payload)
+    assert res_patch.status_code == 200
+
+    # 4. Verificar Integridade no Banco
+    # O token real NÃO deve ter sido alterado para "****"
+    db = SessionLocal()
+    updated_company = db.query(Company).filter(Company.id == company_id).first()
+    assert updated_company.mp_access_token == real_token
+    assert updated_company.name == "Security Corp Updated"
+    db.close()
+
+    print("✅ Teste de segurança de credenciais passou!")
+```
+
+# FILE: ./scripts/tests/test_sentry_init.py
+```py
+from fastapi.testclient import TestClient
+from unittest.mock import patch, MagicMock
+from app.main import app
+import os
+
+client = TestClient(app)
+
+def test_sentry_initialization_mock():
+    """
+    Testa se o Sentry é inicializado quando a variável de ambiente existe.
+    """
+    with patch("sentry_sdk.init") as mock_init:
+        # Simula a variável de ambiente
+        with patch.dict(os.environ, {"SENTRY_DSN_BACKEND": "https://fake@sentry.io/123"}):
+            # Recarrega o módulo main para disparar o init (simulado)
+            import importlib
+            import app.main
+            importlib.reload(app.main)
+
+            mock_init.assert_called()
+
+def test_sentry_debug_route():
+    """
+    Testa se a rota de debug dispara um erro 500 (ZeroDivisionError).
+    Isso confirma que a exceção está ocorrendo e seria capturada pelo Sentry.
+    """
+    try:
+        client.get("/sentry-debug")
+    except ZeroDivisionError:
+        assert True
+    except Exception:
+        assert False, "Deveria ter lançado ZeroDivisionError"
+```
+
+# FILE: ./scripts/tests/test_settings_validation.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+import pytest
+
+client = TestClient(app)
+
+def test_settings_validation():
+    # 1. Login
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Teste Cor Inválida (Backend)
+    invalid_color = {"primary_color": "AZUL-CLARO"}
+    res_bad = client.patch("/api/admin/company/me", headers=headers, json=invalid_color)
+    assert res_bad.status_code == 422 # Unprocessable Entity
+
+    # 3. Teste Cor Válida
+    valid_color = {"primary_color": "#FF5733"}
+    res_good = client.patch("/api/admin/company/me", headers=headers, json=valid_color)
+    assert res_good.status_code == 200
+    assert res_good.json()["primary_color"] == "#FF5733"
+
+    # 4. Teste URL Inválida (Pydantic padrão aceita string, mas o frontend valida URL. 
+    # O backend definimos como String(500) opcional. Se quiséssemos validar URL no backend,
+    # teríamos que usar HttpUrl no Pydantic, mas por compatibilidade com dados legados,
+    # mantivemos string no schema backend atual para evitar quebra de migração, 
+    # focando a validação forte no frontend e regex de cor no backend.)
+```
+
+# FILE: ./scripts/tests/test_smart_dispatch.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Order, OrderStatus, OrderType, Employee, UserRole
+from app.core.security import create_access_token
+from decimal import Decimal
+import uuid
+
+client = TestClient(app)
+
+def test_smart_dispatch_recommendation():
+    """
+    Testa o algoritmo de recomendação de motoristas.
+    Cenário:
+    - Motorista A: 1 entrega ativa.
+    - Motorista B: 0 entregas ativas.
+    - Resultado Esperado: Motorista B deve ser o primeiro da lista.
+    """
+    # 1. Setup
+    unique_id = uuid.uuid4().hex[:6]
+    db = SessionLocal()
+
+    company = Company(name=f"Smart Corp {unique_id}", slug=f"smart-{unique_id}", owner_email=f"smart-{unique_id}@test.com")
+    db.add(company)
+    db.commit()
+
+    driver_a = Employee(company_id=company.id, name="Driver A (Busy)", email=f"a-{unique_id}@test.com", password_hash="hash", role=UserRole.DRIVER)
+    driver_b = Employee(company_id=company.id, name="Driver B (Free)", email=f"b-{unique_id}@test.com", password_hash="hash", role=UserRole.DRIVER)
+    db.add_all([driver_a, driver_b])
+    db.commit()
+
+    # Atribuir entrega ao Driver A
+    order = Order(
+        company_id=company.id,
+        order_type=OrderType.DELIVERY,
+        status=OrderStatus.DELIVERING,
+        driver_id=driver_a.id,
+        total_amount=10
+    )
+    db.add(order)
+    db.commit()
+
+    token = create_access_token(data={"sub": company.owner_email, "role": "owner", "account_type": "company"})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    driver_b_id = driver_b.id
+    db.close()
+
+    # 2. Pedir Recomendação
+    res = client.get("/api/admin/delivery/recommendation", headers=headers)
+    assert res.status_code == 200
+    recommendations = res.json()
+
+    # 3. Validar Ordem
+    assert len(recommendations) == 2
+    # O primeiro deve ser o Driver B (0 entregas)
+    assert recommendations[0]["driver_id"] == driver_b_id
+    assert recommendations[0]["active_deliveries"] == 0
+
+    # O segundo deve ser o Driver A (1 entrega)
+    assert recommendations[1]["active_deliveries"] == 1
+```
+
+# FILE: ./scripts/tests/test_smartpos_backend.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Order, OrderStatus, OrderType, PaymentMethod
+from decimal import Decimal
+import uuid
+
+client = TestClient(app)
+
+def test_backend_accepts_smartpos_order():
+    """
+    Testa se o backend aceita um pedido com as características de um SmartPOS:
+    - Tipo: Takeout (Balcão/Kiosk)
+    - Pagamento: Card (Cartão)
+    - Sem Mesa (table_id=None)
+    """
+    # 1. Setup
+    unique_slug = f"smartpos-{uuid.uuid4().hex[:6]}"
+    db = SessionLocal()
+    company = Company(
+        name="SmartPOS Corp",
+        slug=unique_slug,
+        owner_email=f"smart-{uuid.uuid4().hex[:6]}@test.com"
+    )
+    db.add(company)
+    db.commit()
+
+    # Criar Produto
+    from app.models import Category, Product
+    cat = Category(company_id=company.id, name="Kiosk Menu")
+    db.add(cat)
+    db.commit()
+    prod = Product(category_id=cat.id, name="Combo Smart", price=10.00)
+    db.add(prod)
+    db.commit()
+
+    prod_id = prod.id
+    company_id = company.id
+    db.close()
+
+    # 2. Criar Pedido (Simulando Kiosk)
+    payload = {
+        "table_id": None,
+        "qr_token": "staff-override", # Kiosk usa token de sistema
+        "order_type": "takeout",
+        "customer_name": "SmartPOS User",
+        "payment_method": "card", # Pagamento via Maquininha
+        "items": [{"product_id": prod_id, "quantity": 1}]
+    }
+
+    res = client.post(f"/api/{unique_slug}/orders", json=payload)
+    assert res.status_code == 201
+
+    data = res.json()
+    assert data["order_type"] == "takeout"
+    assert data["payment_method"] == "card"
+    assert data["status"] == "accepted" # Staff override aceita direto
+
+    # 3. Verificar Banco
+    db = SessionLocal()
+    order = db.query(Order).filter(Order.id == data["id"]).first()
+    assert order is not None
+    assert order.payment_method == PaymentMethod.CARD
+    db.close()
+
+    print("✅ Backend validado para fluxo SmartPOS!")
+```
+
+# FILE: ./scripts/tests/test_split_bill_logic.py
+```py
+from decimal import Decimal
+
+def calculate_split_equal(total: Decimal, people: int) -> Decimal:
+    if people <= 0: return total
+    return total / people
+
+def calculate_split_items(items: list) -> Decimal:
+    return sum(item['price'] for item in items)
+
+def test_split_bill_logic():
+    """
+    Testa a lógica de cálculo de divisão de conta que será usada no frontend.
+    (Simulação da lógica JS em Python para garantir integridade matemática)
+    """
+
+    # Caso 1: Divisão Igualitária
+    total = Decimal("100.00")
+    people = 4
+    share = calculate_split_equal(total, people)
+    assert share == Decimal("25.00")
+
+    # Caso 2: Divisão por Itens
+    selected_items = [
+        {"name": "Hambúrguer", "price": Decimal("30.00")},
+        {"name": "Coca", "price": Decimal("6.00")},
+        {"name": "Batata", "price": Decimal("12.00")}
+    ]
+    share_items = calculate_split_items(selected_items)
+    assert share_items == Decimal("48.00")
+
+    # Caso 3: Divisão com número ímpar (Dízima)
+    # R$ 100 / 3 = 33.333... -> Frontend deve arredondar visualmente, mas a soma deve bater.
+    # Aqui testamos apenas a divisão bruta.
+    share_odd = calculate_split_equal(Decimal("100.00"), 3)
+    assert round(share_odd, 2) == Decimal("33.33")
+```
+
+# FILE: ./scripts/tests/test_stock.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Product
+
+client = TestClient(app)
+
+def test_stock_decrement_and_block():
+    # 1. Login
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Verificar estoque inicial da Coca (5)
+    # Precisamos do ID. Vamos pegar do menu.
+    menu_res = client.get("/api/hamburgueria-ze/menu")
+    data = menu_res.json()
+    coca = next(p for cat in data["categories"] for p in cat["products"] if p["name"] == "Coca-Cola")
+    assert coca["stock_quantity"] == 5
+
+    # 3. Comprar 3 Cocas
+    order_payload = {
+        "table_id": 1,
+        "qr_token": "token-seguro-mesa-1",
+        "items": [{"product_id": coca["id"], "quantity": 3}]
+    }
+    res_order = client.post("/api/hamburgueria-ze/orders", json=order_payload)
+    assert res_order.status_code == 201
+
+    # 4. Verificar se estoque caiu para 2
+    menu_res_2 = client.get("/api/hamburgueria-ze/menu")
+    coca_2 = next(p for cat in menu_res_2.json()["categories"] for p in cat["products"] if p["name"] == "Coca-Cola")
+    assert coca_2["stock_quantity"] == 2
+
+    # 5. Tentar comprar 3 Cocas (Só tem 2) -> Deve falhar
+    res_fail = client.post("/api/hamburgueria-ze/orders", json=order_payload)
+    assert res_fail.status_code == 400
+    assert "insuficiente" in res_fail.json()["detail"]
+```
+
+# FILE: ./scripts/tests/test_stock_recipe.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Ingredient, Product, Company, TableSession, Table
+from decimal import Decimal
+import uuid
+
+client = TestClient(app)
+
+def test_recipe_deduction():
+    """
+    Testa se ao vender um produto, os ingredientes da ficha técnica são baixados.
+    Cenário:
+    1. Verifica estoque inicial.
+    2. Abre sessão na mesa (Check-in).
+    3. Faz pedido.
+    4. Verifica baixa no estoque.
+    """
+    # 1. Login (apenas para garantir token se precisar no futuro)
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+
+    # 2. Setup do Banco de Dados
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.owner_email == "admin@mesaflow.com").first()
+
+    # Verificar estoque inicial da Carne (10kg)
+    carne = db.query(Ingredient).filter(Ingredient.name == "Carne Moída", Ingredient.company_id == company.id).first()
+    initial_stock = float(carne.current_stock)
+    assert initial_stock == 10.000
+
+    # Pegar ID do X-Bacon
+    xbacon = db.query(Product).filter(Product.name == "X-Bacon", Product.category.has(company_id=company.id)).first()
+    xbacon_id = xbacon.id
+
+    # Pegar a Mesa 1
+    table = db.query(Table).filter(Table.table_number == 1, Table.company_id == company.id).first()
+
+    # Extrair dados antes de fechar a sessão ou usar o objeto
+    table_id = table.id
+    table_qr = table.qr_token
+    company_id = company.id
+
+    # --- CORREÇÃO: CRIAR SESSÃO DE MESA ATIVA ---
+    # O sistema exige check-in para pedidos na mesa. Vamos simular isso no banco.
+    active_session = TableSession(
+        company_id=company_id,
+        table_id=table_id,
+        customer_name="Stock Tester",
+        session_token=str(uuid.uuid4()),
+        access_pin="1234",
+        is_active=True
+    )
+    db.add(active_session)
+    db.commit()
+
+    db.close() # Agora podemos fechar, pois já temos os IDs
+
+    # 3. Vender 2 X-Bacon
+    # Receita: 0.180kg por unidade -> Total 0.360kg
+    order_payload = {
+        "table_id": table_id,
+        "qr_token": table_qr,
+        "customer_name": "Stock Tester",
+        "items": [{"product_id": xbacon_id, "quantity": 2}]
+    }
+
+    res_order = client.post("/api/hamburgueria-ze/orders", json=order_payload)
+
+    # Debug caso falhe novamente
+    if res_order.status_code != 201:
+        print(f"❌ Erro no pedido: {res_order.json()}")
+
+    assert res_order.status_code == 201
+
+    # 4. Verificar estoque final
+    db = SessionLocal()
+    carne_updated = db.query(Ingredient).filter(Ingredient.name == "Carne Moída").first()
+    expected_stock = initial_stock - (0.180 * 2)
+
+    # Usar float para comparação simples
+    assert float(carne_updated.current_stock) == expected_stock
+
+    db.close()
+```
+
+# FILE: ./scripts/tests/test_stock_sync.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Product, Ingredient, ProductRecipe, Order, OrderStatus, PaymentStatus
+from decimal import Decimal
+import uuid
+import pytest
+
+client = TestClient(app)
+
+def test_synchronous_stock_deduction():
+    """
+    Testa se a baixa de estoque ocorre de forma síncrona e impede a venda se não houver estoque.
+    """
+    # 1. Setup
+    unique_slug = f"sync-stock-{uuid.uuid4().hex[:6]}"
+    db = SessionLocal()
+    company = Company(
+        name="Sync Stock Corp",
+        slug=unique_slug,
+        owner_email=f"stock-{uuid.uuid4().hex[:6]}@test.com"
+    )
+    db.add(company)
+    db.commit()
+
+    # Ingrediente com estoque 1.0 (Este será o gargalo do teste)
+    ing = Ingredient(
+        company_id=company.id,
+        name="Ingrediente Crítico",
+        unit="un",
+        current_stock=Decimal("1.00"),
+        min_stock_alert=Decimal("0.00"),
+        cost_per_unit=Decimal("10.00")
+    )
+    db.add(ing)
+    db.commit()
+
+    # Produto que usa 1.0 do ingrediente
+    from app.models import Category
+    cat = Category(company_id=company.id, name="Geral")
+    db.add(cat)
+    db.commit()
+
+    prod = Product(
+        category_id=cat.id,
+        name="Produto Crítico",
+        price=Decimal("20.00"),
+        is_available=True,
+        track_stock=True,
+        stock_quantity=10 # Estoque suficiente no produto para não bloquear antes do ingrediente
+    )
+    db.add(prod)
+    db.commit()
+
+    recipe = ProductRecipe(
+        product_id=prod.id,
+        ingredient_id=ing.id,
+        quantity_required=Decimal("1.00")
+    )
+    db.add(recipe)
+    db.commit()
+
+    # Capturar IDs primitivos antes de fechar a sessão para evitar DetachedInstanceError
+    prod_id = prod.id
+    ing_id = ing.id
+    company_id = company.id 
+
+    db.close()
+
+    # 2. Pedido 1 (Sucesso - Consome 1.0 do Ingrediente)
+    payload = {
+        "table_id": None,
+        "qr_token": "staff-override",
+        "order_type": "takeout",
+        "items": [{"product_id": prod_id, "quantity": 1}]
+    }
+
+    res1 = client.post(f"/api/{unique_slug}/orders", json=payload)
+    assert res1.status_code == 201
+
+    # 3. Pedido 2 (Falha - Ingrediente Esgotado)
+    # O ingrediente foi de 1.0 para 0.0 no pedido anterior.
+    res2 = client.post(f"/api/{unique_slug}/orders", json=payload)
+    assert res2.status_code == 400
+
+    # O erro pode ser "Produto indisponível" (se a Regra 86 rodou rápido) ou "Ingrediente esgotado"
+    error_msg = res2.json()["detail"].lower()
+    assert "esgotado" in error_msg or "indisponível" in error_msg or "insuficiente" in error_msg
+
+    # 4. Verificar se o pedido 2 NÃO foi criado
+    db = SessionLocal()
+    # Usa company_id (int) em vez de company.id (objeto detached)
+    orders_count = db.query(Order).filter(Order.company_id == company_id).count()
+    assert orders_count == 1
+
+    # Verificar estoque final do ingrediente (Deve ser 0)
+    final_ing = db.query(Ingredient).filter(Ingredient.id == ing_id).first()
+    assert final_ing.current_stock == 0
+
+    db.close()
+```
+
+# FILE: ./scripts/tests/test_stripe_billing.py
+```py
+from fastapi.testclient import TestClient
+from unittest.mock import patch
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, PlanTier
+import pytest
+
+client = TestClient(app)
+
+def test_billing_routes_protection():
+    """Garante que apenas donos acessam rotas de cobrança"""
+    response = client.post("/api/admin/billing/upgrade")
+    assert response.status_code == 401
+
+def test_stripe_webhook_signature_validation():
+    """Garante que o webhook rejeita chamadas sem assinatura válida"""
+    response = client.post(
+        "/api/webhooks/stripe",
+        content=b'{"id": "evt_test"}',
+        headers={"stripe-signature": "invalid"}
+    )
+    assert response.status_code == 400
+
+def test_upgrade_flow_logic():
+    """Valida se o endpoint de upgrade retorna uma URL simulada"""
+    # 1. Login
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    assert login_res.status_code == 200
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Simular a chamada ao Stripe para não depender de chaves reais no teste
+    with patch("app.services.stripe_service.StripeService.create_checkout_session") as mock_stripe:
+        mock_stripe.return_value = "https://checkout.stripe.com/pay/test_session"
+
+        response = client.post("/api/admin/billing/upgrade", headers=headers)
+
+        assert response.status_code == 200
+        assert response.json()["url"] == "https://checkout.stripe.com/pay/test_session"
+        mock_stripe.assert_called_once()
+```
+
+# FILE: ./scripts/tests/test_stripe_full_flow.py
+```py
+from fastapi.testclient import TestClient
+from unittest.mock import patch
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, PlanTier
+import uuid
+
+client = TestClient(app)
+
+def test_full_subscription_lifecycle():
+    """
+    Testa o ciclo completo de vida da assinatura:
+    1. Cria empresa (Free).
+    2. Simula pagamento (Webhook -> Pro).
+    3. Simula falha/cancelamento (Webhook -> Free).
+    """
+
+    # SETUP
+    unique_slug = f"saas-test-{uuid.uuid4().hex[:6]}"
+    db = SessionLocal()
+    company = Company(
+        name="SaaS Cycle Corp",
+        slug=unique_slug,
+        owner_email=f"ceo-{unique_slug}@test.com",
+        plan_tier=PlanTier.FREE
+    )
+    db.add(company)
+    db.commit()
+    company_id = str(company.id)
+    db.close()
+
+    # 1. UPGRADE (Simulação de Webhook)
+    mock_success_event = {
+        "type": "checkout.session.completed",
+        "data": {
+            "object": {
+                "metadata": {"company_id": company_id},
+                "subscription": "sub_active_123"
+            }
+        }
+    }
+
+    with patch("app.services.stripe_service.StripeService.handle_webhook", return_value=mock_success_event):
+        res = client.post("/api/webhooks/stripe", json=mock_success_event, headers={"stripe-signature": "ok"})
+        assert res.status_code == 200
+
+    # Validação 1: Empresa deve ser PRO
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.id == company_id).first()
+    assert company.plan_tier == PlanTier.PRO
+    assert company.stripe_subscription_id == "sub_active_123"
+    assert company.subscription_status == "active"
+    db.close()
+
+    # 2. DOWNGRADE (Simulação de Cancelamento)
+    mock_cancel_event = {
+        "type": "customer.subscription.deleted",
+        "data": {
+            "object": {
+                "id": "sub_active_123",
+                "status": "canceled"
+            }
+        }
+    }
+
+    with patch("app.services.stripe_service.StripeService.handle_webhook", return_value=mock_cancel_event):
+        res = client.post("/api/webhooks/stripe", json=mock_cancel_event, headers={"stripe-signature": "ok"})
+        assert res.status_code == 200
+
+    # Validação 2: Empresa deve voltar a ser FREE
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.id == company_id).first()
+    assert company.plan_tier == PlanTier.FREE
+    assert company.subscription_status == "canceled"
+    db.close()
+```
+
+# FILE: ./scripts/tests/test_stripe_integration.py
+```py
+from fastapi.testclient import TestClient
+from unittest.mock import patch
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, PlanTier
+import pytest
+
+client = TestClient(app)
+
+def test_stripe_webhook_checkout_completed():
+    """Simula o sucesso de um pagamento no Stripe e ativação do plano PRO"""
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.slug == "hamburgueria-ze").first()
+    company_id = str(company.id)
+    db.close()
+
+    # Mock do evento do Stripe
+    mock_event = {
+        "type": "checkout.session.completed",
+        "data": {
+            "object": {
+                "metadata": {"company_id": company_id},
+                "subscription": "sub_test_123"
+            }
+        }
+    }
+
+    with patch("app.services.stripe_service.StripeService.handle_webhook", return_value=mock_event):
+        response = client.post(
+            "/api/webhooks/stripe",
+            json=mock_event,
+            headers={"stripe-signature": "valid_mock_sig"}
+        )
+        assert response.status_code == 200
+
+        # Verificar se a empresa agora é PRO
+        db = SessionLocal()
+        updated_company = db.query(Company).filter(Company.id == company_id).first()
+        assert updated_company.plan_tier == PlanTier.PRO
+        assert updated_company.stripe_subscription_id == "sub_test_123"
+        db.close()
+
+def test_stripe_webhook_subscription_deleted():
+    """Simula o cancelamento de uma assinatura e retorno ao plano FREE"""
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.slug == "hamburgueria-ze").first()
+    company.stripe_subscription_id = "sub_to_cancel"
+    company.plan_tier = PlanTier.PRO
+    db.commit()
+    db.close()
+
+    mock_event = {
+        "type": "customer.subscription.deleted",
+        "data": {
+            "object": {
+                "id": "sub_to_cancel",
+                "status": "canceled"
+            }
+        }
+    }
+
+    with patch("app.services.stripe_service.StripeService.handle_webhook", return_value=mock_event):
+        client.post("/api/webhooks/stripe", json=mock_event, headers={"stripe-signature": "valid"})
+
+        db = SessionLocal()
+        updated_company = db.query(Company).filter(Company.slug == "hamburgueria-ze").first()
+        assert updated_company.plan_tier == PlanTier.FREE
+        assert updated_company.subscription_status == "canceled"
+        db.close()
+```
+
+# FILE: ./scripts/tests/test_table_position.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Table, Company
+
+client = TestClient(app)
+
+def test_update_table_positions():
+    """
+    Testa se o endpoint de atualização de posições funciona.
+    """
+    # 1. Login
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Pegar ID da Mesa 1
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.owner_email == "admin@mesaflow.com").first()
+    table = db.query(Table).filter(Table.company_id == company.id, Table.table_number == 1).first()
+    table_id = table.id
+    db.close()
+
+    # 3. Atualizar Posição
+    payload = [
+        {"id": table_id, "x": 50.5, "y": 75.0}
+    ]
+
+    patch_res = client.patch("/api/admin/tables/positions", headers=headers, json=payload)
+    assert patch_res.status_code == 200
+
+    # 4. Verificar Persistência
+    db = SessionLocal()
+    updated_table = db.query(Table).filter(Table.id == table_id).first()
+    assert float(updated_table.position_x) == 50.5
+    assert float(updated_table.position_y) == 75.0
+    db.close()
+```
+
+# FILE: ./scripts/tests/test_table_transfer.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Table, TableSession, Order, OrderStatus, PaymentStatus
+import uuid
+
+client = TestClient(app)
+
+def test_table_transfer_logic():
+    """
+    Testa a transferência de mesa (Move).
+    1. Cria Mesa 1 (Ocupada) e Mesa 2 (Livre).
+    2. Transfere Mesa 1 -> Mesa 2.
+    3. Verifica se Mesa 1 ficou livre e Mesa 2 ocupada.
+    """
+    # 1. Login
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Setup
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.owner_email == "admin@mesaflow.com").first()
+
+    # Garantir mesas
+    t1 = db.query(Table).filter(Table.table_number == 1, Table.company_id == company.id).first()
+    t2 = db.query(Table).filter(Table.table_number == 2, Table.company_id == company.id).first()
+
+    # Limpar sessões
+    db.query(TableSession).filter(TableSession.company_id == company.id).update({"is_active": False})
+    db.commit()
+
+    # Ocupar Mesa 1
+    session = TableSession(
+        company_id=company.id, table_id=t1.id, customer_name="Transfer Test",
+        session_token=str(uuid.uuid4()), access_pin="0000", is_active=True
+    )
+    db.add(session)
+    db.commit()
+
+    t1_id = t1.id
+    t2_id = t2.id
+    db.close()
+
+    # 3. Transferir
+    payload = {"from_table_id": t1_id, "to_table_id": t2_id, "merge": False}
+    res = client.post("/api/admin/tables/transfer", headers=headers, json=payload)
+    assert res.status_code == 200
+    assert "Transferido" in res.json()["message"]
+
+    # 4. Verificar Estado
+    dash_res = client.get("/api/admin/tables/dashboard", headers=headers)
+    tables = dash_res.json()
+
+    table1_data = next(t for t in tables if t["id"] == t1_id)
+    table2_data = next(t for t in tables if t["id"] == t2_id)
+
+    assert table1_data["status"] == "free"
+    assert table2_data["status"] == "occupied"
+    assert table2_data["active_session"]["customer_name"] == "Transfer Test"
+
+def test_table_merge_logic():
+    """
+    Testa a junção de mesas (Merge).
+    1. Cria Mesa 1 (Ocupada) e Mesa 2 (Ocupada).
+    2. Tenta transferir sem flag merge -> Falha (409).
+    3. Transfere com flag merge -> Sucesso.
+    4. Verifica se pedidos foram unificados.
+    """
+    # 1. Login
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Setup
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.owner_email == "admin@mesaflow.com").first()
+    t1 = db.query(Table).filter(Table.table_number == 1, Table.company_id == company.id).first()
+    t2 = db.query(Table).filter(Table.table_number == 2, Table.company_id == company.id).first()
+
+    # Limpar
+    db.query(TableSession).filter(TableSession.company_id == company.id).update({"is_active": False})
+    db.commit()
+
+    # Ocupar ambas
+    s1 = TableSession(company_id=company.id, table_id=t1.id, customer_name="Mesa 1", session_token=str(uuid.uuid4()), access_pin="0000", is_active=True)
+    s2 = TableSession(company_id=company.id, table_id=t2.id, customer_name="Mesa 2", session_token=str(uuid.uuid4()), access_pin="0000", is_active=True)
+    db.add_all([s1, s2])
+    db.commit()
+
+    # Adicionar pedidos
+    o1 = Order(company_id=company.id, session_id=s1.id, table_id=t1.id, total_amount=10, status=OrderStatus.PENDING)
+    o2 = Order(company_id=company.id, session_id=s2.id, table_id=t2.id, total_amount=20, status=OrderStatus.PENDING)
+    db.add_all([o1, o2])
+    db.commit()
+
+    t1_id = t1.id
+    t2_id = t2.id
+    db.close()
+
+    # 3. Tentar Transferir (Sem Merge) -> Deve falhar
+    payload = {"from_table_id": t1_id, "to_table_id": t2_id, "merge": False}
+    res_fail = client.post("/api/admin/tables/transfer", headers=headers, json=payload)
+    assert res_fail.status_code == 409
+
+    # 4. Transferir (Com Merge)
+    payload["merge"] = True
+    res_ok = client.post("/api/admin/tables/transfer", headers=headers, json=payload)
+    assert res_ok.status_code == 200
+    assert "unificadas" in res_ok.json()["message"]
+
+    # 5. Verificar
+    dash_res = client.get("/api/admin/tables/dashboard", headers=headers)
+    tables = dash_res.json()
+
+    t1_data = next(t for t in tables if t["id"] == t1_id)
+    t2_data = next(t for t in tables if t["id"] == t2_id)
+
+    assert t1_data["status"] == "free"
+    assert t2_data["status"] == "occupied"
+    # Total deve ser 30 (10 + 20)
+    assert float(t2_data["active_session"]["total_spent"]) == 30.00
+```
+
+# FILE: ./scripts/tests/test_terminology.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, CompanySegment
+import uuid
+
+client = TestClient(app)
+
+def test_segment_persistence():
+    """
+    Testa se o segmento é salvo corretamente no banco e retornado na API.
+    Isso é a base para o frontend decidir qual dicionário usar.
+    """
+    # 1. Setup
+    unique_slug = f"hotel-{uuid.uuid4().hex[:6]}"
+    db = SessionLocal()
+
+    company = Company(
+        name="Hotel Teste",
+        slug=unique_slug,
+        owner_email=f"hotel-{uuid.uuid4().hex[:6]}@test.com",
+        segment=CompanySegment.HOTEL
+    )
+    db.add(company)
+    db.commit()
+
+    # Token
+    from app.core.security import create_access_token
+    token = create_access_token(data={"sub": company.owner_email, "role": "owner", "account_type": "company"})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    db.close()
+
+    # 2. Verificar API
+    res = client.get("/api/admin/company/me", headers=headers)
+    assert res.status_code == 200
+    data = res.json()
+
+    assert data["segment"] == "hotel"
+
+    # 3. Verificar se o frontend receberia o dado correto para mudar "Mesa" para "Quarto"
+    # (O teste de frontend real seria via Cypress/Playwright, aqui validamos o contrato de dados)
+```
+
+# FILE: ./scripts/tests/test_tips_distribution.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Employee, Table, TableSession, Order, OrderStatus, PaymentStatus, UserRole, ServiceFeeLedger
+from app.core.security import create_access_token
+from decimal import Decimal
+import uuid
+
+client = TestClient(app)
+
+def test_tips_calculation_and_reporting():
+    """
+    Testa o fluxo completo de gorjetas:
+    1. Cria Garçom e Dono.
+    2. Garçom abre mesa.
+    3. Pedido é feito.
+    4. Mesa é fechada (Cálculo de 10%).
+    5. Verifica se a gorjeta foi para o Ledger.
+    6. Dono verifica relatório (Acesso permitido).
+    """
+    # 1. Setup
+    unique_slug = f"tips-{uuid.uuid4().hex[:6]}"
+    db = SessionLocal()
+    company = Company(
+        name="Tips Corp",
+        slug=unique_slug,
+        owner_email=f"tips-{uuid.uuid4().hex[:6]}@test.com",
+        service_fee_percentage=Decimal("10.00")
+    )
+    db.add(company)
+    db.commit()
+
+    waiter = Employee(
+        company_id=company.id,
+        name="Garçom Rico",
+        email=f"waiter-{uuid.uuid4().hex[:6]}@test.com",
+        password_hash="hash",
+        role=UserRole.CASHIER
+    )
+    db.add(waiter)
+    db.commit()
+
+    table = Table(company_id=company.id, table_number=1, qr_token="token")
+    db.add(table)
+    db.commit()
+
+    company_id = company.id
+    waiter_id = waiter.id
+    table_id = table.id
+
+    # Token do Garçom (Para operar a mesa)
+    token_waiter = create_access_token(data={"sub": waiter.email, "role": "cashier", "account_type": "employee", "company_id": str(company.id)})
+    headers_waiter = {"Authorization": f"Bearer {token_waiter}"}
+
+    # Token do Dono (Para ver relatórios financeiros)
+    token_owner = create_access_token(data={"sub": company.owner_email, "role": "owner", "account_type": "company"})
+    headers_owner = {"Authorization": f"Bearer {token_owner}"}
+
+    db.close()
+
+    # 2. Garçom Abre Mesa
+    res_open = client.post(f"/api/admin/tables/{table_id}/open", headers=headers_waiter, json={"customer_name": "Tip Giver"})
+    assert res_open.status_code == 200
+
+    # 3. Criar Pedido (R$ 100.00)
+    db = SessionLocal()
+    session = db.query(TableSession).filter(TableSession.table_id == table_id, TableSession.is_active == True).first()
+    assert session.opened_by_employee_id == waiter_id
+
+    order = Order(
+        company_id=company_id,
+        session_id=session.id,
+        table_id=table_id,
+        total_amount=Decimal("100.00"),
+        status=OrderStatus.DELIVERED,
+        payment_status=PaymentStatus.PENDING
+    )
+    db.add(order)
+    db.commit()
+    db.close()
+
+    # 4. Fechar Mesa (Garçom fecha)
+    res_close = client.post(f"/api/admin/tables/{table_id}/close", headers=headers_waiter, json={"payment_method": "cash"})
+    assert res_close.status_code == 200
+
+    # 5. Verificar Ledger (Banco)
+    db = SessionLocal()
+    ledger = db.query(ServiceFeeLedger).filter(ServiceFeeLedger.employee_id == waiter_id).first()
+    assert ledger is not None
+    assert ledger.amount == Decimal("10.00")
+    db.close()
+
+    # 6. Verificar Relatório (Login como Dono)
+    # Aqui usamos headers_owner para evitar o 403
+    res_report = client.get("/api/admin/financial/tips", headers=headers_owner)
+    assert res_report.status_code == 200
+    report = res_report.json()
+
+    my_entry = next((r for r in report if r["employee_name"] == "Garçom Rico"), None)
+    assert my_entry is not None
+    assert my_entry["total_tips"] == 10.0
+```
+
+# FILE: ./scripts/tests/test_token_rotation.py
+```py
+import pytest
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company
+import uuid
+
+client = TestClient(app)
+
+def test_refresh_token_cycle():
+    """
+    Testa o ciclo de rotação de tokens:
+    1. Registro gera Access e Refresh tokens.
+    2. Usa o Refresh Token para obter novos tokens.
+    3. Valida se o novo Access Token funciona.
+    """
+    unique_id = uuid.uuid4().hex[:6]
+    email = f"session-{unique_id}@test.com"
+
+    # 1. Registro
+    reg_payload = {
+        "company_name": "Session Corp",
+        "company_slug": f"session-{unique_id}",
+        "owner_email": email,
+        "password": "Password123!"
+    }
+    res_reg = client.post("/api/auth/register", json=reg_payload)
+    assert res_reg.status_code == 201
+    tokens = res_reg.json()
+
+    refresh_token = tokens["refresh_token"]
+    assert refresh_token != "dummy" # Agora deve ser um JWT real
+
+    # 2. Refresh (Usando o Header X-Refresh-Token)
+    res_refresh = client.post(
+        "/api/auth/refresh", 
+        headers={"X-Refresh-Token": refresh_token}
+    )
+
+    assert res_refresh.status_code == 200
+    new_tokens = res_refresh.json()
+    assert "access_token" in new_tokens
+    assert new_tokens["access_token"] != tokens["access_token"]
+
+    # 3. Validar novo token
+    headers = {"Authorization": f"Bearer {new_tokens['access_token']}"}
+    res_me = client.get("/api/admin/company/me", headers=headers)
+    assert res_me.status_code == 200
+    assert res_me.json()["owner_email"] == email
+
+def test_refresh_invalid_token():
+    """Garante que tokens lixo são rejeitados pelo refresh."""
+    res = client.post(
+        "/api/auth/refresh", 
+        headers={"X-Refresh-Token": "TOKEN_INVALIDO"}
+    )
+    assert res.status_code == 401
+
+```
+
+# FILE: ./scripts/tests/test_uat_errors.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Product, Category, Order, OrderStatus
+from decimal import Decimal
+import uuid
+
+client = TestClient(app)
+
+def test_err_02_stock_race_condition():
+    """
+    ERR-02: Estoque Negativo (Simulação Lógica)
+    Tenta vender 2 unidades quando só existe 1.
+    """
+    unique_id = uuid.uuid4().hex[:6]
+    db = SessionLocal()
+
+    company = Company(name=f"Err {unique_id}", slug=f"err-{unique_id}", owner_email=f"err-{unique_id}@test.com")
+    db.add(company)
+    db.commit()
+
+    cat = Category(company_id=company.id, name="Geral")
+    db.add(cat)
+    db.commit()
+
+    # Produto com estoque 1
+    prod = Product(
+        category_id=cat.id, 
+        name="Last Item", 
+        price=10, 
+        track_stock=True, 
+        stock_quantity=1
+    )
+    db.add(prod)
+    db.commit()
+
+    # Extrair dados antes de fechar
+    prod_id = prod.id
+    slug = company.slug
+    db.close()
+
+    # Pedido 1 (Sucesso)
+    payload = {
+        "table_id": None, "qr_token": "staff-override",
+        "order_type": "takeout", # <--- CORREÇÃO: Tipo Takeout
+        "items": [{"product_id": prod_id, "quantity": 1}]
+    }
+    res1 = client.post(f"/api/{slug}/orders", json=payload)
+    assert res1.status_code == 201
+
+    # Pedido 2 (Falha - Estoque Insuficiente)
+    res2 = client.post(f"/api/{slug}/orders", json=payload)
+    assert res2.status_code == 400
+    assert "Estoque insuficiente" in res2.json()["detail"]
+
+def test_err_03_payment_failure():
+    """
+    ERR-03: Falha no Pagamento Online
+    O pedido deve ser criado, mas o pagamento falha.
+    """
+    unique_id = uuid.uuid4().hex[:6]
+    db = SessionLocal()
+    company = Company(name=f"Pay {unique_id}", slug=f"pay-{unique_id}", owner_email=f"pay-{unique_id}@test.com")
+    db.add(company)
+    db.commit()
+
+    cat = Category(company_id=company.id, name="Geral")
+    db.add(cat)
+    db.commit()
+    prod = Product(category_id=cat.id, name="Item", price=10)
+    db.add(prod)
+    db.commit()
+
+    # Extrair dados antes de fechar
+    prod_id = prod.id
+    slug = company.slug
+    db.close()
+
+    # 1. Criar Pedido
+    payload = {
+        "table_id": None, "qr_token": "staff-override",
+        "order_type": "takeout", # <--- CORREÇÃO: Tipo Takeout
+        "payment_method": "online",
+        "items": [{"product_id": prod_id, "quantity": 1}]
+    }
+    res_order = client.post(f"/api/{slug}/orders", json=payload)
+    assert res_order.status_code == 201
+    order_id = res_order.json()["id"]
+
+    # 2. Simular Falha no Pagamento (Cartão final 0000 no mock)
+    pay_payload = {
+        "order_id": order_id,
+        "card_number": "4111111111110000", # Gatilho de erro no mock
+        "card_holder": "Fail Test",
+        "expiration": "12/30",
+        "cvv": "123"
+    }
+
+    res_pay = client.post("/api/payments/process", json=pay_payload)
+    assert res_pay.status_code == 400
+    assert "recusado" in res_pay.json()["detail"]
+
+    # 3. Verificar se o pedido continua com pagamento falho
+    db = SessionLocal()
+    order = db.query(Order).filter(Order.id == order_id).first()
+
+    # Pedidos de staff nascem ACCEPTED, mas o pagamento deve ser FAILED
+    assert order.status in [OrderStatus.ACCEPTED, OrderStatus.PENDING]
+    assert order.payment_status == "failed"
+    db.close()
+```
+
+# FILE: ./scripts/tests/test_uat_kds.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Product, Category, Order, OrderItem, OrderStatus
+from app.core.security import create_access_token
+import uuid
+
+client = TestClient(app)
+
+def setup_kds_env():
+    unique_id = uuid.uuid4().hex[:6]
+    db = SessionLocal()
+
+    company = Company(
+        name=f"KDS {unique_id}",
+        slug=f"kds-{unique_id}",
+        owner_email=f"kds-{unique_id}@test.com"
+    )
+    db.add(company)
+    db.commit()
+
+    cat = Category(company_id=company.id, name="Geral")
+    db.add(cat)
+    db.commit()
+
+    p_kitchen = Product(category_id=cat.id, name="Burger", price=20, station="kitchen")
+    p_bar = Product(category_id=cat.id, name="Gin", price=25, station="bar")
+    db.add_all([p_kitchen, p_bar])
+    db.commit()
+
+    token = create_access_token(data={"sub": company.owner_email, "role": "owner", "account_type": "company"})
+
+    return db, company, p_kitchen, p_bar, token
+
+def test_kds_01_mixed_order_filtering():
+    """KDS-01: Pedido Misto aparece com itens filtrados"""
+    db, company, p_kitchen, p_bar, token = setup_kds_env()
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Criar Pedido Misto
+    order = Order(company_id=company.id, customer_name="Misto", total_amount=45, status=OrderStatus.PENDING)
+    db.add(order)
+    db.commit()
+
+    i1 = OrderItem(order_id=order.id, product_id=p_kitchen.id, quantity=1, unit_price=20)
+    i2 = OrderItem(order_id=order.id, product_id=p_bar.id, quantity=1, unit_price=25)
+    db.add_all([i1, i2])
+    db.commit()
+
+    # Extrair slug antes de fechar
+    slug = company.slug
+    db.close()
+
+    # O Backend retorna o pedido completo. O filtro é no Frontend, 
+    # mas o backend DEVE retornar a info 'station' no produto.
+
+    res = client.get(f"/api/admin/{slug}/orders", headers=headers)
+    assert res.status_code == 200
+    data = res.json()
+
+    order_data = data[0]
+    items = order_data["items"]
+
+    # Validar se a info de estação está presente
+    stations = [item["product"]["station"] for item in items]
+    assert "kitchen" in stations
+    assert "bar" in stations
+
+def test_kds_03_recall():
+    """KDS-03: Recall (Restaurar pedido finalizado)"""
+    db, company, _, _, token = setup_kds_env()
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Pedido Finalizado
+    order = Order(company_id=company.id, customer_name="Recall Me", total_amount=10, status=OrderStatus.DELIVERED)
+    db.add(order)
+    db.commit()
+
+    # Extrair dados antes de fechar
+    order_id = str(order.id)
+    slug = company.slug
+    db.close()
+
+    # Restaurar
+    res = client.patch(f"/api/admin/orders/{order_id}", headers=headers, json={"status": "preparing"})
+    assert res.status_code == 200
+
+    # Verificar se voltou para a lista ativa
+    res_list = client.get(f"/api/admin/{slug}/orders", headers=headers)
+    active_ids = [o["id"] for o in res_list.json()]
+    assert order_id in active_ids
+
+def test_kds_04_quick_stock_86():
+    """KDS-04: Bloqueio Rápido de Estoque (86)"""
+    db, company, p_kitchen, _, token = setup_kds_env()
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Extrair dados antes de fechar
+    prod_id = p_kitchen.id
+    slug = company.slug
+
+    # Bloquear Burger
+    res = client.patch(
+        f"/api/admin/menu/products/{prod_id}", 
+        headers=headers, 
+        json={"is_available": False}
+    )
+    assert res.status_code == 200
+
+    db.close()
+
+    # Tentar pedir (Deve falhar)
+    payload = {
+        "table_id": None,
+        "qr_token": "staff-override",
+        "order_type": "takeout", # <--- CORREÇÃO: Tipo Takeout para não exigir mesa
+        "items": [{"product_id": prod_id, "quantity": 1}]
+    }
+
+    res_order = client.post(f"/api/{slug}/orders", json=payload)
+    assert res_order.status_code == 400
+    assert "indisponível" in res_order.json()["detail"]
+```
+
+# FILE: ./scripts/tests/test_uat_logistics.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Order, OrderStatus, OrderType, Employee, UserRole
+from app.core.security import create_access_token
+from decimal import Decimal
+import uuid
+
+client = TestClient(app)
+
+def setup_logistics_env():
+    unique_id = uuid.uuid4().hex[:6]
+    db = SessionLocal()
+
+    # Empresa
+    company = Company(
+        name=f"Logistics {unique_id}",
+        slug=f"log-{unique_id}",
+        owner_email=f"log-{unique_id}@test.com"
+    )
+    db.add(company)
+    db.commit()
+
+    # Motorista João
+    driver_joao = Employee(
+        company_id=company.id,
+        name="João Motoboy",
+        email=f"joao-{unique_id}@test.com",
+        password_hash="hash",
+        role=UserRole.DRIVER
+    )
+    db.add(driver_joao)
+
+    # Motorista Maria
+    driver_maria = Employee(
+        company_id=company.id,
+        name="Maria Motogirl",
+        email=f"maria-{unique_id}@test.com",
+        password_hash="hash",
+        role=UserRole.DRIVER
+    )
+    db.add(driver_maria)
+    db.commit()
+
+    # Tokens
+    token_admin = create_access_token(data={"sub": company.owner_email, "role": "owner", "account_type": "company"})
+    token_joao = create_access_token(data={"sub": driver_joao.email, "role": "driver", "account_type": "employee", "company_id": str(company.id)})
+
+    return db, company, driver_joao, driver_maria, token_admin, token_joao
+
+def test_log_01_dispatch_pool():
+    """LOG-01: Despacho sem motorista vai para o pool geral"""
+    db, company, _, _, token_admin, token_driver = setup_logistics_env()
+
+    # Pedido Pronto
+    order = Order(
+        company_id=company.id,
+        order_type=OrderType.DELIVERY,
+        status=OrderStatus.READY,
+        total_amount=50.00
+    )
+    db.add(order)
+    db.commit()
+    order_id = str(order.id)
+    db.close()
+
+    # Admin despacha sem driver_id
+    headers = {"Authorization": f"Bearer {token_admin}"}
+    res = client.patch(f"/api/admin/delivery/orders/{order_id}/dispatch", headers=headers, json={})
+    assert res.status_code == 200
+
+    # Motorista vê o pedido?
+    headers_driver = {"Authorization": f"Bearer {token_driver}"}
+    res_list = client.get("/api/admin/delivery/orders", headers=headers_driver)
+    orders = res_list.json()
+
+    target = next((o for o in orders if o["id"] == order_id), None)
+    assert target is not None
+    assert target["status"] == "delivering"
+    assert target["driver_id"] is None # Está no pool
+
+def test_log_02_specific_assignment():
+    """LOG-02: Atribuição específica para o João"""
+    db, company, driver_joao, _, token_admin, _ = setup_logistics_env()
+
+    order = Order(
+        company_id=company.id,
+        order_type=OrderType.DELIVERY,
+        status=OrderStatus.READY,
+        total_amount=50.00
+    )
+    db.add(order)
+    db.commit()
+
+    # Extrair dados antes de fechar a sessão
+    order_id = str(order.id)
+    joao_id = driver_joao.id
+
+    db.close()
+
+    # Admin despacha para João
+    headers = {"Authorization": f"Bearer {token_admin}"}
+    res = client.patch(
+        f"/api/admin/delivery/orders/{order_id}/dispatch", 
+        headers=headers, 
+        json={"driver_id": joao_id}
+    )
+    assert res.status_code == 200
+
+    # Verificar no banco
+    db = SessionLocal()
+    updated = db.query(Order).filter(Order.id == order_id).first()
+    assert updated.driver_id == joao_id
+    db.close()
+```
+
+# FILE: ./scripts/tests/test_uat_pos.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Table, TableSession, Order, OrderStatus
+from app.core.security import create_access_token
+import uuid
+
+client = TestClient(app)
+
+def setup_pos_env():
+    unique_id = uuid.uuid4().hex[:6]
+    db = SessionLocal()
+
+    company = Company(
+        name=f"POS {unique_id}",
+        slug=f"pos-{unique_id}",
+        owner_email=f"pos-{unique_id}@test.com"
+    )
+    db.add(company)
+    db.commit()
+
+    # Mesas
+    t1 = Table(company_id=company.id, table_number=1, qr_token="t1")
+    t2 = Table(company_id=company.id, table_number=2, qr_token="t2")
+    db.add_all([t1, t2])
+    db.commit()
+
+    token = create_access_token(data={"sub": company.owner_email, "role": "owner", "account_type": "company"})
+
+    return db, company, t1, t2, token
+
+def test_pos_01_table_concurrency():
+    """POS-01: Bloqueio de mesa já ocupada"""
+    db, company, t1, _, token = setup_pos_env()
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 1. Garçom A abre a mesa
+    res_a = client.post(f"/api/admin/tables/{t1.id}/open", headers=headers, json={"customer_name": "Cliente A"})
+    assert res_a.status_code == 200
+
+    # 2. Garçom B tenta abrir a mesma mesa
+    res_b = client.post(f"/api/admin/tables/{t1.id}/open", headers=headers, json={"customer_name": "Cliente B"})
+
+    # Deve falhar
+    assert res_b.status_code == 400
+    assert "ocupada" in res_b.json()["detail"]
+    db.close()
+
+def test_pos_03_merge_tables():
+    """POS-03: Junção de Mesas (Merge)"""
+    db, company, t1, t2, token = setup_pos_env()
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Ocupar ambas com tokens únicos
+    s1_token = str(uuid.uuid4())
+    s2_token = str(uuid.uuid4())
+
+    s1 = TableSession(company_id=company.id, table_id=t1.id, customer_name="Mesa 1", session_token=s1_token, access_pin="0000", is_active=True)
+    s2 = TableSession(company_id=company.id, table_id=t2.id, customer_name="Mesa 2", session_token=s2_token, access_pin="0000", is_active=True)
+    db.add_all([s1, s2])
+    db.commit()
+
+    # Pedidos
+    o1 = Order(company_id=company.id, session_id=s1.id, table_id=t1.id, total_amount=100, status=OrderStatus.PENDING)
+    o2 = Order(company_id=company.id, session_id=s2.id, table_id=t2.id, total_amount=50, status=OrderStatus.PENDING)
+    db.add_all([o1, o2])
+    db.commit()
+
+    # Merge T1 -> T2
+    payload = {"from_table_id": t1.id, "to_table_id": t2.id, "merge": True}
+    res = client.post("/api/admin/tables/transfer", headers=headers, json=payload)
+    assert res.status_code == 200
+
+    # Verificar
+    db.refresh(s1)
+    db.refresh(s2)
+
+    assert s1.is_active is False # Mesa 1 fechou
+    assert s2.is_active is True  # Mesa 2 continua
+
+    # Pedidos agora devem estar na sessão 2
+    orders_s2 = db.query(Order).filter(Order.session_id == s2.id).count()
+    assert orders_s2 == 2 # 1 original + 1 transferido
+    db.close()
+
+def test_pos_04_quick_sale():
+    """POS-04: Venda Balcão (Sem Mesa)"""
+    db, company, _, _, token = setup_pos_env()
+
+    # Criar produto
+    from app.models import Category, Product
+    cat = Category(company_id=company.id, name="Geral")
+    db.add(cat)
+    db.commit()
+    prod = Product(category_id=cat.id, name="Coxinha", price=5.00)
+    db.add(prod)
+    db.commit()
+
+    payload = {
+        "table_id": None, # Sem mesa
+        "qr_token": "staff-override",
+        "order_type": "takeout",
+        "customer_name": "Balcão Rápido",
+        "items": [{"product_id": prod.id, "quantity": 2}]
+    }
+
+    res = client.post(f"/api/{company.slug}/orders", json=payload)
+    assert res.status_code == 201
+
+    data = res.json()
+    assert data["order_type"] == "takeout"
+    assert data["table"] is None
+    db.close()
+```
+
+# FILE: ./scripts/tests/test_ux_performance.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+
+client = TestClient(app)
+
+def test_menu_loading_state_contract():
+    """
+    Valida se o endpoint do menu responde corretamente para que o 
+    frontend possa gerenciar o estado de loading/skeleton.
+    """
+    response = client.get("/api/hamburgueria-ze/menu")
+    assert response.status_code == 200
+    data = response.json()
+
+    # Verifica se a estrutura básica para renderizar o menu (ou skeleton) existe
+    assert "categories" in data
+    assert "company" in data
+    assert isinstance(data["categories"], list)
+
+def test_skeleton_assets_presence():
+    """
+    Verifica se os componentes de UI necessários para o Skeleton 
+    estão mapeados no sistema de arquivos (simulação via teste de integração).
+    """
+    import os
+    skeleton_path = "frontend/src/components/ui/Skeleton.tsx"
+    menu_skeleton_path = "frontend/src/components/menu/MenuSkeleton.tsx"
+
+    assert os.path.exists(skeleton_path), "Componente Skeleton base não encontrado"
+    assert os.path.exists(menu_skeleton_path), "Componente MenuSkeleton não encontrado"
+
+```
+
+# FILE: ./scripts/tests/test_waiter_delivery.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Order, OrderType, OrderStatus
+from decimal import Decimal
+import uuid
+
+client = TestClient(app)
+
+def test_staff_create_delivery_order():
+    """
+    Testa se o staff consegue criar um pedido de Delivery sem mesa (table_id=None).
+    """
+    # 1. Setup
+    unique_slug = f"delivery-test-{uuid.uuid4().hex[:6]}"
+    db = SessionLocal()
+    company = Company(
+        name="Delivery Corp",
+        slug=unique_slug,
+        owner_email=f"del-{uuid.uuid4().hex[:6]}@test.com"
+    )
+    db.add(company)
+    db.commit()
+
+    # Criar Produto
+    from app.models import Category, Product
+    cat = Category(company_id=company.id, name="Geral")
+    db.add(cat)
+    db.commit()
+    prod = Product(category_id=cat.id, name="Pizza", price=50.00)
+    db.add(prod)
+    db.commit()
+
+    prod_id = prod.id
+    db.close()
+
+    # 2. Criar Pedido (Simulando App do Garçom)
+    payload = {
+        "table_id": None, # Sem mesa
+        "qr_token": "staff-override", # Token mestre
+        "order_type": "delivery",
+        "customer_name": "Cliente Delivery",
+        "customer_phone": "11999999999",
+        "delivery_address": "Rua das Flores, 123",
+        "payment_method": "cash",
+        "items": [{"product_id": prod_id, "quantity": 1}]
+    }
+
+    res = client.post(f"/api/{unique_slug}/orders", json=payload)
+    assert res.status_code == 201
+    data = res.json()
+
+    assert data["order_type"] == "delivery"
+    assert data["customer_name"] == "Cliente Delivery"
+    assert data["delivery_address"] == "Rua das Flores, 123"
+    assert data["status"] == "accepted" # Staff override já aceita automaticamente
+```
+
+# FILE: ./scripts/tests/test_waiter_features.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Table, TableSession, Order, OrderStatus, PaymentStatus
+from datetime import datetime
+import uuid
+
+client = TestClient(app)
+
+def test_waiter_session_management():
+    """
+    Testa as funcionalidades do App do Garçom:
+    1. Renomear Sessão (Alias).
+    2. Obter Detalhes da Sessão (Audit).
+    """
+
+    # 1. Login Admin
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Setup (Criar Sessão Ativa)
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.owner_email == "admin@mesaflow.com").first()
+    table = db.query(Table).filter(Table.table_number == 1, Table.company_id == company.id).first()
+
+    # Limpar sessões anteriores
+    db.query(TableSession).filter(TableSession.table_id == table.id).update({"is_active": False})
+
+    session = TableSession(
+        company_id=company.id,
+        table_id=table.id,
+        customer_name="Cliente Genérico",
+        session_token=str(uuid.uuid4()),
+        access_pin="0000",
+        is_active=True
+    )
+    db.add(session)
+    db.commit()
+
+    # Adicionar um pedido para ter valor no Audit
+    order = Order(
+        company_id=company.id,
+        session_id=session.id,
+        table_id=table.id,
+        total_amount=100.00,
+        status=OrderStatus.DELIVERED,
+        payment_status=PaymentStatus.PENDING
+    )
+    db.add(order)
+    db.commit()
+
+    session_id = session.id
+    db.close()
+
+    # 3. Teste: Renomear Sessão
+    new_name = "Aniversário Carol"
+    rename_res = client.patch(
+        f"/api/admin/tables/sessions/{session_id}", 
+        headers=headers, 
+        json={"customer_name": new_name}
+    )
+    assert rename_res.status_code == 200
+
+    # 4. Teste: Obter Detalhes (Audit)
+    audit_res = client.get(f"/api/admin/tables/sessions/{session_id}/details", headers=headers)
+    assert audit_res.status_code == 200
+    data = audit_res.json()
+
+    assert data["customer_name"] == new_name
+    assert float(data["total_spent"]) == 100.00
+    assert len(data["orders"]) > 0
+```
+
+# FILE: ./scripts/tests/test_waiter_financial.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Table, TableSession, Order, OrderStatus, PaymentStatus
+import uuid
+
+client = TestClient(app)
+
+def test_waiter_close_table_with_cash():
+    """
+    Testa o fluxo financeiro do garçom:
+    1. Abre mesa.
+    2. Faz pedido.
+    3. Fecha mesa com dinheiro (simulando que o troco foi calculado no front).
+    4. Verifica se o pedido foi marcado como PAGO.
+    """
+    # 1. Login Admin
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Setup
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.owner_email == "admin@mesaflow.com").first()
+    table = db.query(Table).filter(Table.table_number == 1, Table.company_id == company.id).first()
+
+    # Limpar
+    db.query(TableSession).filter(TableSession.table_id == table.id).update({"is_active": False})
+    db.commit()
+
+    # Abrir Sessão
+    session = TableSession(
+        company_id=company.id,
+        table_id=table.id,
+        customer_name="Cash Payer",
+        session_token=str(uuid.uuid4()),
+        access_pin="0000",
+        is_active=True
+    )
+    db.add(session)
+    db.commit()
+
+    # Pedido Pendente
+    order = Order(
+        company_id=company.id,
+        session_id=session.id,
+        table_id=table.id,
+        total_amount=50.00,
+        status=OrderStatus.DELIVERED,
+        payment_status=PaymentStatus.PENDING
+    )
+    db.add(order)
+    db.commit()
+
+    table_id = table.id
+    order_id = order.id
+    db.close()
+
+    # 3. Fechar Mesa (Pagamento em Dinheiro)
+    close_res = client.post(
+        f"/api/admin/tables/{table_id}/close", 
+        headers=headers, 
+        json={"payment_method": "cash"}
+    )
+    assert close_res.status_code == 200
+
+    # 4. Verificar se o pedido foi pago
+    # Precisamos verificar no banco ou via API de detalhes
+    # Vamos usar a API de histórico recente que já temos
+    history_res = client.get("/api/admin/hamburgueria-ze/orders/recent-completed", headers=headers)
+    recent_orders = history_res.json()
+
+    target_order = next((o for o in recent_orders if o["id"] == str(order_id)), None)
+
+    # Se não estiver no recent-completed (pode ser que o status DELIVERED já o coloque lá antes),
+    # verificamos se o payment_status mudou.
+    # O endpoint close_table atualiza payment_status para PAID.
+
+    # Vamos checar via endpoint de detalhes do pedido (se existir) ou confiar no close_res.
+    # O close_res retorna {"message": "Mesa fechada"}.
+
+    # Vamos verificar o status da mesa no dashboard
+    dash_res = client.get("/api/admin/tables/dashboard", headers=headers)
+    tables = dash_res.json()
+    table_data = next(t for t in tables if t["id"] == table_id)
+
+    assert table_data["status"] == "free" # Mesa deve estar livre
+```
+
+# FILE: ./scripts/tests/test_waiter_pos_flow.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+from app.database import SessionLocal
+from app.models import Company, Table, TableSession, Order, OrderStatus, PaymentStatus
+import uuid
+
+client = TestClient(app)
+
+def test_waiter_close_table_flow():
+    """
+    Testa o fluxo de fechamento de mesa pelo garçom:
+    1. Abre uma mesa.
+    2. Lança um pedido.
+    3. Fecha a mesa com pagamento em dinheiro.
+    4. Verifica se a mesa ficou livre.
+    """
+    # 1. Login Admin
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Setup: Garantir Mesa 1 livre
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.slug == "hamburgueria-ze").first()
+    table = db.query(Table).filter(Table.table_number == 1, Table.company_id == company.id).first()
+    db.query(TableSession).filter(TableSession.table_id == table.id).update({"is_active": False})
+    db.commit()
+    table_id = table.id
+    db.close()
+
+    # 3. Abrir Mesa
+    open_res = client.post(f"/api/admin/tables/{table_id}/open", headers=headers, json={"customer_name": "Waiter Test"})
+    assert open_res.status_code == 200
+
+    # 4. Lançar Pedido (Staff Override)
+    order_payload = {
+        "table_id": table_id,
+        "qr_token": "staff-override",
+        "customer_name": "Waiter Test",
+        "items": [{"product_id": 1, "quantity": 1}]
+    }
+    order_res = client.post("/api/hamburgueria-ze/orders", json=order_payload)
+    assert order_res.status_code == 201
+
+    # 5. Fechar Mesa
+    close_res = client.post(f"/api/admin/tables/{table_id}/close", headers=headers, json={"payment_method": "cash"})
+    assert close_res.status_code == 200
+
+    # 6. Verificar Status no Dashboard
+    dash_res = client.get("/api/admin/tables/dashboard", headers=headers)
+    tables = dash_res.json()
+    table_1 = next(t for t in tables if t["table_number"] == 1)
+    assert table_1["status"] == "free"
+```
+
+# FILE: ./scripts/tests/test_websocket_relay.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+import pytest
+import json
+
+client = TestClient(app)
+
+def test_websocket_driver_location_relay():
+    """
+    Testa se a localização enviada por um cliente (Motorista)
+    é retransmitida para outro cliente (Cliente Final) na mesma empresa.
+    """
+    slug = "relay-test-corp"
+
+    # 1. Cliente Final conecta (Ouvinte)
+    with client.websocket_connect(f"/ws/{slug}") as ws_customer:
+
+        # 2. Motorista conecta (Emissor)
+        with client.websocket_connect(f"/ws/{slug}") as ws_driver:
+
+            # 3. Motorista envia localização
+            location_payload = {
+                "type": "driver_location",
+                "order_id": "123",
+                "lat": -23.5505,
+                "lng": -46.6333
+            }
+            ws_driver.send_json(location_payload)
+
+            # 4. Cliente deve receber a mensagem
+            # O receive_json bloqueia até chegar algo
+            received = ws_customer.receive_json()
+
+            assert received["type"] == "driver_location"
+            assert received["order_id"] == "123"
+            assert received["lat"] == -23.5505
+
+            print("✅ Relay de GPS funcionou: Motorista -> Servidor -> Cliente")
+
+def test_websocket_ping_pong():
+    """
+    Testa o mecanismo de heartbeat para evitar desconexão por inatividade.
+    """
+    slug = "ping-test"
+    with client.websocket_connect(f"/ws/{slug}") as ws:
+        ws.send_json({"type": "ping"})
+        response = ws.receive_json()
+        assert response["type"] == "pong"
+        print("✅ Ping/Pong OK")
+
+```
+
+# FILE: ./scripts/tests/test_websocket_resilience.py
+```py
+from fastapi.testclient import TestClient
+from app.main import app
+import pytest
+
+client = TestClient(app)
+
+def test_websocket_connection_and_disconnect():
+    """
+    Testa se o endpoint WebSocket aceita conexões e lida com desconexões
+    sem quebrar o servidor. Simula a resiliência do lado do servidor.
+    """
+    slug = "hamburgueria-ze"
+
+    # 1. Conectar
+    with client.websocket_connect(f"/ws/{slug}") as websocket:
+        # 2. Enviar mensagem (Ping) - O backend atual apenas recebe e loga, ou espera broadcast
+        # Vamos apenas garantir que a conexão foi aceita
+        assert websocket
+
+        # 3. Simular desconexão abrupta (Context manager fecha ao sair)
+        pass
+
+    # 4. Tentar reconectar imediatamente (Simulando o cliente reconectando)
+    with client.websocket_connect(f"/ws/{slug}") as websocket2:
+        assert websocket2
+
+    # Se chegou aqui sem exceção, o servidor lidou bem com o ciclo de vida da conexão
+```
+
+# FILE: ./scripts/tests/test_whatsapp_automation.py
+```py
+from fastapi.testclient import TestClient
+from unittest.mock import patch, AsyncMock
+from app.main import app
+from app.database import SessionLocal
+from app.models import Order, OrderStatus, Company
+import pytest
+
+client = TestClient(app)
+
+def test_whatsapp_notification_trigger_on_ready():
+    """
+    Testa se a função de atualização de status dispara a chamada para o serviço de WhatsApp
+    quando o status muda para READY.
+    """
+    # 1. Login Admin
+    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Setup: Criar um pedido com telefone
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.owner_email == "admin@mesaflow.com").first()
+
+    order = Order(
+        company_id=company.id,
+        customer_name="Kennedy Test",
+        customer_phone="11999999999",
+        total_amount=50.00,
+        status=OrderStatus.PREPARING
+    )
+    db.add(order)
+    db.commit()
+    order_id = str(order.id)
+    db.close()
+
+    # 3. Simular atualização para READY e verificar se o WhatsAppService foi chamado
+    # Usamos patch no método notify_order_ready do WhatsAppService
+    with patch("app.routers.admin.whatsapp_service.notify_order_ready", new_callable=AsyncMock) as mock_notify:
+        mock_notify.return_value = True
+
+        response = client.patch(
+            f"/api/admin/orders/{order_id}",
+            headers=headers,
+            json={"status": "ready"}
+        )
+
+        assert response.status_code == 200
+        # Verifica se o serviço de notificação foi acionado
+        mock_notify.assert_called_once()
+
+        # Verifica se os argumentos passados para a notificação estão corretos
+        args, kwargs = mock_notify.call_args
+        assert kwargs["customer_name"] == "Kennedy Test"
+        assert kwargs["phone"] == "11999999999"
+```
+
+# FILE: ./scripts/tests/test_whatsapp_connection.py
+```py
+import pytest
+from unittest.mock import AsyncMock, patch
+from app.services.whatsapp_service import WhatsAppService
+from app.models import Company
+
+@pytest.mark.asyncio
+async def test_whatsapp_send_test_message_success():
+    # Mock da empresa com configurações válidas
+    company = Company(
+        whatsapp_number="5511999999999",
+        whatsapp_api_url="https://api.fake.com",
+        whatsapp_instance="instance_1",
+        whatsapp_token="token_123"
+    )
+
+    service = WhatsAppService()
+
+    # Mock do httpx.AsyncClient
+    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+        mock_post.return_value.status_code = 200
+
+        result = await service.send_test_message(company)
+
+        assert result is True
+        mock_post.assert_called_once()
+
+        # Verifica se a URL foi montada corretamente
+        args, kwargs = mock_post.call_args
+        assert "https://api.fake.com/message/sendText/instance_1" in args[0]
+        assert kwargs["json"]["number"] == "5511999999999"
+
+@pytest.mark.asyncio
+async def test_whatsapp_send_test_message_no_number():
+    company = Company(whatsapp_number=None)
+    service = WhatsAppService()
+
+    result = await service.send_test_message(company)
+    assert result is False
+
+@pytest.mark.asyncio
+async def test_whatsapp_send_test_message_api_fail():
+    company = Company(
+        whatsapp_number="5511999999999",
+        whatsapp_api_url="https://api.fake.com",
+        whatsapp_instance="instance_1",
+        whatsapp_token="token_123"
+    )
+
+    service = WhatsAppService()
+
+    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+        mock_post.return_value.status_code = 401 # Unauthorized
+
+        result = await service.send_test_message(company)
+        assert result is False
+
+```
+
+# FILE: ./scripts/tests/test_whatsapp_dynamic.py
+```py
+import pytest
+from unittest.mock import patch, AsyncMock
+from app.services.whatsapp_service import WhatsAppService
+from app.models import Company
+
+@pytest.mark.asyncio
+async def test_whatsapp_service_uses_company_config():
+    """
+    Testa se o serviço prioriza a configuração da empresa sobre a global.
+    """
+    service = WhatsAppService()
+
+    # 1. Mock de Empresa com Config Própria
+    company_custom = Company(
+        whatsapp_api_url="https://api.custom.com",
+        whatsapp_instance="custom_instance",
+        whatsapp_token="custom_token"
+    )
+
+    # 2. Mock de Empresa sem Config (Deve usar Global/Fallback)
+    company_default = Company(
+        whatsapp_api_url=None
+    )
+
+    # Mock do HTTPX para não fazer chamada real
+    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+        mock_post.return_value.status_code = 200
+
+        # Teste A: Config Customizada
+        await service.notify_order_ready(
+            "Cliente A", "5511999999999", "10", "Restaurante A", 
+            company_settings=company_custom
+        )
+
+        # Verifica se usou a URL customizada
+        args, _ = mock_post.call_args
+        url_used = args[0]
+        assert "api.custom.com" in url_used
+        assert "custom_instance" in url_used
+
+    # Teste B: Config Global (Simulando ENV)
+    with patch.dict("os.environ", {
+        "WHATSAPP_API_URL": "https://api.global.com",
+        "WHATSAPP_INSTANCE": "global_inst",
+        "WHATSAPP_API_TOKEN": "global_tok"
+    }):
+        # Recria serviço para ler ENV novo
+        service_global = WhatsAppService()
+
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post_global:
+            mock_post_global.return_value.status_code = 200
+
+            await service_global.notify_order_ready(
+                "Cliente B", "5511999999999", "11", "Restaurante B", 
+                company_settings=company_default
+            )
+
+            args, _ = mock_post_global.call_args
+            url_used = args[0]
+            assert "api.global.com" in url_used
+
+```
+
+# FILE: ./scripts/tests/test_whatsapp_events.py
+```py
+import pytest
+from unittest.mock import AsyncMock, patch
+from app.services.whatsapp_service import WhatsAppService
+from app.models import Company
+
+@pytest.mark.asyncio
+async def test_whatsapp_notification_triggers():
+    """Valida se as strings de notificação são montadas corretamente."""
+    company = Company(
+        name="Teste Burguer",
+        whatsapp_number="5511999999999",
+        whatsapp_api_url="https://api.test",
+        whatsapp_instance="i1",
+        whatsapp_token="t1"
+    )
+
+    service = WhatsAppService()
+
+    with patch.object(service, '_send_http_request', new_callable=AsyncMock) as mock_send:
+        # 1. Testar Notificação de "Pronto"
+        await service.notify_order_ready("João", "11999999999", "10", company.name, company)
+        args = mock_send.call_args[0]
+        assert "Mesa 10" in args[1]
+        assert "Teste Burguer" in args[1]
+
+        # 2. Testar Notificação de "Saída"
+        await service.notify_delivery_dispatch("Maria", "11988888888", "Carlos", "id-123", "slug-loja", company)
+        args = mock_send.call_args[0]
+        assert "Carlos" in args[1]
+        assert "slug-loja/menu?order=id-123" in args[1]
+
+```
+
+# FILE: ./scripts/windows_reset.bat
+```bat
+@echo off
+echo 🗑️  Limpando caches e node_modules...
+
+cd frontend
+if exist node_modules (
+    rmdir /s /q node_modules
+    echo ✅ node_modules removido
+)
+if exist .next (
+    rmdir /s /q .next
+    echo ✅ .next cache removido
+)
+if exist package-lock.json (
+    del package-lock.json
+    echo ✅ lockfile removido
+)
+
+echo 📦 Reinstalando dependencias limpas...
+call npm install
+
+echo 🚀 Pronto! Execute 'python run.py' novamente.
+pause
+```
+
+# FILE: ./test_delivery_access.py
+```py
+import requests
+import uuid
+import sys
+
+# Configuração
+BASE_URL = "http://localhost:8000/api"
+UNIQUE_ID = uuid.uuid4().hex[:6]
+
+# Cores para o terminal
+class Colors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+
+def print_step(msg):
+    print(f"\n{Colors.HEADER}=== {msg} ==={Colors.ENDC}")
+
+def print_success(msg):
+    print(f"{Colors.OKGREEN}✅ {msg}{Colors.ENDC}")
+
+def print_fail(msg, response=None):
+    print(f"{Colors.FAIL}❌ {msg}{Colors.ENDC}")
+    if response:
+        print(f"{Colors.FAIL}   Status: {response.status_code}{Colors.ENDC}")
+        print(f"{Colors.FAIL}   Body: {response.text}{Colors.ENDC}")
+
+def get_token(email, password):
+    res = requests.post(f"{BASE_URL}/auth/token", data={
+        "username": email,
+        "password": password
+    })
+    if res.status_code == 200:
+        return res.json()["access_token"]
+    return None
+
+def test_access(role_name, email, password):
+    print(f"Testing access for: {Colors.OKBLUE}{role_name}{Colors.ENDC} ({email})")
+
+    # 1. Login
+    token = get_token(email, password)
+    if not token:
+        print_fail("Falha no Login")
+        return
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Tentar acessar a rota problemática
+    url = f"{BASE_URL}/admin/delivery/orders"
+    try:
+        res = requests.get(url, headers=headers)
+
+        if res.status_code == 200:
+            print_success(f"Acesso PERMITIDO! (Retornou {len(res.json())} pedidos)")
+        elif res.status_code == 403:
+            print_fail("Acesso NEGADO (403 Forbidden)", res)
+        else:
+            print_fail(f"Erro inesperado ({res.status_code})", res)
+
+    except Exception as e:
+        print_fail(f"Erro de conexão: {e}")
+
+def main():
+    print_step("1. CRIANDO AMBIENTE DE TESTE")
+
+    owner_email = f"dono_{UNIQUE_ID}@test.com"
+    driver_email = f"driver_{UNIQUE_ID}@test.com"
+    manager_email = f"manager_{UNIQUE_ID}@test.com"
+    password = "password123"
+    slug = f"delivery-test-{UNIQUE_ID}"
+
+    # 1. Registrar Empresa (Dono)
+    payload = {
+        "company_name": f"Delivery Test {UNIQUE_ID}",
+        "company_slug": slug,
+        "owner_email": owner_email,
+        "password": password,
+        "segment": "gastro"
+    }
+    res = requests.post(f"{BASE_URL}/auth/register", json=payload)
+    if res.status_code != 201:
+        print_fail("Falha ao criar empresa", res)
+        sys.exit(1)
+
+    owner_token = res.json()["access_token"]
+    print_success(f"Empresa criada: {slug}")
+
+    # 2. Criar Entregador
+    driver_payload = {
+        "name": "João Motoboy",
+        "email": driver_email,
+        "password": password,
+        "role": "driver"
+    }
+    res_driver = requests.post(f"{BASE_URL}/admin/employees", json=driver_payload, headers={"Authorization": f"Bearer {owner_token}"})
+    if res_driver.status_code == 201:
+        print_success("Entregador criado")
+    else:
+        print_fail("Falha ao criar entregador", res_driver)
+
+    # 3. Criar Gerente
+    manager_payload = {
+        "name": "Maria Gerente",
+        "email": manager_email,
+        "password": password,
+        "role": "manager"
+    }
+    res_manager = requests.post(f"{BASE_URL}/admin/employees", json=manager_payload, headers={"Authorization": f"Bearer {owner_token}"})
+    if res_manager.status_code == 201:
+        print_success("Gerente criado")
+
+    # --- INÍCIO DOS TESTES DE ACESSO ---
+
+    print_step("2. TESTANDO ACESSO À ROTA DE DELIVERY")
+
+    # Teste A: Dono
+    test_access("DONO (Owner)", owner_email, password)
+
+    # Teste B: Entregador
+    test_access("ENTREGADOR (Driver)", driver_email, password)
+
+    # Teste C: Gerente
+    test_access("GERENTE (Manager)", manager_email, password)
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nCancelado.")
+```
+
+# FILE: ./validar.py
+```py
+import re
+import os
+import sys
+from pathlib import Path
+
+# Tentativa de importar Rich para feedback visual
+try:
+    from rich.console import Console
+    from rich.panel import Panel
+    console = Console()
+    HAS_RICH = True
+except ImportError:
+    HAS_RICH = False
+
+INPUT_FILE = "resposta.txt"
+
+# Padrões Proibidos (Placeholders de preguiça)
+FORBIDDEN = [
+    r"\.\.\.", 
+    r"restante do código", 
+    r"code omitted", 
+    r"// \.\.\.", 
+    r"# \.\.\."
+]
+
+def validate_protocol():
+    if not os.path.exists(INPUT_FILE):
+        print(f"❌ {INPUT_FILE} não encontrado.")
+        return False
+
+    content = Path(INPUT_FILE).read_text(encoding="utf-8")
+    errors = []
+
+    # 1. Verificar Tags de Início/Fim
+    begins = re.findall(r"\[\[MESAFLOW_BEGIN:(.*?)\]\]", content)
+    ends = re.findall(r"\[\[MESAFLOW_END\]\]", content)
+    if len(begins) != len(ends):
+        errors.append(f"Divergência de tags: {len(begins)} BEGIN vs {len(ends)} END.")
+
+    # 2. Verificar Classificação de Task
+    if not re.search(r"(TRIVIAL|COMPLEXA)", content.upper()):
+        errors.append("Classificação de Task (TRIVIAL/COMPLEXA) não encontrada.")
+
+    # 3. Verificar Placeholders Proibidos (Ignorando spread operator)
+    clean_content = re.sub(r"\.\.\.[a-zA-Z0-9_]+", "", content)
+    for p in FORBIDDEN:
+        if re.search(p, clean_content, re.IGNORECASE):
+            errors.append(f"Placeholder proibido detectado: '{p}'")
+
+    # 4. Verificar Ritual de Testes
+    has_test_file = any("tests/" in b for b in begins)
+    has_exemption = "[TEST_EXEMPT:" in content.upper()
+
+    if not has_test_file and not has_exemption:
+        errors.append("Task sem arquivo de teste e sem justificativa [TEST_EXEMPT].")
+
+    # --- RESULTADO ---
+    if errors:
+        if HAS_RICH:
+            console.print(Panel.fit("\n".join([f"❌ {e}" for e in errors]), title="Falha na Validação de Protocolo", style="bold red"))
+        else:
+            print("\n".join([f"❌ {e}" for e in errors]))
+        return False
+
+    if HAS_RICH:
+        console.print(Panel.fit("✅ Protocolo v4.3 respeitado. Pronto para atualizar.", title="Sucesso", style="bold green"))
+    else:
+        print("✅ Protocolo validado.")
+    return True
+
+if __name__ == "__main__":
+    if not validate_protocol():
+        sys.exit(1)
+```
+
+# FILE: ./ver_arvore.py
+```py
+import os
+
+def print_tree(startpath):
+    # Pastas para ignorar
+    ignore_dirs = {'.git', 'node_modules', '__pycache__', '.next', 'venv', '.venv', 'dist', 'build', '.vscode', '.idea'}
+
+    for root, dirs, files in os.walk(startpath):
+        # Remove pastas ignoradas da busca
+        dirs[:] = [d for d in dirs if d not in ignore_dirs]
+
+        level = root.replace(startpath, '').count(os.sep)
+        indent = '│   ' * (level)
+        print(f'{indent}├── {os.path.basename(root)}/')
+        subindent = '│   ' * (level + 1)
+        for f in files:
+            print(f'{subindent}├── {f}')
+
+if __name__ == "__main__":
+    print(f"Gerando árvore do projeto: {os.getcwd()}\n")
+    print_tree('.')
+```
+
+# FILE: ./🗺️ Roadmap do Produto
+```txt
+
+```

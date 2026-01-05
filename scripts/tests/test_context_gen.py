@@ -1,5 +1,5 @@
 import pytest
-from gerartxt import is_test_file, deve_ignorar
+from gerartxt import is_ignored, is_test_file
 
 def test_is_test_file_detection():
     """Valida a lógica de detecção de arquivos de teste para economia de tokens."""
@@ -11,7 +11,10 @@ def test_is_test_file_detection():
 
 def test_ignore_logic():
     """Valida se arquivos irrelevantes são ignorados."""
-    assert deve_ignorar("node_modules/package.json") is True
-    assert deve_ignorar(".git/config") is True
-    assert deve_ignorar("app/main.pyc") is True
-    assert deve_ignorar("app/main.py") is False
+    # A função is_ignored agora exige uma lista de padrões gitignore como segundo argumento
+    patterns = []
+    
+    assert is_ignored("node_modules/package.json", patterns) is True
+    assert is_ignored(".git/config", patterns) is True
+    assert is_ignored("app/main.pyc", patterns) is True
+    assert is_ignored("app/main.py", patterns) is False

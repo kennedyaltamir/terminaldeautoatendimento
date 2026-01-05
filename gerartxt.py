@@ -5,54 +5,33 @@ import argparse
 import datetime
 import fnmatch
 import json
-import time
-import asyncio
-import shutil
-import subprocess
 from pathlib import Path
-from typing import List, Dict, Set, Tuple
 
-# Dependências Profissionais
-try:
-    from rich.console import Console
-    from rich.table import Table
-    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
-    from rich.panel import Panel
-    HAS_RICH = True
-    console = Console()
-except ImportError:
-    HAS_RICH = False
-
+# Tenta importar pyperclip para clipboard, falha graciosamente se não existir
 try:
     import pyperclip
     HAS_CLIPBOARD = True
 except ImportError:
     HAS_CLIPBOARD = False
 
-try:
-    from playwright.async_api import async_playwright
-    HAS_PLAYWRIGHT = True
-except ImportError:
-    HAS_PLAYWRIGHT = False
-
 # ============================================================
-# CONFIGURAÇÃO (V7.1 - Flat Handover Edition)
+# CONFIGURAÇÃO (V3.4 - Aggressive Filtering)
 # ============================================================
 
-HANDOVER_DIR = "HANDOVER_MESAFLOW"
+ARQUIVO_SAIDA = "todososarquivos.txt"
 MAX_FILE_SIZE = 500 * 1024  # 500KB
-TOKEN_LIMIT = 450000 
 
-BASE_URL = "http://localhost:3000"
-SLUG = "hamburgueria-ze"
-ADMIN_EMAIL = "admin@mesaflow.com"
-ADMIN_PASS = "123456"
+# Pastas para ignorar completamente
+IGNORAR_PASTAS = {
+    ".git", "node_modules", ".next", "__pycache__", 
+    "venv", ".venv", ".pytest_cache", "Copy", 
+    ".temp_diff", ".update_transaction", "dist", "build", 
+    ".vscode", ".idea", "coverage", "playwright-report", "test-results",
+    "assets", "public",
+    "docs/tasks", "docs/testes" # Ignora tarefas antigas e lixo de teste
+}
 
-PRIORITY_FILES = [
-    "app/models.py", "app/schemas.py", "app/database.py", 
-    "app/main.py", "frontend/src/types/index.ts", "docs/ROADMAP.md"
-]
-
+# Extensões binárias
 IGNORAR_EXTENSOES = {
     ".pyc", ".pyo", ".pyd", ".db", ".sqlite", ".sqlite3", 
     ".png", ".jpg", ".jpeg", ".gif", ".ico", ".svg", 
@@ -61,230 +40,240 @@ IGNORAR_EXTENSOES = {
     ".exe", ".dll", ".so", ".log", ".bak", ".tag", ".lock"
 }
 
-IGNORAR_PASTAS = {
-    ".git", "node_modules", ".next", "__pycache__", "venv", ".venv", 
-    "Copy", ".temp_diff", "dist", "build", ".vscode", "screenshots",
-    "output_sounds", "assets", "public/uploads", HANDOVER_DIR
+IGNORAR_ARQUIVOS_EXATOS = {
+    ARQUIVO_SAIDA, "resposta.txt", "package-lock.json", "yarn.lock", 
+    "pnpm-lock.yaml", "atualizar.log", "dummy.txt"
 }
 
-SECRET_PATTERNS = {
-    "Stripe_Key": r"sk_(?:live|test)_[0-9a-zA-Z]{24,}",
-    "MercadoPago_Token": r"APP_USR-[0-9]{16}-[0-9]{6}-[a-z0-9]{32}-[0-9]{9,}",
-    "JWT_Secret": r"SECRET_KEY\s*=\s*['\"][a-zA-Z0-9_\-]{32,}['\"]",
-}
+# Regex para detecção básica de segredos
+SECRET_PATTERNS = [
+    r"(?i)(api_?key|secret|password|token)\s*[:=]\s*['\"][a-zA-Z0-9_\-]{20,}['\"]",
+    r"sk_live_[0-9a-zA-Z]{24}",
+]
 
 # ============================================================
-# MOTOR DE INTELIGÊNCIA
+# FUNÇÕES AUXILIARES
 # ============================================================
 
-class ProjectIntelligence:
-    def __init__(self):
-        self.import_map = {}
-        self.component_props = {}
-        self.all_files = set()
-        self.referenced_files = set()
-        self.latency_report = {}
-
-    def analyze(self, path: str, content: str):
-        self.all_files.add(path)
-        imports = re.findall(r"(?:import|from)\s+['\"]?([@\w./-]+)", content)
-        if imports:
-            self.import_map[path] = imports
-            for imp in imports:
-                clean_name = imp.split('/')[-1].split('.')[0]
-                self.referenced_files.add(clean_name)
-
-        if path.endswith(('.tsx', '.jsx')):
-            props = re.findall(r"interface\s+(\w+Props)\s*{([^}]*)}", content)
-            if props:
-                self.component_props[path] = props
-
-    def get_dead_code(self) -> List[str]:
-        dead = []
-        for f in self.all_files:
-            name = Path(f).stem
-            if name not in self.referenced_files and "page" not in name and "layout" not in name and "main" not in name and "init" not in name:
-                if f.endswith(('.py', '.ts', '.tsx')):
-                    dead.append(f)
-        return dead
-
-# ============================================================
-# MOTOR VISUAL PARALELO (FLAT OUTPUT)
-# ============================================================
-
-async def capture_screen(browser, storage_state, url, name, category, intel, semaphore):
-    async with semaphore:
-        start = time.time()
-        # Injeta o estado de login (cookies/localStorage) em cada contexto
-        context = await browser.new_context(
-            storage_state=storage_state,
-            viewport={"width": 1280, "height": 800}
-        )
-        page = await context.new_page()
+def load_gitignore():
+    """Lê o .gitignore e retorna uma lista de padrões."""
+    patterns = []
+    if os.path.exists(".gitignore"):
         try:
-            await page.goto(url, wait_until="networkidle", timeout=20000)
-            
-            # Se for a página de configurações, tenta clicar nas abas se o nome for específico
-            if "settings" in url and "_" in name:
-                tab_label = name.split("_")[-1]
-                try:
-                    await page.get_by_role("button").filter(has_text=tab_label).first.click()
-                    await page.wait_for_load_state("networkidle")
-                    await asyncio.sleep(1)
-                except: pass
+            with open(".gitignore", "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        patterns.append(line)
+        except Exception:
+            pass
+    return patterns
 
-            intel.latency_report[name] = f"{time.time() - start:.2f}s"
-            filename = f"IMG_{category}_{name}.webp"
-            full_path = Path(HANDOVER_DIR) / filename
-            await page.screenshot(path=str(full_path), type="webp", quality=50, full_page=True)
-            print(f"   ✅ Capturado: {category}/{name}")
-            return True
-        except Exception as e:
-            print(f"   ❌ Erro ao capturar {name}: {str(e)[:50]}")
-            return False
-        finally:
-            await context.close()
-
-async def run_visual_audit(intel):
-    if not HAS_PLAYWRIGHT: return
-    print("\n[bold cyan]⚡ Iniciando Auditoria Visual (Flat Mode)...[/bold cyan]")
+def is_ignored(path, gitignore_patterns):
+    """Verifica se o caminho deve ser ignorado."""
+    # Normalização Crítica para Windows
+    path = path.replace("/", os.sep).replace("\\", os.sep)
     
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+    name = os.path.basename(path)
+    parts = path.split(os.sep)
+    
+    # 1. Pastas Proibidas
+    # Verifica se qualquer parte do caminho está na lista negra
+    # Normaliza as pastas ignoradas para o separador do sistema
+    normalized_ignores = {p.replace("/", os.sep) for p in IGNORAR_PASTAS}
+    
+    # Verifica correspondência exata de pasta ou subpasta
+    for part in parts:
+        if part in normalized_ignores:
+            return True
+            
+    # Verifica caminhos compostos (ex: docs/tasks)
+    for ignore in normalized_ignores:
+        if ignore in path:
+            return True
+    
+    # 2. Arquivos Exatos
+    if name in IGNORAR_ARQUIVOS_EXATOS: return True
+    
+    # 3. Extensões
+    _, ext = os.path.splitext(name)
+    if ext.lower() in IGNORAR_EXTENSOES: return True
+    
+    # 4. Gitignore
+    for pattern in gitignore_patterns:
+        if fnmatch.fnmatch(name, pattern) or fnmatch.fnmatch(path, pattern):
+            return True
+            
+    return False
+
+def check_secrets(content, filepath):
+    """Verifica se há segredos hardcoded no conteúdo."""
+    warnings = []
+    for pattern in SECRET_PATTERNS:
+        if re.search(pattern, content):
+            warnings.append(f"⚠️  POSSÍVEL SEGREDO em {filepath}")
+    return warnings
+
+def minify_content(content):
+    """Remove linhas em branco consecutivas."""
+    return re.sub(r'\n\s*\n', '\n\n', content)
+
+def get_dependencies():
+    """Extrai resumo de dependências para o topo do arquivo."""
+    deps = []
+    # Python
+    if os.path.exists("requirements.txt"):
+        deps.append("\n# --- requirements.txt (Summary) ---")
+        try:
+            with open("requirements.txt", "r", encoding="utf-8") as f:
+                deps.append(f.read())
+        except: pass
+    
+    # Node
+    if os.path.exists("frontend/package.json"):
+        try:
+            with open("frontend/package.json", "r", encoding="utf-8") as f:
+                data = json.load(f)
+                deps.append("\n# --- package.json (Dependencies) ---")
+                deps.append(json.dumps(data.get("dependencies", {}), indent=2))
+        except: pass
         
-        # 1. Realizar Login e Capturar Estado
-        print("   🔑 Autenticando para capturas protegidas...")
-        login_context = await browser.new_context()
-        login_page = await login_context.new_page()
-        await login_page.goto(f"{BASE_URL}/admin/login")
-        await login_page.fill('input[name="email"]', ADMIN_EMAIL)
-        await login_page.fill('input[name="password"]', ADMIN_PASS)
-        await login_page.click('button[type="submit"]')
-        await login_page.wait_for_url("**/dashboard", timeout=15000)
-        await login_page.evaluate("localStorage.setItem('mesaflow_tour_completed', 'true')")
-        
-        # Salva cookies e localStorage
-        storage = await login_context.storage_state()
-        await login_context.close()
+    return "\n".join(deps) + "\n"
 
-        # 2. Disparar Capturas Paralelas
-        semaphore = asyncio.Semaphore(3)
-        tasks = [
-            capture_screen(browser, storage, BASE_URL, "Home", "Public", intel, semaphore),
-            capture_screen(browser, storage, f"{BASE_URL}/admin/{SLUG}/dashboard", "Dashboard", "Admin", intel, semaphore),
-            capture_screen(browser, storage, f"{BASE_URL}/admin/{SLUG}/menu", "Cardapio", "Admin", intel, semaphore),
-            capture_screen(browser, storage, f"{BASE_URL}/admin/{SLUG}/inventory", "Estoque", "Admin", intel, semaphore),
-            capture_screen(browser, storage, f"{BASE_URL}/admin/{SLUG}/settings", "Config_Geral", "Settings", intel, semaphore),
-            capture_screen(browser, storage, f"{BASE_URL}/admin/{SLUG}/settings", "Config_Fiscal", "Settings", intel, semaphore),
-            capture_screen(browser, storage, f"{BASE_URL}/admin/{SLUG}/kitchen", "KDS", "Operations", intel, semaphore),
-            capture_screen(browser, storage, f"{BASE_URL}/{SLUG}/menu", "Menu_Mobile", "Mobile", intel, semaphore),
-        ]
-        
-        await asyncio.gather(*tasks)
-        await browser.close()
-
-# ============================================================
-# CORE DE PROCESSAMENTO
-# ============================================================
-
-def redact(content: str) -> str:
-    for name, pattern in SECRET_PATTERNS.items():
-        content = re.sub(pattern, f"[REDACTED_{name.upper()}]", content)
-    return content
-
-def generate_tree(startpath: str) -> str:
-    tree = ["📂 Estrutura do Projeto:\n.\n"]
+def generate_tree(startpath, gitignore_patterns, focus=None):
+    """Gera uma string de árvore de diretórios."""
+    tree_str = "📂 Estrutura do Projeto:\n.\n"
+    
     for root, dirs, files in os.walk(startpath):
-        dirs[:] = [d for d in dirs if d not in IGNORAR_PASTAS]
-        level = root.replace(startpath, '').count(os.sep)
-        indent = '│   ' * level
-        if root != startpath: tree.append(f"{indent}├── {os.path.basename(root)}/\n")
-        subindent = '│   ' * (level + 1)
-        for f in files:
-            if os.path.splitext(f)[1].lower() not in IGNORAR_EXTENSOES:
-                tree.append(f"{subindent}├── {f}\n")
-    return "".join(tree)
+        dirs[:] = [d for d in dirs if not is_ignored(os.path.join(root, d), gitignore_patterns)]
+        
+        # Lógica de foco na árvore
+        rel_root = os.path.relpath(root, startpath)
+        if focus and rel_root != "." and not rel_root.startswith(focus) and not focus.startswith(rel_root):
+            continue
 
-async def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--no-img", action="store_true")
+        level = root.replace(startpath, '').count(os.sep)
+        indent = '│   ' * (level)
+        subindent = '│   ' * (level + 1)
+        
+        if root != startpath:
+            tree_str += f"{indent}├── {os.path.basename(root)}/\n"
+            
+        for f in files:
+            if not is_ignored(os.path.join(root, f), gitignore_patterns):
+                tree_str += f"{subindent}├── {f}\n"
+                
+    return tree_str
+
+def is_test_file(path):
+    """Detecta arquivos de teste."""
+    path = path.replace("/", os.sep).replace("\\", os.sep)
+    parts = path.split(os.sep)
+    
+    # Se estiver em qualquer pasta de teste
+    if "tests" in parts or "functional" in parts or "e2e" in parts:
+        return True
+        
+    return os.path.basename(path).startswith("test_") or path.endswith(".spec.ts")
+
+# ============================================================
+# MAIN
+# ============================================================
+
+def main():
+    parser = argparse.ArgumentParser(description="Gerador de Contexto Otimizado v3.4")
+    parser.add_argument("--focus", help="Focar apenas em uma pasta específica")
+    parser.add_argument("--no-minify", action="store_true", help="Desativar minificação")
+    parser.add_argument("--copy", action="store_true", help="Copiar para o clipboard")
     args = parser.parse_args()
 
-    # Preparar pasta de Handover
-    if os.path.exists(HANDOVER_DIR):
-        shutil.rmtree(HANDOVER_DIR)
-    os.makedirs(HANDOVER_DIR)
+    print(f"🔍 Iniciando Gerador de Contexto v3.4...")
+    
+    gitignore = load_gitignore()
+    output_buffer = []
+    
+    # 1. Tree
+    print("🌳 Gerando mapa visual...")
+    output_buffer.append(generate_tree(".", gitignore, args.focus))
+    
+    # 2. Dependencies
+    print("📦 Coletando dependências...")
+    output_buffer.append(get_dependencies())
+    
+    output_buffer.append("\n" + "="*50 + "\nCONTEÚDO DOS ARQUIVOS\n" + "="*50 + "\n")
 
-    intel = ProjectIntelligence()
-    if not args.no_img:
-        await run_visual_audit(intel)
-
-    output_buffer = [
-        f"# MESAFLOW FLAT HANDOVER v7.1\n",
-        f"# Generated: {datetime.datetime.now()}\n",
-        generate_tree("."),
-        "\n" + "="*50 + "\nCONTEÚDO DOS ARQUIVOS\n" + "="*50 + "\n"
-    ]
-
-    all_paths = []
-    for root, dirs, files in os.walk("."):
-        dirs[:] = [d for d in dirs if d not in IGNORAR_PASTAS]
-        for f in files:
-            path = os.path.join(root, f).replace("\\", "/")
-            if os.path.splitext(f)[1].lower() in IGNORAR_EXTENSOES: continue
-            if any(fnmatch.fnmatch(path, p) for p in ["*.log", "resposta.txt"]): continue
-            all_paths.append(path)
-
-    all_paths.sort(key=lambda x: (x not in PRIORITY_FILES, x))
-
+    total_chars = 0
     file_count = 0
-    current_tokens = 0
-    chunk_id = 0
+    warnings = []
 
-    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), BarColumn(), TaskProgressColumn()) as progress:
-        task = progress.add_task("[cyan]Gerando Pacote Flat...", total=len(all_paths))
+    for root, dirs, files in os.walk("."):
+        dirs[:] = [d for d in dirs if not is_ignored(os.path.join(root, d), gitignore)]
         
-        for filepath in all_paths:
+        if args.focus:
+             rel = os.path.relpath(root, ".")
+             if rel != "." and not rel.startswith(args.focus) and not args.focus.startswith(rel):
+                 continue
+
+        for file in files:
+            filepath = os.path.join(root, file)
+            rel_path = os.path.relpath(filepath, ".").replace("\\", "/")
+            
+            if is_ignored(filepath, gitignore): continue
+            if args.focus and not rel_path.startswith(args.focus): continue
+
             try:
-                if os.path.getsize(filepath) > MAX_FILE_SIZE: continue
-                with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
-                    content = f.read()
+                size = os.path.getsize(filepath)
+                if size > MAX_FILE_SIZE:
+                    print(f"⚠️  Ignorado (Muito grande): {rel_path}")
+                    continue
+            except: continue
+
+            file_count += 1
+            print(f"📄 [INCLUÍDO] {rel_path}")
+
+            mtime = datetime.datetime.fromtimestamp(os.path.getmtime(filepath)).strftime('%Y-%m-%d %H:%M')
+            header = f"\n# FILE: {rel_path}\n# SIZE: {size} bytes | MODIFIED: {mtime}\n"
+            
+            try:
+                if is_test_file(filepath):
+                    content = "# [TEST CONTENT EXCLUDED] Refer to codebase for full test implementation.\n"
+                else:
+                    with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                        content = f.read()
+                    
+                    file_warnings = check_secrets(content, rel_path)
+                    warnings.extend(file_warnings)
+
+                    if not args.no_minify:
+                        content = minify_content(content)
+
+                ext = os.path.splitext(file)[1].replace(".", "") or "txt"
+                formatted = f"{header}```{ext}\n{content}\n```\n"
                 
-                intel.analyze(filepath, content)
-                content = redact(content)
-                content = re.sub(r'\n\s*\n', '\n\n', content)
-                
-                formatted = f"\n# FILE: {filepath}\n```{os.path.splitext(filepath)[1][1:] or 'txt'}\n{content}\n```\n"
                 output_buffer.append(formatted)
-                
-                current_tokens += len(formatted) // 4
-                file_count += 1
-                progress.update(task, advance=1)
+                total_chars += len(formatted)
 
-                if current_tokens > TOKEN_LIMIT:
-                    chunk_id += 1
-                    fname = f"CODE_part_{chunk_id}.txt"
-                    with open(Path(HANDOVER_DIR) / fname, "w", encoding="utf-8") as f:
-                        f.write("".join(output_buffer))
-                    output_buffer = [f"# CONTINUAÇÃO PARTE {chunk_id+1}\n"]
-                    current_tokens = 0
-            except: pass
+            except Exception as e:
+                print(f"❌ Erro ao ler {rel_path}: {e}")
 
-    # Salvar arquivo principal ou último chunk
-    final_name = "CODE_todososarquivos.txt" if chunk_id == 0 else f"CODE_part_{chunk_id + 1}.txt"
-    with open(Path(HANDOVER_DIR) / final_name, "w", encoding="utf-8") as f:
-        f.write("".join(output_buffer))
+    full_content = "".join(output_buffer)
+    with open(ARQUIVO_SAIDA, "w", encoding="utf-8") as f:
+        f.write(full_content)
 
-    if HAS_RICH:
-        table = Table(title="📦 Pacote de Handover Flat Pronto")
-        table.add_column("Métrica", style="green")
-        table.add_column("Resultado", style="bold white")
-        table.add_row("Pasta de Saída", HANDOVER_DIR)
-        table.add_row("Arquivos de Texto", str(chunk_id + 1))
-        table.add_row("Imagens (Screenshots)", str(len(list(Path(HANDOVER_DIR).glob('*.webp')))))
-        table.add_row("Código Morto Detectado", str(len(intel.get_dead_code())))
-        console.print(table)
-        console.print(f"\n[bold yellow]👉 Instrução: Abra a pasta '{HANDOVER_DIR}', selecione TUDO e arraste para a IA.[/bold yellow]")
+    print("\n" + "="*50)
+    print(f"✅ Contexto gerado em: {ARQUIVO_SAIDA}")
+    print(f"📦 Arquivos processados: {file_count}")
+    print(f"🧠 Estimativa de Tokens: ~{int(total_chars / 4)}")
+    
+    if warnings:
+        print("\n🚨 ALERTAS DE SEGURANÇA:")
+        for w in warnings: print(w)
+    
+    if args.copy and HAS_CLIPBOARD:
+        try:
+            pyperclip.copy(full_content)
+            print("\n📋 Copiado para o clipboard!")
+        except: pass
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
