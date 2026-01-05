@@ -1,14 +1,24 @@
 "use client";
-import { Clock, ChefHat, CheckCircle2, Banknote, Copy, Loader2, Utensils, Plus, MapPin, Navigation } from "lucide-react";
+import { Clock, ChefHat, CheckCircle2, Banknote, Copy, Loader2, Utensils, Plus, MapPin, Navigation, Star } from "lucide-react";
 import { Order } from "@/types";
 import { QRCodeSVG } from "qrcode.react";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import FeedbackModal from "@/components/menu/FeedbackModal";
 
 export default function OrderStatusView({ order, onNewOrder, primaryColor }: { order: Order, onNewOrder: () => void, primaryColor: string }) {
   const isPaid = order.payment_status === 'paid';
   const isOnline = order.payment_method === 'online';
   const [driverLocation, setDriverLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+
+  // Gatilho para Feedback: Se o pedido foi entregue ou pago e ainda não tem feedback
+  useEffect(() => {
+    if ((order.status === 'delivered' || order.payment_status === 'paid') && !order.feedback) {
+      const timer = setTimeout(() => setShowFeedback(true), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [order.status, order.payment_status, order.feedback]);
 
   const steps = [
     { id: 'pending', label: 'Recebido', icon: Clock },
@@ -16,7 +26,6 @@ export default function OrderStatusView({ order, onNewOrder, primaryColor }: { o
     { id: 'ready', label: 'Pronto', icon: CheckCircle2 },
   ];
 
-  // Adiciona passo de entrega se for delivery
   if (order.order_type === 'delivery') {
     steps.push({ id: 'delivering', label: 'Em Rota', icon: MapPin });
   }
@@ -32,16 +41,12 @@ export default function OrderStatusView({ order, onNewOrder, primaryColor }: { o
     }
   };
 
-  // Listener de Rastreamento
   const handleWebSocketMessage = useCallback((data: any) => {
     if (data.type === "driver_location" && data.order_id === order.id) {
       setDriverLocation({ lat: data.lat, lng: data.lng });
     }
   }, [order.id]);
 
-  // Usa o slug da empresa que vem no pedido (precisamos garantir que o objeto order tenha company.slug ou passamos via props)
-  // Como o Order type não tem slug direto, vamos assumir que o contexto WS já está conectado no slug correto pelo layout.
-  // O hook useWebSocket apenas adiciona o listener.
   useWebSocket("", handleWebSocketMessage); 
 
   const openTrackingMap = () => {
@@ -50,19 +55,21 @@ export default function OrderStatusView({ order, onNewOrder, primaryColor }: { o
     }
   };
 
+  const canRate = !order.feedback && (order.status === 'delivered' || order.payment_status === 'paid');
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col pb-10 font-sans">
       <div className="bg-white p-6 shadow-sm border-b border-gray-100">
         <h1 className="text-2xl font-bold text-gray-900">
           Olá, {order.customer_name?.split(' ')[0] || 'Cliente'}!
         </h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <p className="text-gray-50 text-sm mt-1">
           Acompanhe seu pedido <span className="font-mono font-bold text-gray-700">#{order.id.slice(0, 6)}</span>
         </p>
       </div>
 
       <div className="p-6 space-y-6 max-w-md mx-auto w-full">
-        
+
         {isPaid && (
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div className="flex justify-between relative">
@@ -85,7 +92,7 @@ export default function OrderStatusView({ order, onNewOrder, primaryColor }: { o
                 );
               })}
             </div>
-            
+
             {order.status === 'ready' && order.order_type !== 'delivery' && (
               <div className="mt-6 bg-green-50 text-green-800 p-3 rounded-xl text-center font-bold animate-bounce">
                 🍽️ Seu pedido está pronto!
@@ -97,7 +104,7 @@ export default function OrderStatusView({ order, onNewOrder, primaryColor }: { o
                 <div className="bg-blue-50 text-blue-800 p-3 rounded-xl text-center font-bold flex items-center justify-center gap-2">
                   <Navigation size={18} className="animate-pulse"/> Motorista a caminho!
                 </div>
-                
+
                 {driverLocation && (
                   <button 
                     onClick={openTrackingMap}
@@ -106,7 +113,7 @@ export default function OrderStatusView({ order, onNewOrder, primaryColor }: { o
                     <MapPin size={18} /> Ver Localização Atual
                   </button>
                 )}
-                
+
                 {order.delivery_code && (
                   <div className="bg-gray-100 p-4 rounded-xl text-center border border-gray-200">
                     <p className="text-xs text-gray-500 uppercase font-bold mb-1">Código de Entrega</p>
@@ -166,7 +173,7 @@ export default function OrderStatusView({ order, onNewOrder, primaryColor }: { o
                 </div>
               </div>
             ))}
-            
+
             <div className="border-t border-dashed border-gray-200 pt-4 mt-4 space-y-2">
               {Number(order.delivery_fee) > 0 && (
                 <div className="flex justify-between text-sm text-gray-600">
@@ -193,6 +200,17 @@ export default function OrderStatusView({ order, onNewOrder, primaryColor }: { o
           </div>
         </div>
 
+        {/* Botão de Avaliação Manual */}
+        {canRate && (
+          <button 
+            data-testid="btn-avaliar"
+            onClick={() => setShowFeedback(true)}
+            className="w-full py-3 rounded-xl border-2 border-yellow-400 text-yellow-600 font-bold flex items-center justify-center gap-2 hover:bg-yellow-50 transition-colors"
+          >
+            <Star size={20} /> Avaliar Pedido
+          </button>
+        )}
+
         <button 
           onClick={onNewOrder}
           className="w-full py-4 rounded-xl font-bold text-white shadow-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 active:scale-95"
@@ -202,6 +220,14 @@ export default function OrderStatusView({ order, onNewOrder, primaryColor }: { o
         </button>
 
       </div>
+
+      {/* Modal de Feedback */}
+      <FeedbackModal 
+        isOpen={showFeedback} 
+        onClose={() => setShowFeedback(false)} 
+        orderId={order.id}
+        slug="hamburgueria-ze" 
+      />
     </div>
   );
 }

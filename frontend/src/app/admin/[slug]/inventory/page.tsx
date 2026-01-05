@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { getIngredients, createIngredient, updateIngredient, deleteIngredient } from "@/lib/api";
 import { Ingredient } from "@/types";
-import { Plus, Search, Edit2, Trash2, Save, X, Package } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Package } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import Modal from "@/components/ui/Modal";
+import InventorySkeleton from "@/components/admin/InventorySkeleton";
 
 export default function InventoryPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
@@ -13,7 +14,7 @@ export default function InventoryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  
+
   const [form, setForm] = useState<{
     name: string;
     unit: Ingredient['unit'];
@@ -40,6 +41,8 @@ export default function InventoryPage() {
   };
 
   useEffect(() => { fetchIngredients(); }, []);
+
+  if (loading) return <InventorySkeleton />;
 
   const handleSubmit = async () => {
     try {
@@ -89,9 +92,9 @@ export default function InventoryPage() {
   const filtered = ingredients.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-20 animate-in fade-in duration-500">
       <Toaster position="top-right" richColors />
-      
+
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-white">Gestão de Estoque</h1>
@@ -99,7 +102,7 @@ export default function InventoryPage() {
         </div>
         <button 
           onClick={() => { resetForm(); setIsModalOpen(true); }}
-          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition-colors"
+          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition-colors shadow-lg shadow-orange-900/20"
         >
           <Plus size={20} /> Novo Ingrediente
         </button>
@@ -129,9 +132,7 @@ export default function InventoryPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
-              {loading ? (
-                <tr><td colSpan={5} className="text-center py-8">Carregando...</td></tr>
-              ) : filtered.length === 0 ? (
+              {filtered.length === 0 ? (
                 <tr><td colSpan={5} className="text-center py-8 text-gray-500">Nenhum ingrediente encontrado.</td></tr>
               ) : (
                 filtered.map(ing => (
@@ -164,7 +165,7 @@ export default function InventoryPage() {
             <label className="block text-sm font-bold text-gray-700 mb-1">Nome</label>
             <input type="text" className="w-full border rounded-lg p-2" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Unidade</label>

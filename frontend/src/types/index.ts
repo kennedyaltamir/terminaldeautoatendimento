@@ -4,7 +4,7 @@ export interface Company {
   logo_url?: string;
   primary_color: string;
   banner_url?: string;
-  
+
   // Novos campos de tema
   background_color?: string;
   text_color?: string;
@@ -118,26 +118,31 @@ export interface Order {
   order_type: 'dine_in' | 'delivery' | 'takeout';
   delivery_address?: string;
   customer_phone?: string;
-  
+
   subtotal?: number;
   discount_amount?: number;
   cashback_earned?: number;
-  
+
   customer_name: string | null;
   total_amount: number;
   status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivering' | 'delivered' | 'canceled';
   payment_method: 'pix' | 'card' | 'cash' | 'online';
-  payment_status: 'pending' | 'paid';
+  payment_status: 'pending' | 'paid' | 'failed';
   created_at: string;
   finished_at?: string;
   items: OrderItemResponse[];
   mp_qr_code?: string;
   mp_qr_code_base64?: string;
   driver_id?: number;
-  
+
   delivery_code?: string;
   delivery_fee?: number;
   service_fee?: number;
+
+  // Campos Fiscais
+  fiscal_status?: 'pending' | 'processing' | 'emitted' | 'error' | 'canceled';
+  nfe_url_pdf?: string;
+  nfe_url_xml?: string;
 }
 
 export interface Table {
@@ -179,4 +184,16 @@ export interface Employee {
   email: string;
   role: "kitchen" | "cashier" | "manager" | "driver";
   is_active: boolean;
+}
+
+export interface AuditLog {
+  id: number;
+  user_name: string;
+  user_role: string;
+  action: 'create' | 'update' | 'delete' | 'login';
+  resource: string;
+  resource_id: string;
+  details: any;
+  ip_address?: string;
+  created_at: string;
 }

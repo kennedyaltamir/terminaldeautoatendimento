@@ -50,7 +50,7 @@ class TokenData(BaseModel):
 class PasswordUpdate(BaseModel):
     current_password: str
     new_password: str = Field(..., min_length=8)
-    
+
     @field_validator('new_password')
     def validate_password_strength(cls, v):
         if not re.search(r'[A-Za-z]', v) or not re.search(r'[0-9]', v):
@@ -76,7 +76,7 @@ class CompanyPublic(BaseModel):
     logo_url: Optional[str] = None
     primary_color: str = "#ea580c"
     banner_url: Optional[str] = None
-    
+
     background_color: Optional[str] = "#f9fafb"
     text_color: Optional[str] = "#111827"
     accent_color: Optional[str] = "#ea580c"
@@ -100,23 +100,28 @@ class CompanyAdminSettings(CompanyPublic):
     trial_ends_at: Optional[datetime] = None
     stripe_subscription_id: Optional[str] = None
     subscription_status: Optional[str] = None
-    
+
     cnpj: Optional[str] = None
     inscricao_estadual: Optional[str] = None
     fiscal_token: Optional[str] = None
     csc_token: Optional[str] = None
     csc_id: Optional[str] = None
-    
+
     service_fee_percentage: Decimal = Decimal(10.0)
     fixed_delivery_fee: Decimal = Decimal(0.0)
-    
+
+    # Novos campos de Configuração de WhatsApp
+    whatsapp_api_url: Optional[str] = None
+    whatsapp_instance: Optional[str] = None
+    whatsapp_token: Optional[str] = None
+
     model_config = ConfigDict(from_attributes=True)
 
 class CompanyUpdate(BaseModel):
     name: Optional[str] = None
     logo_url: Optional[str] = None
     banner_url: Optional[str] = None
-    
+
     primary_color: Optional[str] = None
     background_color: Optional[str] = None
     text_color: Optional[str] = None
@@ -129,15 +134,21 @@ class CompanyUpdate(BaseModel):
     loyalty_percentage: Optional[Decimal] = None
     instagram_url: Optional[str] = None
     whatsapp_number: Optional[str] = None
+
+    # Novos campos de Configuração de WhatsApp
+    whatsapp_api_url: Optional[str] = None
+    whatsapp_instance: Optional[str] = None
+    whatsapp_token: Optional[str] = None
+
     wifi_ssid: Optional[str] = None
     wifi_password: Optional[str] = None
-    
+
     cnpj: Optional[str] = None
     inscricao_estadual: Optional[str] = None
     fiscal_token: Optional[str] = None
     csc_token: Optional[str] = None
     csc_id: Optional[str] = None
-    
+
     service_fee_percentage: Optional[Decimal] = None
     fixed_delivery_fee: Optional[Decimal] = None
 
@@ -297,6 +308,12 @@ class TableSimpleResponse(BaseModel):
     table_number: int
     model_config = ConfigDict(from_attributes=True)
 
+class FeedbackResponse(BaseModel):
+    score: int
+    comment: Optional[str] = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
 class OrderResponse(BaseModel):
     id: UUID
     status: str
@@ -317,19 +334,27 @@ class OrderResponse(BaseModel):
     mp_qr_code: Optional[str] = None
     mp_qr_code_base64: Optional[str] = None
     driver_id: Optional[int] = None
-    
+
     fiscal_status: str = "pending"
     nfe_url_pdf: Optional[str] = None
     nfe_url_xml: Optional[str] = None
-    
+
     service_fee: Decimal = Decimal(0)
     delivery_fee: Decimal = Decimal(0)
     
+    feedback: Optional[FeedbackResponse] = None
+
     model_config = ConfigDict(from_attributes=True)
+
+class OrderPagination(BaseModel):
+    data: List[OrderResponse]
+    total: int
+    page: int
+    limit: int
 
 class OrderItemCreate(BaseModel):
     product_id: int
-    quantity: int = Field(..., gt=0, description="Quantidade deve ser positiva")
+    quantity: int = Field(..., gt=0)
     notes: Optional[str] = None
     selected_options: List[int] = []
 
@@ -355,6 +380,13 @@ class DispatchOrderRequest(BaseModel):
 
 class CompleteDeliveryRequest(BaseModel):
     code: Optional[str] = None
+
+class FeedbackCreate(BaseModel):
+    score: int = Field(..., ge=1, le=5)
+    comment: Optional[str] = None
+    
+    @field_validator('comment')
+    def sanitize(cls, v): return sanitize_html(v)
 
 # --- TABLES & SESSIONS ---
 
@@ -599,11 +631,11 @@ class DashboardMetrics(BaseModel):
     total_revenue: float
     total_orders: int
     average_ticket: float
-    top_products: List[TopProduct]
-    sales_chart: List[ChartData]
-    sales_by_hour: List[SalesByHour]
-    product_performance: List[ProductPerformance]
-    ticket_evolution: List[TicketData]
+    top_products: List[Any]
+    sales_chart: List[Any]
+    sales_by_hour: List[Any]
+    product_performance: List[Any]
+    ticket_evolution: List[Any]
 
 # --- AUDIT LOGS ---
 

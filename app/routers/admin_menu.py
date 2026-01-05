@@ -9,8 +9,14 @@ from app.schemas import (
 from app.routers.auth import get_current_user
 from app.core.saas_limits import SaasLimits
 from app.services.audit_service import AuditService
+from app.core.cache import CacheService # NOVO
 
 router = APIRouter()
+
+def get_slug(user: any) -> str:
+    if isinstance(user, Company):
+        return user.slug
+    return user.company.slug
 
 @router.post("/categories", response_model=CategoryResponse, status_code=201)
 def create_category(
@@ -19,7 +25,6 @@ def create_category(
     db: Session = Depends(get_db), 
     current_user: any = Depends(get_current_user)
 ):
-    # Identificar Company ID
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
 
     new_category = Category(
@@ -34,11 +39,13 @@ def create_category(
     db.commit()
     db.refresh(new_category)
 
-    # Audit Log
     AuditService.log(
         db, current_user, AuditAction.CREATE, "Category", str(new_category.id),
         details={"name": new_category.name}, request=request
     )
+    
+    # Invalida Cache
+    CacheService.invalidate_menu(get_slug(current_user))
 
     return new_category
 
@@ -60,6 +67,8 @@ def update_category(
     
     db.commit()
     db.refresh(category)
+    
+    CacheService.invalidate_menu(get_slug(current_user))
     return category
 
 @router.delete("/categories/{category_id}", status_code=204)
@@ -70,6 +79,7 @@ def delete_category(category_id: int, db: Session = Depends(get_db), current_use
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
     db.delete(category)
     db.commit()
+    CacheService.invalidate_menu(get_slug(current_user))
     return None
 
 @router.post("/products", response_model=ProductResponse, status_code=201)
@@ -79,10 +89,7 @@ def create_product(
     db: Session = Depends(get_db), 
     current_user: any = Depends(get_current_user)
 ):
-    # Se for funcionário, precisa verificar permissão (assumindo que manager pode)
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    
-    # Checagem de Limites SaaS (precisa do objeto Company)
     company = current_user if isinstance(current_user, Company) else current_user.company
     SaasLimits.check_product_limit(db, company)
 
@@ -112,12 +119,12 @@ def create_product(
     db.commit()
     db.refresh(new_product)
 
-    # Audit Log
     AuditService.log(
         db, current_user, AuditAction.CREATE, "Product", str(new_product.id),
         details={"name": new_product.name, "price": float(new_product.price)}, request=request
     )
-
+    
+    CacheService.invalidate_menu(get_slug(current_user))
     return new_product
 
 @router.patch("/products/{product_id}", response_model=ProductResponse)
@@ -134,8 +141,6 @@ def update_product(
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     
     update_data = product_data.model_dump(exclude_unset=True)
-    
-    # Calcular Diff para Auditoria
     diff = AuditService.diff(product, update_data)
 
     if "recommended_ids" in update_data:
@@ -150,13 +155,13 @@ def update_product(
     db.commit()
     db.refresh(product)
 
-    # Registrar Auditoria se houve mudança
     if diff:
         AuditService.log(
             db, current_user, AuditAction.UPDATE, "Product", str(product.id),
             details=diff, request=request
         )
 
+    CacheService.invalidate_menu(get_slug(current_user))
     return product
 
 @router.delete("/products/{product_id}", status_code=204)
@@ -171,7 +176,6 @@ def delete_product(
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     
-    # Audit Log (Antes de deletar para ter os dados)
     AuditService.log(
         db, current_user, AuditAction.DELETE, "Product", str(product.id),
         details={"name": product.name}, request=request
@@ -179,6 +183,7 @@ def delete_product(
 
     db.delete(product)
     db.commit()
+    CacheService.invalidate_menu(get_slug(current_user))
     return None
 
 @router.post("/products/{product_id}/groups", response_model=OptionGroupResponse, status_code=201)
@@ -191,6 +196,7 @@ def create_option_group(product_id: int, group_data: OptionGroupCreate, db: Sess
     db.add(new_group)
     db.commit()
     db.refresh(new_group)
+    CacheService.invalidate_menu(get_slug(current_user))
     return new_group
 
 @router.post("/groups/{group_id}/options", response_model=OptionResponse, status_code=201)
@@ -203,6 +209,7 @@ def create_option(group_id: int, option_data: OptionCreate, db: Session = Depend
     db.add(new_option)
     db.commit()
     db.refresh(new_option)
+    CacheService.invalidate_menu(get_slug(current_user))
     return new_option
 
 @router.delete("/groups/{group_id}", status_code=204)
@@ -213,6 +220,7 @@ def delete_option_group(group_id: int, db: Session = Depends(get_db), current_us
         raise HTTPException(status_code=404, detail="Grupo não encontrado")
     db.delete(group)
     db.commit()
+    CacheService.invalidate_menu(get_slug(current_user))
     return None
 
 @router.delete("/options/{option_id}", status_code=204)
@@ -223,4 +231,5 @@ def delete_option(option_id: int, db: Session = Depends(get_db), current_user: a
         raise HTTPException(status_code=404, detail="Opção não encontrada")
     db.delete(option)
     db.commit()
+    CacheService.invalidate_menu(get_slug(current_user))
     return None

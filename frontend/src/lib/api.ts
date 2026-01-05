@@ -52,7 +52,6 @@ async function fetchClient(endpoint: string, options: RequestInit = {}) {
   return response;
 }
 
-// ... (Funções existentes mantidas: getMenu, getWallet, etc.) ...
 export async function getMenu(slug: string) {
   const res = await fetch(`${API_BASE_URL}/${slug}/menu`, { cache: "no-store" });
   if (!res.ok) throw new Error("Falha ao carregar cardápio");
@@ -112,7 +111,7 @@ export async function processOnlinePayment(data: any) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  
+
   if (!res.ok) {
     const errorData = await res.json();
     throw new Error(errorData.detail || "Falha no pagamento");
@@ -432,7 +431,7 @@ export async function transferTable(data: { from_table_id: number, to_table_id: 
     method: "POST",
     body: JSON.stringify(data)
   });
-  
+
   if (!res.ok) {
     const err = await res.json();
     throw err;
@@ -461,8 +460,6 @@ export async function getFranchiseDashboard() {
   return res.json();
 }
 
-// --- NOVAS FUNÇÕES DE PAGAMENTO (OAUTH) ---
-
 export async function getPaymentAuthUrl(provider: string) {
   const res = await fetchClient(`/admin/payment/auth-url/${provider}`);
   if (!res.ok) throw new Error("Erro ao obter URL de autenticação");
@@ -482,5 +479,28 @@ export async function disconnectPaymentProvider() {
     method: "DELETE"
   });
   if (!res.ok) throw new Error("Erro ao desconectar");
+  return res.json();
+}
+
+export async function emitFiscalDocument(orderId: string) {
+  const res = await fetchClient(`/admin/fiscal/orders/${orderId}/emit`, {
+    method: "POST"
+  });
+  if (!res.ok) throw new Error("Erro ao solicitar emissão fiscal");
+  return res.json();
+}
+
+export async function generateRecommendations() {
+  const res = await fetchClient(`/admin/marketing/recommendations/generate`, {
+    method: "POST"
+  });
+  if (!res.ok) throw new Error("Erro ao gerar recomendações");
+  return res.json();
+}
+
+// --- AUDITORIA ---
+export async function getAuditLogs(limit = 50) {
+  const res = await fetchClient(`/admin/audit?limit=${limit}`);
+  if (!res.ok) throw new Error("Erro ao carregar logs de auditoria");
   return res.json();
 }

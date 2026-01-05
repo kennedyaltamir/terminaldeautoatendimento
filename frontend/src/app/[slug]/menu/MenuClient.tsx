@@ -5,9 +5,10 @@ import { useSearchParams } from "next/navigation";
 import { getMenu, createOrder, getOrder, requestService, getWallet, checkTableStatus, getTableSession, joinTable } from "@/lib/api";
 import { MenuResponse, Product, Option, Order, TableSession, Category } from "@/types";
 import { CartProvider, useCart } from "@/context/CartContext";
-import { Plus, X, AlertCircle, ShoppingBag, CreditCard, Banknote, QrCode, Phone, Bell, FileText, Edit2, Loader2, MapPin } from "lucide-react";
+import { Plus, X, AlertCircle, ShoppingBag, CreditCard, Banknote, QrCode, Phone, Bell, FileText, Edit2, Loader2, MapPin, Smartphone } from "lucide-react";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { getSegmentLabels } from "@/lib/segment-utils";
+import { generatePaymentIntent, detectSmartPOS, PaymentScheme } from "@/lib/smartpos";
 
 import ProductModal from "@/components/menu/ProductModal";
 import ServiceModal from "@/components/menu/ServiceModal";
@@ -19,6 +20,7 @@ import OrderStatusView from "@/components/menu/OrderStatusView";
 import CategoryNav from "@/components/menu/CategoryNav";
 import SearchBar from "@/components/menu/SearchBar";
 import WalletWidget from "@/components/menu/WalletWidget";
+import MenuSkeleton from "@/components/menu/MenuSkeleton";
 
 function MenuContent({ slug }: { slug: string }) {
   const [menu, setMenu] = useState<MenuResponse | null>(null);
@@ -26,14 +28,14 @@ function MenuContent({ slug }: { slug: string }) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isComandaOpen, setIsComandaOpen] = useState(false);
-  
+
   const [sessionStatus, setSessionStatus] = useState<'loading' | 'free' | 'active' | 'blocked'>('loading');
   const [sessionData, setSessionData] = useState<TableSession | null>(null);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState("");
   const [tableOwnerName, setTableOwnerName] = useState("");
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
-  
+
   const [customerPhone, setCustomerPhone] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"pix" | "card" | "cash" | "online">("online");
@@ -42,7 +44,7 @@ function MenuContent({ slug }: { slug: string }) {
   const [walletBalance, setWalletBalance] = useState(0);
   const [loyaltyPercent, setLoyaltyPercent] = useState(0);
   const [useBalance, setUseBalance] = useState(false);
-  
+
   const [isUpsellOpen, setIsUpsellOpen] = useState(false);
   const [pendingItem, setPendingItem] = useState<any>(null);
   const [currentRecommendations, setCurrentRecommendations] = useState<Product[]>([]);
@@ -54,12 +56,19 @@ function MenuContent({ slug }: { slug: string }) {
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [editingCartIndex, setEditingCartIndex] = useState<number | null>(null);
 
+  // SmartPOS
+  const [smartPosType, setSmartPosType] = useState<PaymentScheme | null>(null);
+
   const searchParams = useSearchParams();
   const { items, addToCart, updateCartItem, removeFromCart, total, clearCart } = useCart();
-  
+
   const tableId = searchParams.get("mesa");
   const qrToken = searchParams.get("token");
-  const isDelivery = !tableId;
+  const isKiosk = searchParams.get("kiosk") === "true";
+
+  // Lógica de Tipo de Pedido
+  const isDelivery = !tableId && !isKiosk;
+  const isTakeout = isKiosk || (!tableId && !isDelivery);
 
   const labels = getSegmentLabels(menu?.company.segment);
 
@@ -72,10 +81,13 @@ function MenuContent({ slug }: { slug: string }) {
             setActiveCategoryId(menuData.categories[0].id);
         }
 
-        if (!isDelivery && tableId && qrToken) {
+        // Detecta SmartPOS
+        setSmartPosType(detectSmartPOS());
+
+        if (!isDelivery && !isTakeout && tableId && qrToken) {
           const storedToken = localStorage.getItem(`mesaflow_session_${tableId}`);
           const statusData = await checkTableStatus(slug, parseInt(tableId), qrToken, storedToken);
-          
+
           if (statusData.status === 'blocked') {
             setSessionStatus('blocked');
             setTableOwnerName(statusData.customer_name || "Alguém");
@@ -116,7 +128,7 @@ function MenuContent({ slug }: { slug: string }) {
       }
     };
     init();
-  }, [slug, tableId, qrToken, isDelivery]);
+  }, [slug, tableId, qrToken, isDelivery, isTakeout]);
 
   useEffect(() => {
     if (loading || !menu) return;
@@ -153,7 +165,7 @@ function MenuContent({ slug }: { slug: string }) {
       const headerOffset = 180;
       const elementPosition = el.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-  
+
       window.scrollTo({
         top: offsetPosition,
         behavior: "smooth"
@@ -185,8 +197,6 @@ function MenuContent({ slug }: { slug: string }) {
       setWalletBalance(0);
     }
   }, [customerPhone, slug]);
-
-  // --- FUNÇÕES QUE FALTAVAM ---
 
   const handleAddToCart = (product: Product, quantity: number, notes: string = "", options: Option[] = []) => {
     if (product.recommendations && product.recommendations.length > 0) {
@@ -247,18 +257,18 @@ function MenuContent({ slug }: { slug: string }) {
   };
 
   const handleCheckout = async () => {
-    if (!isDelivery && (!tableId || !qrToken)) return alert("Erro: QR Code inválido.");
+    if (!isDelivery && !isTakeout && (!tableId || !qrToken)) return alert("Erro: QR Code inválido.");
     if (sessionStatus === 'blocked') return alert("Mesa ocupada.");
-    if (!customerName) return alert("Por favor, informe seu nome.");
+    if (!customerName && !isKiosk) return alert("Por favor, informe seu nome.");
 
     setProcessing(true);
-    
+
     try {
       const payload = {
         table_id: tableId ? parseInt(tableId) : null,
-        qr_token: qrToken || null,
-        order_type: isDelivery ? "delivery" : "dine_in",
-        customer_name: customerName,
+        qr_token: qrToken || (isKiosk ? "staff-override" : null),
+        order_type: isDelivery ? "delivery" : (isTakeout ? "takeout" : "dine_in"),
+        customer_name: customerName || (isKiosk ? "Totem" : "Cliente"),
         customer_phone: customerPhone,
         delivery_address: deliveryAddress,
         payment_method: paymentMethod,
@@ -270,10 +280,21 @@ function MenuContent({ slug }: { slug: string }) {
           selected_options: item.selectedOptions.map(o => o.id)
         })),
       };
-      
+
       const order = await createOrder(slug, payload);
-      
-      if (sessionStatus === 'free' && !isDelivery) {
+
+      // Se for SmartPOS, abre o app de pagamento
+      if (smartPosType && paymentMethod === 'card') {
+        const intentUrl = generatePaymentIntent({
+          scheme: smartPosType,
+          amount: total,
+          type: 'credit', // Default, poderia ser selecionável
+          orderId: order.id
+        });
+        window.location.href = intentUrl;
+      }
+
+      if (sessionStatus === 'free' && !isDelivery && !isTakeout) {
         const statusData = await checkTableStatus(slug, parseInt(tableId!), qrToken!, null);
         if (statusData.session_token) {
             setSessionToken(statusData.session_token);
@@ -326,7 +347,7 @@ function MenuContent({ slug }: { slug: string }) {
 
   const getFilteredCategories = () => {
     if (!menu) return [];
-    
+
     return menu.categories.map(cat => {
       const filteredProducts = cat.products.filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -334,7 +355,7 @@ function MenuContent({ slug }: { slug: string }) {
         const matchesTag = activeTag ? p.tags.includes(activeTag) : true;
         return matchesSearch && matchesTag;
       });
-      
+
       return { ...cat, products: filteredProducts };
     }).filter(cat => cat.products.length > 0);
   };
@@ -344,9 +365,11 @@ function MenuContent({ slug }: { slug: string }) {
 
   // --- RENDERIZAÇÃO ---
 
-  if (loading) return <div className="p-8 text-center">Carregando...</div>;
+  // USO DO SKELETON AQUI
+  if (loading) return <MenuSkeleton />;
+
   if (sessionStatus === 'blocked') return <BlockedTableScreen customerName={tableOwnerName} />;
-  if (!isDelivery && sessionStatus === 'free') return <CheckInScreen tableId={tableId!} status="free" onJoin={handleJoinTable} segment={menu?.company.segment} />;
+  if (!isDelivery && !isTakeout && sessionStatus === 'free') return <CheckInScreen tableId={tableId!} status="free" onJoin={handleJoinTable} segment={menu?.company.segment} />;
   if (!menu) return <div className="p-8 text-center">Restaurante não encontrado.</div>;
 
   const isClosed = (() => {
@@ -377,14 +400,14 @@ function MenuContent({ slug }: { slug: string }) {
                 {menu.company.logo_url && <img src={menu.company.logo_url} className="w-10 h-10 object-contain rounded-lg" alt="Logo" />}
                 <h1 className="font-bold text-lg truncate max-w-[150px]" style={{ color: textColor }}>{menu.company.name}</h1>
             </div>
-            
+
             <div className="flex items-center gap-3">
-                {!isDelivery && sessionStatus === 'active' && (
+                {!isDelivery && !isTakeout && sessionStatus === 'active' && (
                     <button onClick={() => setIsComandaOpen(true)} className="text-xs font-bold bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-gray-200 transition-colors text-gray-800">
                     <FileText size={14} /> {labels.bill}
                     </button>
                 )}
-                {!isDelivery && !isClosed && (
+                {!isDelivery && !isTakeout && !isClosed && (
                     <button 
                     onClick={() => setIsServiceModalOpen(true)}
                     className="p-2 rounded-full border transition-colors"
@@ -477,7 +500,7 @@ function MenuContent({ slug }: { slug: string }) {
                         <div className="flex-1 pr-4">
                         <h3 className="font-bold text-gray-900">{product.name}</h3>
                         <p className="text-sm text-gray-500 line-clamp-2 mt-1">{product.description}</p>
-                        
+
                         {product.tags.length > 0 && (
                             <div className="flex gap-1 mt-2 flex-wrap">
                                 {product.tags.map((tag: string) => (
@@ -534,7 +557,7 @@ function MenuContent({ slug }: { slug: string }) {
         primaryColor={primaryColor}
         initialValues={editingCartIndex !== null ? items[editingCartIndex] : null}
       />
-      
+
       <ServiceModal 
         isOpen={isServiceModalOpen} 
         onClose={() => setIsServiceModalOpen(false)} 
@@ -542,7 +565,7 @@ function MenuContent({ slug }: { slug: string }) {
         primaryColor={primaryColor}
         segment={menu?.company.segment}
       />
-      
+
       <UpsellModal isOpen={isUpsellOpen} onClose={() => handleUpsellFinish()} recommendations={currentRecommendations} onAdd={handleAddRecommendation} onFinish={handleUpsellFinish} primaryColor={primaryColor} />
 
       {isComandaOpen && sessionData && (
@@ -556,7 +579,7 @@ function MenuContent({ slug }: { slug: string }) {
                 <h2 className="text-xl font-bold text-gray-900">Seu Pedido</h2>
                 <button onClick={() => setIsCartOpen(false)} className="text-gray-400"><X size={24} /></button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto space-y-4">
                 {items.map((item, idx) => (
                 <div key={idx} className="flex justify-between py-3 border-b last:border-0 group">
@@ -577,7 +600,7 @@ function MenuContent({ slug }: { slug: string }) {
             </div>
 
             <div className="mt-6 space-y-4 bg-gray-50 p-4 rounded-xl">
-              {!customerName && (
+              {!customerName && !isKiosk && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Seu Nome (Para a Comanda)</label>
                   <input type="text" className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500 text-gray-900" placeholder="Ex: João" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
@@ -597,7 +620,7 @@ function MenuContent({ slug }: { slug: string }) {
                 </div>
               )}
 
-              {!isDelivery && (
+              {!isDelivery && !isKiosk && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"><Phone size={14}/> Telefone (Opcional)</label>
                   <input type="tel" className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500 text-gray-900" placeholder="Para ganhar cashback" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} />
@@ -620,9 +643,17 @@ function MenuContent({ slug }: { slug: string }) {
                     <button onClick={() => setPaymentMethod("online")} className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === 'online' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 bg-white text-gray-400'}`}>
                         <QrCode size={20} /> <span className="text-[10px] font-bold">PIX AUTOMÁTICO</span>
                     </button>
-                    <button onClick={() => setPaymentMethod("card")} className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === 'card' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 bg-white text-gray-400'}`}>
-                        <CreditCard size={20} /> <span className="text-[10px] font-bold">CARTÃO (MAQUININHA)</span>
-                    </button>
+
+                    {smartPosType ? (
+                      <button onClick={() => setPaymentMethod("card")} className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === 'card' ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-gray-200 bg-white text-gray-400'}`}>
+                          <Smartphone size={20} /> <span className="text-[10px] font-bold">MAQUININHA</span>
+                      </button>
+                    ) : (
+                      <button onClick={() => setPaymentMethod("card")} className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === 'card' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 bg-white text-gray-400'}`}>
+                          <CreditCard size={20} /> <span className="text-[10px] font-bold">CARTÃO</span>
+                      </button>
+                    )}
+
                     <button onClick={() => setPaymentMethod("pix")} className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === 'pix' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 bg-white text-gray-400'}`}>
                         <Banknote size={20} /> <span className="text-[10px] font-bold">PIX (BALCÃO)</span>
                     </button>
@@ -641,7 +672,7 @@ function MenuContent({ slug }: { slug: string }) {
                 className="flex-1 text-white py-3 rounded-lg font-bold shadow-md flex items-center justify-center gap-2 disabled:opacity-70" 
                 style={{ backgroundColor: primaryColor }}
               >
-                {processing ? <Loader2 className="animate-spin" /> : (paymentMethod === 'online' ? 'Gerar Pix' : 'Enviar Pedido')}
+                {processing ? <Loader2 className="animate-spin" /> : (paymentMethod === 'online' ? 'Gerar Pix' : (smartPosType && paymentMethod === 'card' ? 'Pagar na Máquina' : 'Enviar Pedido'))}
               </button>
             </div>
           </div>

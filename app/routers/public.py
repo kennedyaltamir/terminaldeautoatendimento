@@ -6,19 +6,20 @@ from app.models import (
     Company, Category, Table, Product, Order, OrderItem, OrderStatus, 
     Option, OrderItemOption, OptionGroup, PaymentMethod, OrderType, 
     ServiceRequest, ServiceType, CustomerWallet, TableSession, 
-    PaymentStatus, Employee, UserRole, Lead
+    PaymentStatus, Employee, UserRole, Lead, OrderFeedback
 )
 from app.schemas import (
     MenuResponse, OrderCreate, OrderResponse, ServiceRequestCreate, 
     ServiceRequestResponse, WalletResponse, CheckTableRequest, 
     CheckTableResponse, TableSessionResponse, JoinTableRequest,
-    LeadCreate, LeadResponse
+    LeadCreate, LeadResponse, FeedbackCreate
 )
 from app.services.payment_service import PaymentService
 from app.services.stock_service import StockService
 from app.websockets import manager
 from app.core.limiter import limiter
 from app.core.saas_limits import SaasLimits
+from app.core.cache import cache_response
 from datetime import datetime
 from uuid import UUID
 from decimal import Decimal
@@ -46,12 +47,13 @@ def resolve_domain(host: str, db: Session = Depends(get_db)):
     return {"slug": company.slug, "valid": True}
 
 @router.get("/{company_slug}/menu", response_model=MenuResponse)
-@limiter.limit("30/minute") # Limite razoável para navegação humana
+@limiter.limit("60/minute")
+@cache_response(ttl=300, key_prefix="menu:{company_slug}")
 def get_menu(request: Request, company_slug: str, db: Session = Depends(get_db)):
     company = db.query(Company).filter(Company.slug == company_slug).first()
     if not company:
         raise HTTPException(status_code=404, detail="Restaurante não encontrado")
-    
+
     all_categories = (
         db.query(Category)
         .options(
@@ -75,7 +77,7 @@ def get_menu(request: Request, company_slug: str, db: Session = Depends(get_db))
         if cat.availability_days is not None:
             if len(cat.availability_days) > 0 and js_weekday not in cat.availability_days:
                 continue
-        
+
         if cat.start_time and cat.end_time:
             start = cat.start_time
             end = cat.end_time
@@ -100,14 +102,14 @@ def get_customer_wallet(request: Request, company_slug: str, phone: str, db: Ses
     company = db.query(Company).filter(Company.slug == company_slug).first()
     if not company:
         raise HTTPException(status_code=404, detail="Empresa não encontrada")
-    
+
     clean_phone = "".join(filter(str.isdigit, phone))
-    
+
     wallet = db.query(CustomerWallet).filter(
         CustomerWallet.company_id == company.id,
         CustomerWallet.customer_phone == clean_phone
     ).first()
-    
+
     return {
         "balance": wallet.balance if wallet else Decimal(0),
         "loyalty_percentage": company.loyalty_percentage or Decimal(0)
@@ -129,7 +131,7 @@ def check_table_status(
             TableSession.table_id == data.table_id,
             TableSession.is_active == True
         ).first()
-        
+
         if active_session:
             return {
                 "status": "active",
@@ -156,7 +158,7 @@ def check_table_status(
             "customer_name": active_session.customer_name,
             "session_token": active_session.session_token
         }
-    
+
     return {
         "status": "blocked",
         "customer_name": active_session.customer_name,
@@ -200,7 +202,7 @@ def join_table(
 
     if data.pin == active_session.access_pin:
         return active_session
-    
+
     raise HTTPException(403, "PIN incorreto")
 
 @router.get("/{company_slug}/session/{session_token}", response_model=TableSessionResponse)
@@ -213,7 +215,7 @@ def get_table_session(
         TableSession.session_token == session_token,
         TableSession.is_active == True
     ).first()
-    
+
     if not session:
         raise HTTPException(404, "Sessão não encontrada ou encerrada")
 
@@ -239,12 +241,13 @@ def get_order_status(order_id: UUID, db: Session = Depends(get_db)):
     order = db.query(Order).options(
         selectinload(Order.table),
         selectinload(Order.items).selectinload(OrderItem.product),
-        selectinload(Order.items).selectinload(OrderItem.selected_options)
+        selectinload(Order.items).selectinload(OrderItem.selected_options),
+        selectinload(Order.feedback) # Carrega o feedback junto
     ).filter(Order.id == order_id).first()
 
     if not order:
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
-    
+
     return order
 
 @router.post("/{company_slug}/orders", response_model=OrderResponse, status_code=201)
@@ -275,13 +278,13 @@ async def create_order(
     if order_data.order_type == "dine_in":
         if not order_data.table_id:
              raise HTTPException(status_code=400, detail="Mesa obrigatória.")
-        
+
         table = db.query(Table).filter(Table.id == order_data.table_id, Table.company_id == company.id).first()
-        
+
         if not is_staff:
             if not order_data.qr_token or table.qr_token != order_data.qr_token:
                 raise HTTPException(status_code=403, detail="Mesa inválida (QR Code incorreto)")
-        
+
         session = db.query(TableSession).filter(
             TableSession.table_id == table.id,
             TableSession.is_active == True
@@ -305,7 +308,7 @@ async def create_order(
 
         if not product or not product.is_available:
             raise HTTPException(status_code=400, detail=f"Produto indisponível: {product.name if product else '?'}")
-        
+
         if product.track_stock:
             if product.stock_quantity < item.quantity:
                 raise HTTPException(status_code=400, detail=f"Estoque insuficiente: {product.name}")
@@ -335,7 +338,7 @@ async def create_order(
             CustomerWallet.company_id == company.id,
             CustomerWallet.customer_phone == clean_phone
         ).with_for_update().first()
-        
+
         if wallet and wallet.balance > 0:
             discount_amount = min(wallet.balance, subtotal)
             wallet.balance -= discount_amount
@@ -366,13 +369,13 @@ async def create_order(
         customer_phone=clean_phone,
         delivery_address=order_data.delivery_address,
         delivery_code=delivery_code,
-        
+
         subtotal=subtotal,
         discount_amount=discount_amount,
         total_amount=total_amount,
         cashback_earned=cashback_earned,
         delivery_fee=delivery_fee,
-        
+
         status=initial_status,
         payment_method=order_data.payment_method
     )
@@ -383,7 +386,7 @@ async def create_order(
     for db_item in db_items:
         db_item.order_id = new_order.id
     db.add_all(db_items)
-    
+
     try:
         stock_service.deduct_stock_for_order(db, db_items, background_tasks)
         db.commit()
@@ -459,10 +462,10 @@ async def request_service(
             status="pending"
         )
         db.add(existing)
-    
+
     db.commit()
     db.refresh(existing)
-    
+
     await manager.broadcast({
         "type": "waiter_call",
         "id": existing.id,
@@ -470,7 +473,7 @@ async def request_service(
         "service_type": existing.service_type,
         "notes": existing.notes
     }, company_slug)
-    
+
     return existing
 
 @router.post("/leads", response_model=LeadResponse, status_code=201)
@@ -485,8 +488,40 @@ def create_lead(
         new_lead = Lead(email=lead_data.email, source=lead_data.source)
         db.add(new_lead)
         db.commit()
-    
+
     return {
         "message": "Sucesso! Verifique seu e-mail.",
         "download_url": "https://mesaflow.com/assets/guia-eficiencia-2026.pdf"
     }
+
+@router.post("/{company_slug}/orders/{order_id}/feedback", status_code=201)
+@limiter.limit("5/minute")
+def submit_feedback(
+    request: Request,
+    company_slug: str,
+    order_id: str,
+    feedback: FeedbackCreate,
+    db: Session = Depends(get_db)
+):
+    company = db.query(Company).filter(Company.slug == company_slug).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Empresa não encontrada")
+
+    order = db.query(Order).filter(Order.id == order_id, Order.company_id == company.id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Pedido não encontrado")
+
+    # Verifica se já existe feedback
+    if db.query(OrderFeedback).filter(OrderFeedback.order_id == order.id).first():
+        raise HTTPException(status_code=400, detail="Feedback já enviado para este pedido")
+
+    new_feedback = OrderFeedback(
+        order_id=order.id,
+        company_id=company.id,
+        score=feedback.score,
+        comment=feedback.comment
+    )
+    db.add(new_feedback)
+    db.commit()
+
+    return {"message": "Obrigado pela avaliação!"}

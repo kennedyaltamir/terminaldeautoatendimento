@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { 
   ChefHat, Menu, LogOut, LayoutDashboard, Settings, QrCode, 
   BarChart3, User, History, Package, Smartphone, Users, 
-  Bike, Building2, Activity, ChevronDown 
+  Bike, Building2, Activity, ChevronDown, Megaphone, ShieldCheck
 } from "lucide-react";
 import { removeToken, isAuthenticated, getUserRole } from "@/lib/auth";
 import OnboardingTour from "@/components/admin/OnboardingTour";
@@ -57,8 +57,10 @@ export default function AdminLayout({
     { name: terms.menu, href: `/admin/${slug}/menu`, icon: Menu, id: "nav-menu", roles: ['owner', 'manager'] },
     { name: "Estoque", href: `/admin/${slug}/inventory`, icon: Package, id: "nav-inventory", roles: ['owner', 'manager'] },
     { name: terms.tables, href: `/admin/${slug}/tables`, icon: QrCode, id: "nav-tables", roles: ['owner', 'manager'] },
+    { name: "Marketing", href: `/admin/${slug}/marketing`, icon: Megaphone, id: "nav-marketing", roles: ['owner', 'manager'] },
     { name: "Equipe", href: `/admin/${slug}/team`, icon: Users, id: "nav-team", roles: ['owner'] },
     { name: "Histórico", href: `/admin/${slug}/history`, icon: History, id: "nav-history", roles: ['owner', 'manager'] },
+    { name: "Auditoria", href: `/admin/${slug}/audit`, icon: ShieldCheck, id: "nav-audit", roles: ['owner'] }, // NOVO
     { name: "Config", href: `/admin/${slug}/settings`, icon: Settings, id: "nav-settings", roles: ['owner'] },
   ];
 
@@ -77,7 +79,7 @@ export default function AdminLayout({
     <WebSocketProvider slug={slug}>
       <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
         {role === 'owner' && <OnboardingTour />}
-        
+
         {!isOperationalMode && (
           <nav className="bg-gray-800 border-b border-gray-700 px-4 md:px-6 py-3 flex justify-between items-center sticky top-0 z-50 shadow-md">
             <div className="flex items-center gap-3">
@@ -116,7 +118,7 @@ export default function AdminLayout({
                   <span className="hidden md:inline">Operação</span>
                   <ChevronDown size={14} />
                 </button>
-                
+
                 {/* Dropdown Content */}
                 <div className="absolute right-0 top-full mt-2 w-56 bg-gray-800 border border-gray-700 rounded-xl shadow-xl overflow-hidden hidden group-hover:block hover:block z-50">
                   {filterItems(operationItems).map((item) => (
@@ -140,7 +142,7 @@ export default function AdminLayout({
             </div>
           </nav>
         )}
-        
+
         <main className={`flex-1 ${!isOperationalMode ? 'p-4 md:p-6 max-w-[1600px] mx-auto w-full' : ''}`}>
           {children}
         </main>

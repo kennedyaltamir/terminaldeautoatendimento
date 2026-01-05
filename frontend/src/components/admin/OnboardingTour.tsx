@@ -2,22 +2,24 @@
 
 import { useState, useEffect } from "react";
 import Joyride, { CallBackProps, STATUS, Step } from "react-joyride";
-import { useTheme } from "next-themes";
 
 export default function OnboardingTour() {
   const [run, setRun] = useState(false);
-  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     // Verifica se o usuário já completou o tour
     const hasSeenTour = localStorage.getItem("mesaflow_tour_completed");
     if (!hasSeenTour) {
-      setRun(true);
+      // Pequeno delay para garantir que o layout carregou
+      const timer = setTimeout(() => setRun(true), 1000);
+      return () => clearTimeout(timer);
     }
   }, []);
 
   const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status } = data;
+    const { status, type } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
     if (finishedStatuses.includes(status)) {
@@ -25,6 +27,8 @@ export default function OnboardingTour() {
       localStorage.setItem("mesaflow_tour_completed", "true");
     }
   };
+
+  if (!mounted) return null;
 
   const steps: Step[] = [
     {
@@ -41,38 +45,38 @@ export default function OnboardingTour() {
     {
       target: "#nav-menu",
       content: (
-        <div className="text-gray-700">
+        <div className="text-gray-700 text-left">
             1º Passo: Cadastre seus produtos e categorias aqui. É o coração do seu sistema.
         </div>
       ),
-      placement: "right",
+      placement: "bottom",
     },
     {
       target: "#nav-tables",
       content: (
-        <div className="text-gray-700">
-            2º Passo: Crie suas mesas (ou quartos/assentos) e gere os QR Codes para imprimir.
+        <div className="text-gray-700 text-left">
+            2º Passo: Crie suas mesas (ou pontos de venda) e gere os QR Codes para imprimir.
         </div>
       ),
-      placement: "right",
+      placement: "bottom",
     },
     {
       target: "#nav-kitchen",
       content: (
-        <div className="text-gray-700">
+        <div className="text-gray-700 text-left">
             3º Passo: Abra esta tela em um tablet na cozinha. Os pedidos aparecerão aqui em tempo real!
         </div>
       ),
-      placement: "right",
+      placement: "left",
     },
     {
       target: "#nav-dashboard",
       content: (
-        <div className="text-gray-700">
+        <div className="text-gray-700 text-left">
             Pronto! Acompanhe suas vendas e métricas aqui. Boa sorte!
         </div>
       ),
-      placement: "right",
+      placement: "bottom",
     },
   ];
 
@@ -83,21 +87,29 @@ export default function OnboardingTour() {
       continuous
       showSkipButton
       showProgress
+      disableScrolling={false}
+      scrollToFirstStep={true}
       callback={handleJoyrideCallback}
       styles={{
         options: {
           primaryColor: "#ea580c",
           textColor: "#333",
           backgroundColor: "#fff",
-          zIndex: 1000,
+          zIndex: 10000,
         },
         buttonNext: {
             backgroundColor: "#ea580c",
             fontWeight: "bold",
+            borderRadius: "8px",
             color: "#fff"
         },
         buttonBack: {
-            color: "#666"
+            color: "#666",
+            marginRight: "10px"
+        },
+        buttonSkip: {
+            color: "#999",
+            fontSize: "14px"
         }
       }}
       locale={{

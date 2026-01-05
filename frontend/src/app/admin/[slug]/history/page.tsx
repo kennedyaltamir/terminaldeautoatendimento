@@ -1,19 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getOrderHistory } from "@/lib/api";
+import { getOrderHistory, emitFiscalDocument } from "@/lib/api";
 import { Order } from "@/types";
 import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import Modal from "@/components/ui/Modal";
+import FiscalStatusBadge from "@/components/admin/FiscalStatusBadge";
+import { toast } from "sonner";
 
-// CORREÇÃO: params não é mais Promise no Next.js 14
 export default function HistoryPage({ params }: { params: { slug: string } }) {
-  const { slug } = params; // Acesso direto
+  const { slug } = params;
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [emittingId, setEmittingId] = useState<string | null>(null);
   const limit = 10;
 
   const fetchHistory = async () => {
@@ -32,6 +34,20 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
   useEffect(() => {
     fetchHistory();
   }, [slug, page]);
+
+  const handleEmitFiscal = async (orderId: string) => {
+    setEmittingId(orderId);
+    try {
+      const res = await emitFiscalDocument(orderId);
+      toast.success(res.message || "Emissão solicitada!");
+      // Atualiza a lista para mostrar "Processando"
+      fetchHistory();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao emitir nota");
+    } finally {
+      setEmittingId(null);
+    }
+  };
 
   const totalPages = Math.ceil(total / limit);
 
@@ -65,10 +81,10 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
                 <th className="px-6 py-4">ID</th>
                 <th className="px-6 py-4">Data</th>
                 <th className="px-6 py-4">Mesa</th>
-                <th className="px-6 py-4">Cliente</th>
                 <th className="px-6 py-4">Total</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Pagamento</th>
+                <th className="px-6 py-4">Fiscal</th>
                 <th className="px-6 py-4">Ações</th>
               </tr>
             </thead>
@@ -82,8 +98,7 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
                   <tr key={order.id} className="hover:bg-gray-700/50 transition-colors">
                     <td className="px-6 py-4 font-mono text-xs">{order.id.slice(0, 8)}</td>
                     <td className="px-6 py-4">{new Date(order.created_at).toLocaleString()}</td>
-                    <td className="px-6 py-4 font-bold text-white">{order.table?.table_number}</td>
-                    <td className="px-6 py-4">{order.customer_name || "-"}</td>
+                    <td className="px-6 py-4 font-bold text-white">{order.table?.table_number || "Delivery"}</td>
                     <td className="px-6 py-4 font-bold text-white">R$ {Number(order.total_amount).toFixed(2)}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${statusColors[order.status] || "bg-gray-700 text-gray-300"}`}>
@@ -94,7 +109,14 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
                       <span className={`font-bold uppercase text-xs ${paymentColors[order.payment_status]}`}>
                         {order.payment_status}
                       </span>
-                      <span className="text-[10px] ml-1 text-gray-500">({order.payment_method})</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <FiscalStatusBadge 
+                        status={order.fiscal_status || 'pending'} 
+                        nfeUrl={order.nfe_url_pdf}
+                        onEmit={() => handleEmitFiscal(order.id)}
+                        loading={emittingId === order.id}
+                      />
                     </td>
                     <td className="px-6 py-4">
                       <button onClick={() => setSelectedOrder(order)} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition-colors">
@@ -108,7 +130,6 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
           </table>
         </div>
         
-        {/* Paginação */}
         <div className="bg-gray-900 px-6 py-4 border-t border-gray-700 flex justify-between items-center">
           <button 
             disabled={page === 1} 
@@ -128,7 +149,6 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
         </div>
       </div>
 
-      {/* Modal de Detalhes */}
       <Modal isOpen={!!selectedOrder} onClose={() => setSelectedOrder(null)} title={`Pedido #${selectedOrder?.id.slice(0,8)}`}>
         {selectedOrder && (
           <div className="space-y-4 text-gray-300">
@@ -139,15 +159,7 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
               </div>
               <div>
                 <p className="text-gray-500">Mesa</p>
-                <p className="font-bold text-white">{selectedOrder.table?.table_number}</p>
-              </div>
-              <div>
-                <p className="text-gray-500">Data</p>
-                <p className="font-bold text-white">{new Date(selectedOrder.created_at).toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="text-gray-500">Pagamento</p>
-                <p className="font-bold text-white uppercase">{selectedOrder.payment_method} ({selectedOrder.payment_status})</p>
+                <p className="font-bold text-white">{selectedOrder.table?.table_number || "Delivery"}</p>
               </div>
             </div>
 
@@ -162,7 +174,6 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
                     {item.selected_options.length > 0 && (
                       <p className="text-xs text-gray-500 mt-1">+ {item.selected_options.map(o => o.name).join(", ")}</p>
                     )}
-                    {item.notes && <p className="text-xs text-orange-500 mt-1 italic">Obs: {item.notes}</p>}
                   </li>
                 ))}
               </ul>

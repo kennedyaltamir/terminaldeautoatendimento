@@ -4,8 +4,10 @@ from app.database import get_db, SessionLocal
 from app.models import Company
 from app.routers.auth import get_current_user
 from app.services.recommendation_service import RecommendationService
+from app.services.whatsapp_service import WhatsAppService
 
 router = APIRouter()
+whatsapp_service = WhatsAppService()
 
 def require_owner(current_user: any = Depends(get_current_user)):
     if isinstance(current_user, Company):
@@ -23,11 +25,29 @@ async def trigger_recommendation_engine(
     """
     # Executa em background para não travar a request
     background_tasks.add_task(run_recommendation_job, str(current_user.id))
-    
+
     return {
         "message": "Motor de IA iniciado. As recomendações aparecerão em breve.",
         "status": "processing"
     }
+
+@router.post("/whatsapp/test", status_code=200)
+async def test_whatsapp_connection(
+    db: Session = Depends(get_db),
+    current_user: Company = Depends(require_owner)
+):
+    """
+    Testa a conexão com a API de WhatsApp enviando uma mensagem para o dono.
+    """
+    if not current_user.whatsapp_number:
+        raise HTTPException(status_code=400, detail="Configure seu número de WhatsApp primeiro.")
+
+    success = await whatsapp_service.send_test_message(current_user)
+
+    if success:
+        return {"message": "Mensagem de teste enviada com sucesso!", "status": "success"}
+    else:
+        raise HTTPException(status_code=502, detail="Falha ao enviar mensagem. Verifique URL, Instância e Token.")
 
 def run_recommendation_job(company_id: str):
     """Wrapper para rodar o serviço com sua própria sessão de banco"""

@@ -12,6 +12,7 @@ import { ChefHat, ArrowRight, Loader2, Mail, Lock } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import AuthInput from "@/components/ui/AuthInput";
 import { motion, AnimatePresence } from "framer-motion";
+import Script from "next/script";
 
 const testimonials = [
   { quote: "O MesaFlow transformou nossa operação. O KDS eliminou os gritos na cozinha.", author: "Ricardo Silva", role: "Hamburgueria Artesanal" },
@@ -22,12 +23,52 @@ const testimonials = [
 export default function LoginPage() {
   const router = useRouter();
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [isSocialLoading, setIsSocialLoading] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
     }, 5000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Handler para Resposta do Google
+  const handleGoogleResponse = async (response: any) => {
+    setIsSocialLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credential: response.credential })
+      });
+
+      if (!res.ok) throw new Error("Falha na autenticação Google");
+
+      const data = await res.json();
+      setToken(data.access_token);
+      setUserRole(data.user_role);
+      toast.success(`Bem-vindo, ${data.user_name}!`);
+      
+      setTimeout(() => router.push(`/admin/${data.company_slug}/dashboard`), 500);
+    } catch (e) {
+      toast.error("Erro ao entrar com Google.");
+    } finally {
+      setIsSocialLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Inicializar Google One Tap / Button
+    if ((window as any).google) {
+      (window as any).google.accounts.id.initialize({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+        callback: handleGoogleResponse
+      });
+      (window as any).google.accounts.id.renderButton(
+        document.getElementById("google-btn"),
+        { theme: "outline", size: "large", width: "100%", text: "continue_with" }
+      );
+    }
   }, []);
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginSchema>({
@@ -40,7 +81,7 @@ export default function LoginPage() {
       setToken(response.access_token);
       setUserRole(response.user_role); 
       toast.success(`Bem-vindo, ${response.user_name}!`);
-      
+
       setTimeout(() => {
         const slug = response.company_slug;
         const role = response.user_role;
@@ -54,13 +95,10 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    toast.info("Login com Google em breve!");
-  };
-
   return (
     <div className="min-h-screen flex bg-white dark:bg-gray-900 font-sans overflow-hidden">
       <Toaster position="top-center" richColors />
+      <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
 
       <motion.div 
         initial={{ opacity: 0, x: -20 }}
@@ -80,13 +118,15 @@ export default function LoginPage() {
             <p className="text-gray-500 dark:text-gray-400 text-lg">Acesse sua conta para continuar.</p>
           </div>
 
-          <button 
-            onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-colors mb-6 shadow-sm"
-          >
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
-            Entrar com Google
-          </button>
+          {/* BOTÃO REAL DO GOOGLE */}
+          <div className="mb-6 relative">
+            {isSocialLoading && (
+              <div className="absolute inset-0 bg-white/50 z-10 flex items-center justify-center rounded-lg">
+                <Loader2 className="animate-spin text-orange-600" />
+              </div>
+            )}
+            <div id="google-btn" className="w-full overflow-hidden rounded-xl"></div>
+          </div>
 
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
@@ -95,12 +135,14 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <AuthInput label="Email" icon={Mail} placeholder="seu@email.com" error={errors.email?.message} {...register("email")} />
+
             <div>
               <div className="flex justify-end mb-1">
                 <Link href="/admin/forgot-password" className="text-xs font-semibold text-orange-600 hover:text-orange-700">Esqueceu a senha?</Link>
               </div>
               <AuthInput label="Senha" type="password" icon={Lock} placeholder="••••••••" error={errors.password?.message} {...register("password")} />
             </div>
+
             <button type="submit" disabled={isSubmitting} className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
               {isSubmitting ? <Loader2 className="animate-spin" /> : <>Acessar <ArrowRight size={20} /></>}
             </button>
@@ -120,11 +162,24 @@ export default function LoginPage() {
         <div className="relative z-10 flex flex-col justify-end p-16 h-full text-white w-full">
           <div className="mb-8 min-h-[180px]">
             <AnimatePresence mode="wait">
-              <motion.div key={activeTestimonial} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.5 }}>
-                <blockquote className="text-3xl font-medium leading-tight tracking-tight mb-6">"{testimonials[activeTestimonial].quote}"</blockquote>
+              <motion.div 
+                key={activeTestimonial}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
+              >
+                <blockquote className="text-3xl font-medium leading-tight tracking-tight mb-6">
+                  "{testimonials[activeTestimonial].quote}"
+                </blockquote>
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-xl font-bold border border-white/20 backdrop-blur-sm">{testimonials[activeTestimonial].author[0]}</div>
-                  <div><p className="font-bold text-lg">{testimonials[activeTestimonial].author}</p><p className="text-gray-400 text-sm">{testimonials[activeTestimonial].role}</p></div>
+                  <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-xl font-bold border border-white/20 backdrop-blur-sm">
+                    {testimonials[activeTestimonial].author[0]}
+                  </div>
+                  <div>
+                    <p className="font-bold text-lg">{testimonials[activeTestimonial].author}</p>
+                    <p className="text-gray-400 text-sm">{testimonials[activeTestimonial].role}</p>
+                  </div>
                 </div>
               </motion.div>
             </AnimatePresence>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.orm import Session, selectinload
 from typing import List, Optional
 from pydantic import BaseModel
@@ -6,7 +6,7 @@ from datetime import date, datetime, time
 from app.database import get_db
 from app.models import Order, OrderStatus, Company, OrderItem, PaymentStatus, ServiceRequest, Table, Product, Category, Employee
 from app.routers.auth import get_current_user
-from app.schemas import OrderResponse, ServiceRequestResponse, ProductResponse
+from app.schemas import OrderResponse, ServiceRequestResponse, ProductResponse, OrderPagination
 from app.websockets import manager
 from app.services.whatsapp_service import WhatsAppService
 from app.services.loyalty_service import LoyaltyService
@@ -20,14 +20,7 @@ class OrderStatusUpdate(BaseModel):
 class OrderPaymentUpdate(BaseModel):
     payment_status: PaymentStatus
 
-class OrderHistoryResponse(BaseModel):
-    total: int
-    page: int
-    limit: int
-    data: List[OrderResponse]
-
 def get_company_id(user: any) -> str:
-    """Helper para extrair o ID da empresa seja de um Dono ou Funcionário"""
     if isinstance(user, Company):
         return user.id
     if isinstance(user, Employee):
@@ -40,7 +33,6 @@ def get_kitchen_orders(
     db: Session = Depends(get_db),
     current_user: any = Depends(get_current_user)
 ):
-    # Validação de Slug (Segurança)
     user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
     if user_slug != company_slug:
         raise HTTPException(status_code=403, detail="Sem permissão para esta empresa")
@@ -63,115 +55,59 @@ def get_kitchen_orders(
     )
     return orders
 
-@router.get("/{company_slug}/orders/recent-completed", response_model=List[OrderResponse])
-def get_recent_completed_orders(
-    company_slug: str,
-    limit: int = 10,
-    db: Session = Depends(get_db),
-    current_user: any = Depends(get_current_user)
-):
-    user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
-    if user_slug != company_slug:
-        raise HTTPException(status_code=403, detail="Sem permissão")
-
-    company_id = get_company_id(current_user)
-
-    orders = (
-        db.query(Order)
-        .options(
-            selectinload(Order.items).selectinload(OrderItem.product),
-            selectinload(Order.items).selectinload(OrderItem.selected_options),
-            selectinload(Order.table)
-        )
-        .filter(
-            Order.company_id == company_id,
-            Order.status.in_([OrderStatus.DELIVERED, OrderStatus.CANCELED])
-        )
-        .order_by(Order.finished_at.desc().nulls_last(), Order.created_at.desc())
-        .limit(limit)
-        .all()
-    )
-    return orders
-
-@router.get("/{company_slug}/products/quick-list", response_model=List[ProductResponse])
-def get_quick_product_list(
-    company_slug: str,
-    db: Session = Depends(get_db),
-    current_user: any = Depends(get_current_user)
-):
-    user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
-    if user_slug != company_slug:
-        raise HTTPException(status_code=403, detail="Sem permissão")
-    
-    company_id = get_company_id(current_user)
-    
-    products = (
-        db.query(Product)
-        .join(Category)
-        .join(Company)
-        .filter(Company.id == company_id)
-        .order_by(Product.name)
-        .all()
-    )
-    
-    return products
-
-@router.get("/{company_slug}/history", response_model=OrderHistoryResponse)
+@router.get("/{company_slug}/history", response_model=OrderPagination)
 def get_order_history(
     company_slug: str,
     page: int = 1,
     limit: int = 10,
-    start_date: Optional[date] = None,
-    end_date: Optional[date] = None,
-    status: Optional[OrderStatus] = None,
     db: Session = Depends(get_db),
     current_user: any = Depends(get_current_user)
 ):
     user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
     if user_slug != company_slug:
-        raise HTTPException(status_code=403, detail="Sem permissão")
+        raise HTTPException(status_code=403, detail="Sem permissão para esta empresa")
 
     company_id = get_company_id(current_user)
+    
     query = db.query(Order).filter(Order.company_id == company_id)
-
-    if start_date:
-        query = query.filter(Order.created_at >= datetime.combine(start_date, time.min))
-    if end_date:
-        query = query.filter(Order.created_at <= datetime.combine(end_date, time.max))
-    if status:
-        query = query.filter(Order.status == status)
-
+    
     total = query.count()
-
+    
     orders = (
-        query.order_by(Order.created_at.desc())
-        .offset((page - 1) * limit)
-        .limit(limit)
+        query
         .options(
             selectinload(Order.items).selectinload(OrderItem.product),
             selectinload(Order.items).selectinload(OrderItem.selected_options),
             selectinload(Order.table)
         )
+        .order_by(Order.created_at.desc())
+        .offset((page - 1) * limit)
+        .limit(limit)
         .all()
     )
-
+    
     return {
+        "data": orders,
         "total": total,
         "page": page,
-        "limit": limit,
-        "data": orders
+        "limit": limit
     }
 
 @router.patch("/orders/{order_id}", status_code=200)
 async def update_order_status(
     order_id: str,
     status_update: OrderStatusUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: any = Depends(get_current_user)
 ):
     company_id = get_company_id(current_user)
     
-    order = db.query(Order).options(selectinload(Order.table), selectinload(Order.company)).filter(
+    # Carrega a empresa junto para ter acesso às configs de WhatsApp
+    order = db.query(Order).options(
+        selectinload(Order.table), 
+        selectinload(Order.company)
+    ).filter(
         Order.id == order_id,
         Order.company_id == company_id
     ).first()
@@ -184,23 +120,25 @@ async def update_order_status(
     
     if status_update.status in [OrderStatus.DELIVERED, OrderStatus.CANCELED]:
         order.finished_at = datetime.now()
-    elif status_update.status in [OrderStatus.PREPARING, OrderStatus.PENDING]:
-        order.finished_at = None
     
     if status_update.status == OrderStatus.DELIVERED and order.payment_status == PaymentStatus.PAID:
         LoyaltyService.process_cashback(db, order)
 
     db.commit()
 
-    # Notificação WhatsApp
+    # Gatilho de WhatsApp: Pedido Pronto
     if status_update.status == OrderStatus.READY and old_status != OrderStatus.READY:
         if order.customer_phone:
-            table_num = str(order.table.table_number) if order.table else "Delivery"
-            await whatsapp_service.notify_order_ready(
+            table_num = str(order.table.table_number) if order.table else "Balcão"
+            
+            # Passa o objeto company para o serviço resolver a configuração correta
+            background_tasks.add_task(
+                whatsapp_service.notify_order_ready,
                 customer_name=order.customer_name or "Cliente",
                 phone=order.customer_phone,
                 table_number=table_num,
-                restaurant_name=order.company.name
+                restaurant_name=order.company.name,
+                company_settings=order.company
             )
 
     table_num = order.table.table_number if order.table else "Delivery"
@@ -225,77 +163,16 @@ async def update_order_payment(
     current_user: any = Depends(get_current_user)
 ):
     company_id = get_company_id(current_user)
-    
-    order = db.query(Order).filter(
-        Order.id == order_id,
-        Order.company_id == company_id
-    ).first()
+    order = db.query(Order).filter(Order.id == order_id, Order.company_id == company_id).first()
 
     if not order:
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
 
     order.payment_status = payment_update.payment_status
-    
     if payment_update.payment_status == PaymentStatus.PAID:
         LoyaltyService.process_cashback(db, order)
 
     db.commit()
-
     user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
-    await manager.broadcast({
-        "type": "order_update",
-        "order_id": str(order.id),
-        "status": order.status,
-        "payment_status": order.payment_status
-    }, user_slug)
-
+    await manager.broadcast({"type": "order_update", "order_id": str(order.id), "status": order.status, "payment_status": order.payment_status}, user_slug)
     return {"message": "Pagamento atualizado"}
-
-@router.get("/{company_slug}/service-requests", response_model=List[ServiceRequestResponse])
-def get_active_service_requests(
-    company_slug: str,
-    db: Session = Depends(get_db),
-    current_user: any = Depends(get_current_user)
-):
-    user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
-    if user_slug != company_slug:
-        raise HTTPException(status_code=403, detail="Sem permissão")
-
-    company_id = get_company_id(current_user)
-
-    requests = db.query(ServiceRequest).join(Table).filter(
-        ServiceRequest.company_id == company_id,
-        ServiceRequest.status == "pending"
-    ).all()
-
-    return [
-        {
-            "id": r.id,
-            "table_number": r.table.table_number,
-            "service_type": r.service_type,
-            "notes": r.notes,
-            "status": r.status,
-            "created_at": r.created_at
-        }
-        for r in requests
-    ]
-
-@router.patch("/service-requests/{request_id}/resolve", status_code=200)
-def resolve_service_request(
-    request_id: int,
-    db: Session = Depends(get_db),
-    current_user: any = Depends(get_current_user)
-):
-    company_id = get_company_id(current_user)
-    
-    req = db.query(ServiceRequest).filter(
-        ServiceRequest.id == request_id,
-        ServiceRequest.company_id == company_id
-    ).first()
-
-    if not req:
-        raise HTTPException(status_code=404, detail="Chamado não encontrado")
-
-    req.status = "resolved"
-    db.commit()
-    return {"message": "Chamado resolvido"}

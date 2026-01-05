@@ -10,8 +10,9 @@ import { MenuResponse, Product } from "@/types";
 import { Trash2, Plus, Edit2, Image as ImageIcon, Save, Settings2, ChevronDown, ChevronUp, X, Box, Link as LinkIcon, Utensils, Wine, Coffee, FileText, Hash, Copy, ExternalLink } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import RecipeModal from "@/components/admin/RecipeModal";
-import ImageUpload from "@/components/ui/ImageUpload"; // NOVO
+import ImageUpload from "@/components/ui/ImageUpload";
 import { toast } from "sonner";
+import MenuAdminSkeleton from "@/components/admin/MenuAdminSkeleton";
 
 export default function AdminMenuPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
@@ -24,7 +25,7 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [isOptModalOpen, setIsOptModalOpen] = useState(false);
   const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
-  
+
   const [newCategoryName, setNewCategoryName] = useState("");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [activeProductId, setActiveProductId] = useState<number | null>(null);
@@ -50,6 +51,8 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
   };
 
   useEffect(() => { fetchMenu(); }, [slug]);
+
+  if (loading) return <MenuAdminSkeleton />;
 
   const handleCreateCategory = async () => {
     if (!newCategoryName) return;
@@ -104,16 +107,14 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
     toast.success("Link copiado!");
   };
 
-  if (loading) return <div className="p-10 text-center text-gray-500">Carregando gestão...</div>;
-
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-8 pb-20 animate-in fade-in duration-500">
       <div className="bg-gradient-to-r from-gray-800 to-gray-900 p-4 rounded-xl border border-gray-700 flex flex-col md:flex-row justify-between items-center gap-4 shadow-lg">
         <div className="flex items-center gap-3">
           <div className="bg-green-500/20 p-2 rounded-lg text-green-400"><LinkIcon size={20} /></div>
           <div>
             <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Link Público</p>
-            <p className="text-white font-mono text-sm truncate max-w-[300px]">mesaflow.com/{slug}/menu</p>
+            <p className="text-white font-mono text-sm truncate max-w-[300px]">{window.location.origin}/{slug}/menu</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -211,8 +212,7 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
               </div>
             </div>
             <textarea className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white outline-none focus:ring-2 focus:ring-orange-500 h-24 resize-none" placeholder="Descrição do produto..." value={prodForm.description} onChange={e => setProdForm({...prodForm, description: e.target.value})} />
-            
-            {/* COMPONENTE DE UPLOAD DE IMAGEM */}
+
             <ImageUpload 
               label="Foto do Produto" 
               value={prodForm.image_url} 
@@ -223,7 +223,7 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
               <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Estação de Preparo</label>
               <div className="grid grid-cols-4 gap-2">
                 {[{ id: 'kitchen', label: 'Cozinha', icon: Utensils }, { id: 'bar', label: 'Bar', icon: Wine }, { id: 'dessert', label: 'Doce', icon: Coffee }, { id: 'other', label: 'Outros', icon: Box }].map((st) => (
-                  <button key={st.id} onClick={() => setProdForm({...prodForm, station: st.id})} className={`flex flex-col items-center justify-center p-2 rounded-lg border transition-all ${prodForm.station === st.id ? 'bg-orange-600 text-white border-orange-600' : 'bg-gray-900 text-gray-400 border-gray-700 hover:bg-gray-800'}`}>
+                  <button key={st.id} type="button" onClick={() => setProdForm({...prodForm, station: st.id})} className={`flex flex-col items-center justify-center p-2 rounded-lg border transition-all ${prodForm.station === st.id ? 'bg-orange-600 text-white border-orange-600' : 'bg-gray-900 text-gray-400 border-gray-700 hover:bg-gray-800'}`}>
                     <st.icon size={18} />
                     <span className="text-[10px] font-bold mt-1">{st.label}</span>
                   </button>

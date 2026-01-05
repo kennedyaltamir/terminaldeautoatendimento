@@ -6,7 +6,7 @@ from sqlalchemy import (
     Enum as SQLEnum, Numeric, Text, Index, Time, Table as SQLTable, JSON
 )
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql import func
 
 from app.database import Base 
@@ -94,13 +94,12 @@ class LedgerType(str, Enum):
     CREDIT = "credit"
     PAYMENT = "payment"
 
-# NOVO: Enum para Provedores de Pagamento
 class PaymentProvider(str, Enum):
-    MERCADO_PAGO = "mercadopago"
-    EFI = "efi"
-    STRIPE = "stripe"
-    PAGARME = "pagarme"
-    NONE = "none"
+    MERCADO_PAGO = "MERCADO_PAGO"
+    EFI = "EFI"
+    STRIPE = "STRIPE"
+    PAGARME = "PAGARME"
+    NONE = "NONE"
 
 # --- TABELAS DE ASSOCIAÇÃO ---
 
@@ -118,59 +117,51 @@ class Company(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False)
     slug = Column(String(255), nullable=False, unique=True, index=True)
-    
-    # White Label
     custom_domain = Column(String(255), unique=True, nullable=True, index=True)
-    
+
     owner_email = Column(String(255), nullable=False, index=True)
     owner_phone = Column(String(20), nullable=True)
     owner_role = Column(String(50), nullable=True)
     password_hash = Column(String(255), nullable=True)
-    
+
     plan_tier = Column(SQLEnum(PlanTier), default=PlanTier.FREE, nullable=False)
     segment = Column(SQLEnum(CompanySegment), default=CompanySegment.GASTRO, nullable=False)
     trial_ends_at = Column(DateTime(timezone=True), nullable=True)
     is_active = Column(Boolean, default=True)
-    
-    # Segurança
     is_email_verified = Column(Boolean, default=False)
-    
-    # Assinatura SaaS (Stripe)
+
     stripe_customer_id = Column(String(100), nullable=True, index=True)
     stripe_subscription_id = Column(String(100), nullable=True)
     subscription_status = Column(String(50), nullable=True)
-    
-    # Identidade Visual
+
     logo_url = Column(String(500), nullable=True)
     banner_url = Column(String(500), nullable=True)
     primary_color = Column(String(7), default="#ea580c")
     background_color = Column(String(7), default="#f9fafb")
     text_color = Column(String(7), default="#111827")
     accent_color = Column(String(7), default="#ea580c")
-    
-    # Marketing & Contato
+
     instagram_url = Column(String(255), nullable=True)
     whatsapp_number = Column(String(20), nullable=True)
+    whatsapp_api_url = Column(String(500), nullable=True)
+    whatsapp_instance = Column(String(100), nullable=True)
+    whatsapp_token = Column(String(500), nullable=True)
+
     wifi_ssid = Column(String(100), nullable=True)
     wifi_password = Column(String(100), nullable=True)
-    
-    # --- GATEWAY DE PAGAMENTO (NOVO) ---
+
     payment_provider = Column(SQLEnum(PaymentProvider), default=PaymentProvider.NONE, nullable=False)
-    payment_credentials = Column(JSON, nullable=True) # Armazena tokens, refresh_tokens, keys de forma flexível
-    
-    # Campos Legados (Mantidos para migração, usar payment_credentials no futuro)
+    payment_credentials = Column(JSON, nullable=True) 
     pix_key = Column(String(255), nullable=True)
     mp_access_token = Column(String(255), nullable=True)
     mp_user_id = Column(String(50), nullable=True)
-    
-    # Configurações Financeiras
+
     marketplace_fee_percentage = Column(Numeric(5, 2), default=0.0)
     pending_commission_balance = Column(Numeric(10, 2), default=0.00)
     loyalty_percentage = Column(Numeric(5, 2), default=0.0)
     service_fee_percentage = Column(Numeric(5, 2), default=10.0)
     fixed_delivery_fee = Column(Numeric(10, 2), default=0.00)
 
-    # Fiscal
     cnpj = Column(String(20), nullable=True)
     inscricao_estadual = Column(String(20), nullable=True)
     fiscal_token = Column(String(255), nullable=True)
@@ -181,7 +172,6 @@ class Company(Base):
     closes_at = Column(Time, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relacionamentos
     tables = relationship("Table", back_populates="company", cascade="all, delete-orphan")
     categories = relationship("Category", back_populates="company", cascade="all, delete-orphan")
     orders = relationship("Order", back_populates="company")
@@ -193,6 +183,7 @@ class Company(Base):
     audit_logs = relationship("AuditLog", back_populates="company", cascade="all, delete-orphan")
     service_ledger = relationship("ServiceFeeLedger", back_populates="company", cascade="all, delete-orphan")
     driver_ledger = relationship("DriverLedger", back_populates="company", cascade="all, delete-orphan")
+    feedbacks = relationship("OrderFeedback", back_populates="company", cascade="all, delete-orphan")
 
 class Employee(Base):
     __tablename__ = "employees"
@@ -220,7 +211,7 @@ class Table(Base):
     is_active = Column(Boolean, default=True)
     position_x = Column(Numeric(5, 2), default=0) 
     position_y = Column(Numeric(5, 2), default=0)
-    
+
     company = relationship("Company", back_populates="tables")
     orders = relationship("Order", back_populates="table")
     sessions = relationship("TableSession", back_populates="table", cascade="all, delete-orphan")
@@ -232,11 +223,10 @@ class Category(Base):
     company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
     name = Column(String(100), nullable=False)
     order_index = Column(Integer, default=0)
-    
     availability_days = Column(JSON, nullable=True)
     start_time = Column(Time, nullable=True)
     end_time = Column(Time, nullable=True)
-    
+
     company = relationship("Company", back_populates="categories")
     products = relationship("Product", back_populates="category", cascade="all, delete-orphan")
 
@@ -254,14 +244,12 @@ class Product(Base):
     stock_quantity = Column(Integer, default=0)
     station = Column(SQLEnum(ProductStation), default=ProductStation.KITCHEN, nullable=False)
     tags = Column(JSON, default=[])
-    
     ncm = Column(String(10), default="21069090")
     cfop = Column(String(5), default="5102")
-    
+
     category = relationship("Category", back_populates="products")
     option_groups = relationship("OptionGroup", back_populates="product", cascade="all, delete-orphan")
     recipe_items = relationship("ProductRecipe", back_populates="product", cascade="all, delete-orphan")
-    
     recommendations = relationship(
         "Product",
         secondary=product_recommendations,
@@ -278,7 +266,7 @@ class Supplier(Base):
     contact_name = Column(String(100), nullable=True)
     phone = Column(String(20), nullable=True)
     email = Column(String(255), nullable=True)
-    
+
     company = relationship("Company", back_populates="suppliers")
     ingredients = relationship("Ingredient", back_populates="supplier")
 
@@ -292,7 +280,7 @@ class Ingredient(Base):
     current_stock = Column(Numeric(10, 3), default=0.000)
     min_stock_alert = Column(Numeric(10, 3), default=0.000)
     cost_per_unit = Column(Numeric(10, 2), default=0.00)
-    
+
     company = relationship("Company", back_populates="ingredients")
     supplier = relationship("Supplier", back_populates="ingredients")
     product_links = relationship("ProductRecipe", back_populates="ingredient")
@@ -303,7 +291,7 @@ class ProductRecipe(Base):
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     ingredient_id = Column(Integer, ForeignKey("ingredients.id"), nullable=False)
     quantity_required = Column(Numeric(10, 3), nullable=False)
-    
+
     product = relationship("Product", back_populates="recipe_items")
     ingredient = relationship("Ingredient", back_populates="product_links")
 
@@ -331,14 +319,11 @@ class TableSession(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
     table_id = Column(Integer, ForeignKey("tables.id", ondelete="CASCADE"), nullable=False)
-    
     opened_by_employee_id = Column(Integer, ForeignKey("employees.id"), nullable=True)
-    
     customer_name = Column(String(100), nullable=False)
     customer_phone = Column(String(20), nullable=True)
     session_token = Column(String(64), nullable=False, unique=True, index=True)
     access_pin = Column(String(4), nullable=False)
-    
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     closed_at = Column(DateTime(timezone=True), nullable=True)
@@ -355,46 +340,50 @@ class Order(Base):
     table_id = Column(Integer, ForeignKey("tables.id"), nullable=True)
     session_id = Column(Integer, ForeignKey("table_sessions.id"), nullable=True)
     driver_id = Column(Integer, ForeignKey("employees.id"), nullable=True)
-    
+
     order_type = Column(SQLEnum(OrderType), default=OrderType.DINE_IN, nullable=False)
     customer_phone = Column(String(20), nullable=True)
     delivery_address = Column(Text, nullable=True)
     delivery_code = Column(String(4), nullable=True)
-    
+
     subtotal = Column(Numeric(10, 2), nullable=True)
     discount_amount = Column(Numeric(10, 2), default=0.0)
     cashback_earned = Column(Numeric(10, 2), default=0.0)
-    
     service_fee = Column(Numeric(10, 2), default=0.0)
     delivery_fee = Column(Numeric(10, 2), default=0.0)
-    
+
     status = Column(SQLEnum(OrderStatus), default=OrderStatus.PENDING, nullable=False)
     payment_method = Column(SQLEnum(PaymentMethod), default=PaymentMethod.CASH)
     payment_status = Column(SQLEnum(PaymentStatus), default=PaymentStatus.PENDING)
-    
+
     mp_payment_id = Column(String(100), nullable=True, index=True)
     mp_qr_code = Column(Text, nullable=True)
     mp_qr_code_base64 = Column(Text, nullable=True)
-    
+
     fiscal_status = Column(String(50), default="pending")
     fiscal_reference_id = Column(String(100), nullable=True, index=True)
-    
     nfe_key = Column(String(100), nullable=True)
     nfe_url_xml = Column(String(500), nullable=True)
     nfe_url_pdf = Column(String(500), nullable=True)
-    
+
     customer_name = Column(String(100))
     total_amount = Column(Numeric(10, 2), nullable=False)
     device_fingerprint = Column(String(255), index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     finished_at = Column(DateTime(timezone=True), nullable=True)
-    
+
     company = relationship("Company", back_populates="orders")
     table = relationship("Table", back_populates="orders")
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
     session = relationship("TableSession", back_populates="orders")
     driver = relationship("Employee", back_populates="deliveries")
     driver_ledger_entries = relationship("DriverLedger", back_populates="order")
+    feedback = relationship("OrderFeedback", uselist=False, back_populates="order", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        Index("idx_orders_company_status", "company_id", "status"),
+        Index("idx_orders_company_created", "company_id", "created_at"),
+    )
 
 class OrderItem(Base):
     __tablename__ = "order_items"
@@ -407,6 +396,8 @@ class OrderItem(Base):
     order = relationship("Order", back_populates="items")
     product = relationship("Product")
     selected_options = relationship("OrderItemOption", back_populates="order_item", cascade="all, delete-orphan")
+    
+    __table_args__ = (Index("idx_order_items_order_id", "order_id"),)
 
 class OrderItemOption(Base):
     __tablename__ = "order_item_options"
@@ -422,12 +413,11 @@ class ServiceRequest(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
     table_id = Column(Integer, ForeignKey("tables.id"), nullable=False)
-    
     service_type = Column(SQLEnum(ServiceType), default=ServiceType.HELP, nullable=False)
     notes = Column(Text, nullable=True)
     status = Column(String(20), default="pending")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     company = relationship("Company", back_populates="service_requests")
     table = relationship("Table")
 
@@ -438,7 +428,7 @@ class CustomerWallet(Base):
     customer_phone = Column(String(20), nullable=False)
     balance = Column(Numeric(10, 2), default=0.00)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    
+
     company = relationship("Company", back_populates="wallets")
     __table_args__ = (Index("idx_wallet_unique", "company_id", "customer_phone", unique=True),)
 
@@ -448,16 +438,15 @@ class AuditLog(Base):
     company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
     user_name = Column(String(100), nullable=False)
     user_role = Column(String(50), nullable=False)
-    
     action = Column(SQLEnum(AuditAction), nullable=False)
     resource = Column(String(50), nullable=False)
     resource_id = Column(String(100), nullable=True)
-    
     details = Column(JSON, nullable=True)
     ip_address = Column(String(50), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     company = relationship("Company", back_populates="audit_logs")
+    __table_args__ = (Index("idx_audit_logs_company_created", "company_id", "created_at"),)
 
 class ServiceFeeLedger(Base):
     __tablename__ = "service_fee_ledger"
@@ -465,7 +454,6 @@ class ServiceFeeLedger(Base):
     company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
     employee_id = Column(Integer, ForeignKey("employees.id"), nullable=False)
     order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=True)
-    
     amount = Column(Numeric(10, 2), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -478,11 +466,9 @@ class DriverLedger(Base):
     company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
     driver_id = Column(Integer, ForeignKey("employees.id"), nullable=False)
     order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=True)
-    
-    type = Column(SQLEnum(LedgerType), nullable=False) # DEBT (Recebeu dinheiro) ou PAYMENT (Pagou ao restaurante)
+    type = Column(SQLEnum(LedgerType), nullable=False) 
     amount = Column(Numeric(10, 2), nullable=False)
     description = Column(String(255), nullable=True)
-    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     company = relationship("Company", back_populates="driver_ledger")
@@ -504,3 +490,15 @@ class PasswordResetToken(Base):
     expires_at = Column(DateTime(timezone=True), nullable=False)
     used = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class OrderFeedback(Base):
+    __tablename__ = "order_feedbacks"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), unique=True, nullable=False)
+    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    score = Column(Integer, nullable=False) # 1-5
+    comment = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    order = relationship("Order", back_populates="feedback")
+    company = relationship("Company", back_populates="feedbacks")

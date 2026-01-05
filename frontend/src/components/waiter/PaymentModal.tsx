@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { X, Banknote, CreditCard, QrCode, CheckCircle2, Loader2, Calculator } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Banknote, CreditCard, QrCode, CheckCircle2, Loader2, Calculator, Smartphone } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import { closeTable } from "@/lib/api";
 import { toast } from "sonner";
 import ChangeCalculator from "./ChangeCalculator";
+import { generatePaymentIntent, detectSmartPOS, PaymentScheme } from "@/lib/smartpos";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -21,6 +22,13 @@ export default function PaymentModal({ isOpen, onClose, tableId, tableName, tota
   const [loading, setLoading] = useState(false);
   const [showCalculator, setShowCalculator] = useState(false);
   const [cashReceived, setCashReceived] = useState<number | null>(null);
+  const [smartPosType, setSmartPosType] = useState<PaymentScheme | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSmartPosType(detectSmartPOS());
+    }
+  }, [isOpen]);
 
   const handleConfirm = async () => {
     if (!method) return;
@@ -28,6 +36,19 @@ export default function PaymentModal({ isOpen, onClose, tableId, tableName, tota
     // Se for dinheiro e não calculou troco, abre a calculadora
     if (method === 'cash' && cashReceived === null) {
       setShowCalculator(true);
+      return;
+    }
+
+    // Se for SmartPOS, abre o app de pagamento
+    if (smartPosType && method === 'card') {
+      const intentUrl = generatePaymentIntent({
+        scheme: smartPosType,
+        amount: totalAmount,
+        type: 'credit', // Default, poderia ser selecionável
+        orderId: `MESA-${tableId}`
+      });
+      window.location.href = intentUrl;
+      // Não fecha a mesa automaticamente, espera o garçom confirmar que passou
       return;
     }
 
@@ -65,7 +86,7 @@ export default function PaymentModal({ isOpen, onClose, tableId, tableName, tota
           <div className="grid grid-cols-3 gap-3">
             {[
               { id: 'cash', label: 'Dinheiro', icon: Banknote, color: 'text-green-500' },
-              { id: 'card', label: 'Cartão', icon: CreditCard, color: 'text-blue-500' },
+              { id: 'card', label: smartPosType ? 'Maquininha' : 'Cartão', icon: smartPosType ? Smartphone : CreditCard, color: 'text-blue-500' },
               { id: 'pix', label: 'Pix', icon: QrCode, color: 'text-purple-500' },
             ].map((m) => (
               <button
@@ -109,7 +130,7 @@ export default function PaymentModal({ isOpen, onClose, tableId, tableName, tota
             className="w-full bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95"
           >
             {loading ? <Loader2 className="animate-spin" /> : <CheckCircle2 size={24} />}
-            {method === 'cash' && cashReceived === null ? 'Calcular & Fechar' : 'Finalizar Mesa'}
+            {method === 'cash' && cashReceived === null ? 'Calcular & Fechar' : (smartPosType && method === 'card' ? 'Abrir Pagamento' : 'Finalizar Mesa')}
           </button>
         </div>
       </Modal>

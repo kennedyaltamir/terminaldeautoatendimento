@@ -56,10 +56,6 @@ class StockService:
                     
                     # Se atingiu nível crítico ou zero, agenda notificação e bloqueio
                     if ingredient.current_stock <= 0:
-                        # A lógica de desativar produtos vinculados pode ser pesada, 
-                        # então mantemos o bloqueio em cascata na BackgroundTask ou fazemos aqui se for crítico.
-                        # Para performance, vamos agendar a "limpeza" (desativar produtos) no background,
-                        # mas o impedimento de venda já ocorreu pelo check acima.
                         self._schedule_out_of_stock_handling(ingredient, background_tasks)
 
     def _schedule_out_of_stock_handling(self, ingredient: Ingredient, background_tasks: BackgroundTasks):
@@ -98,7 +94,8 @@ class StockService:
                     ingredient_name=name,
                     affected_products=product_names,
                     current_stock=float(stock),
-                    unit=unit
+                    unit=unit,
+                    company_settings=company # Passa a empresa para pegar a config da API
                 ))
         except Exception as e:
             print(f"Erro no worker de estoque: {e}")
