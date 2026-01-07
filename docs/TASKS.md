@@ -2419,3 +2419,78 @@ Este documento é a **fonte única de verdade** para a execução tática.
 ### 2. [Mobile] Missão 37: Homologação de Impressão em Campo 🖨️
 **Complexidade:** Alta | **Impacto:** Operacional
 *   **O que fazer:** Testar a bridge Bluetooth com uma impressora térmica física real (ex: Goojprt/Zebra) usando o binário de produção.
+# 📋 Backlog Mestre de Tarefas: MesaFlow
+
+## ✅ Concluído Recentemente (Fase 12 - Lançamento & QA)
+- [x] **Build Nativo:** APK gerado e validado no emulador.
+- [x] **Smoke Test:** Automação ADB funcional (Login e Captura).
+- [x] **Unit Tests:** Lógica de SLA, AuthStore e Hardware Encoder validados.
+- [x] **Modos de Teste:** Manual, Funcional (ADB) e Unitário (Jest) integrados.
+
+---
+
+## 🚀 Próximas Prioridades (Fase 12 - Hardening & Campo)
+
+### 1. [Mobile] Missão 37: Homologação de Impressão em Campo 🖨️
+**Complexidade:** Alta | **Impacto:** Operacional
+*   **O que fazer:** Testar o APK em um dispositivo físico com uma impressora Bluetooth real.
+
+### 2. [Mobile] Missão 14A: Endurecimento Semântico de Auth 🛡️
+**Complexidade:** Alta | **Impacto:** Segurança
+*   **O que fazer:** Implementar validação rigorosa de claims do JWT no mobile (Pendente no backlog técnico).
+# 📋 Backlog Mestre de Tarefas: MesaFlow
+
+## ✅ Concluído Recentemente (Fase 12 - Lançamento & Hardening)
+- [x] **Build Nativo:** APK gerado e validado no emulador.
+- [x] **QA Mobile:** Suíte de testes unitários e funcionais (ADB) homologada.
+- [x] **Missão 14A:** Endurecimento Semântico de Auth concluído (Validação de Claims).
+
+---
+
+## 🚀 Próximas Prioridades (Fase 12 - Campo & Hardware)
+
+### 1. [Mobile] Missão 37: Homologação de Impressão em Campo 🖨️
+**Complexidade:** Alta | **Impacto:** Operacional
+*   **O que fazer:** Testar o APK em um dispositivo físico com uma impressora Bluetooth real.
+
+### 2. [Mobile] Missão 38: Sentry Native Integration 📊
+**Complexidade:** Média | **Impacto:** Observabilidade
+*   **O que fazer:** Integrar o Sentry para capturar crashes nativos no APK de produção.
+# 📋 Backlog Mestre de Tarefas: MesaFlow
+
+## ✅ Concluído Recentemente (Fase 12 - Lançamento & Hardening)
+- [x] **Build Nativo:** APK gerado e validado no emulador.
+- [x] **QA Mobile:** Suíte de testes unitários e funcionais (ADB) homologada (14 testes PASS).
+- [x] **Missão 14A:** Endurecimento Semântico de Auth concluído.
+
+---
+
+## 🔄 Próximas Prioridades (Fase 12 - Campo & Hardware)
+
+### 1. [Mobile] Missão 37: Homologação de Impressão em Campo 🖨️
+**Complexidade:** Alta | **Impacto:** Operacional
+*   **Status:** EM ANDAMENTO.
+*   **O que fazer:** Testar o APK em um dispositivo físico com uma impressora Bluetooth real.
+
+### 2. [Mobile] Missão 38: Sentry Native Integration 📊
+**Complexidade:** Média | **Impacto:** Observabilidade
+*   **O que fazer:** Integrar o Sentry para capturar crashes nativos no APK de produção.
+
+# 📋 Backlog Mestre de Tarefas: MesaFlow
+
+## ✅ Concluído Recentemente (Fase 12 - Lançamento & Hardening)
+- [x] **Build Nativo:** APK gerado e validado no emulador.
+- [x] **QA Mobile:** Suíte de testes unitários e funcionais (ADB) homologada.
+- [x] **Missão 14A:** Endurecimento Semântico de Auth concluído (Validação de Claims).
+
+---
+
+## 🚀 Próximas Prioridades (Fase 12 - Campo & Hardware)
+
+### 1. [Mobile] Missão 37: Homologação de Impressão em Campo 🖨️
+**Complexidade:** Alta | **Impacto:** Operacional
+*   **O que fazer:** Testar o APK em um dispositivo físico com uma impressora Bluetooth real.
+
+### 2. [Mobile] Missão 38: Sentry Native Integration 📊
+**Complexidade:** Média | **Impacto:** Observabilidade
+*   **O que fazer:** Integrar o Sentry para capturar crashes nativos no APK de produção.
