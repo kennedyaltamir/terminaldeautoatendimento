@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Order } from "@/types";
-import { Bike, MapPin, CheckCircle2, Navigation, Phone, Clock, User, ChefHat } from "lucide-react";
+import { Bike, MapPin, CheckCircle2, Navigation, Phone, Clock, User, ChefHat, Wallet } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { getToken } from "@/lib/auth";
 import DispatchModal from "@/components/admin/DispatchModal";
+import DriverCashModal from "@/components/admin/DriverCashModal"; // NOVO
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
@@ -15,6 +16,7 @@ export default function DeliveryPage({ params }: { params: { slug: string } }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
+  const [isCashModalOpen, setIsCashModalOpen] = useState(false); // NOVO
   const router = useRouter();
 
   const fetchOrders = async () => {
@@ -47,7 +49,7 @@ export default function DeliveryPage({ params }: { params: { slug: string } }) {
       await fetch(`${API_URL}/admin/delivery/orders/${id}/complete`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ code: null }) // Admin pode bypassar código se necessário, ou implementar modal
+        body: JSON.stringify({ code: null }) 
       });
       toast.success("Entrega finalizada!");
       fetchOrders();
@@ -77,12 +79,20 @@ export default function DeliveryPage({ params }: { params: { slug: string } }) {
   return (
     <div className="min-h-screen bg-gray-100 pb-20">
       <Toaster position="top-center" richColors />
-      
-      <div className="bg-gray-900 text-white p-4 sticky top-0 z-10 shadow-md">
-        <h1 className="text-xl font-bold flex items-center gap-2">
-          <Bike className="text-orange-500" /> Entregas
-        </h1>
-        <p className="text-xs text-gray-400">Gestão de Logística</p>
+
+      <div className="bg-gray-900 text-white p-4 sticky top-0 z-10 shadow-md flex justify-between items-center">
+        <div>
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <Bike className="text-orange-500" /> Entregas
+          </h1>
+          <p className="text-xs text-gray-400">Gestão de Logística</p>
+        </div>
+        <button 
+          onClick={() => setIsCashModalOpen(true)}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 text-sm transition-colors shadow-lg shadow-green-900/20"
+        >
+          <Wallet size={18} /> Prestação de Contas
+        </button>
       </div>
 
       <div className="p-4 space-y-4">
@@ -145,7 +155,7 @@ export default function DeliveryPage({ params }: { params: { slug: string } }) {
                         <ChefHat size={18} /> Aguardando Cozinha
                     </button>
                   )}
-                  
+
                   <button 
                     onClick={() => openMap(order.delivery_address || "")}
                     className="bg-gray-100 text-gray-700 p-3 rounded-lg hover:bg-gray-200"
@@ -153,7 +163,7 @@ export default function DeliveryPage({ params }: { params: { slug: string } }) {
                   >
                     <Navigation size={20} />
                   </button>
-                  
+
                   {order.customer_phone && (
                     <button 
                       onClick={() => openWhatsApp(order.customer_phone!)}
@@ -178,6 +188,11 @@ export default function DeliveryPage({ params }: { params: { slug: string } }) {
           onSuccess={fetchOrders}
         />
       )}
+
+      <DriverCashModal 
+        isOpen={isCashModalOpen} 
+        onClose={() => setIsCashModalOpen(false)} 
+      />
     </div>
   );
 }

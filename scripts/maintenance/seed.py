@@ -1,8 +1,12 @@
 import sys
 import os
 from decimal import Decimal
+from pathlib import Path
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# CORREÇÃO DEFINITIVA DE PATH: 
+# Sobe 3 níveis: scripts/maintenance/seed.py -> maintenance -> scripts -> raiz
+root_path = Path(__file__).resolve().parent.parent.parent
+sys.path.append(str(root_path))
 
 from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine, Base
@@ -14,10 +18,11 @@ from app.core.security import get_password_hash
 
 def seed_data():
     db: Session = SessionLocal()
-    
+
+    print(f"🔗 Conectando ao host: {engine.url.host}")
     print("🗑️  Limpando banco de dados (Drop All)...")
     Base.metadata.drop_all(bind=engine)
-    
+
     print("🏗️  Recriando tabelas...")
     Base.metadata.create_all(bind=engine)
 
@@ -38,7 +43,7 @@ def seed_data():
         segment=CompanySegment.GASTRO
     )
     db.add(company)
-    
+
     # 2. Empresa Demo Hotel
     hotel = Company(
         name="Grand Plaza Hotel",
@@ -46,7 +51,7 @@ def seed_data():
         owner_email="hotel@demo.com",
         password_hash=get_password_hash("123456"),
         plan_tier=PlanTier.ENTERPRISE,
-        primary_color="#3b82f6", # Azul
+        primary_color="#3b82f6", 
         segment=CompanySegment.HOTEL
     )
     db.add(hotel)
@@ -58,7 +63,7 @@ def seed_data():
         owner_email="evento@demo.com",
         password_hash=get_password_hash("123456"),
         plan_tier=PlanTier.ENTERPRISE,
-        primary_color="#8b5cf6", # Roxo
+        primary_color="#8b5cf6",
         segment=CompanySegment.EVENT
     )
     db.add(arena)
@@ -70,11 +75,11 @@ def seed_data():
         owner_email="corp@demo.com",
         password_hash=get_password_hash("123456"),
         plan_tier=PlanTier.PRO,
-        primary_color="#10b981", # Verde
+        primary_color="#10b981",
         segment=CompanySegment.CORP
     )
     db.add(corp)
-    
+
     db.commit()
     db.refresh(company)
     db.refresh(hotel)
@@ -82,22 +87,18 @@ def seed_data():
     db.refresh(corp)
 
     # --- POPULAR GASTRO (Zé) ---
-    # Fornecedores
     sup_acougue = Supplier(company_id=company.id, name="Açougue do Zé", phone="11999990001")
     db.add(sup_acougue)
     db.commit()
 
-    # Mesas
     tables = [Table(company_id=company.id, table_number=i, qr_token=f"token-seguro-mesa-{i}") for i in range(1, 6)]
     db.add_all(tables)
-    
-    # Categorias
+
     cat_lanches = Category(company_id=company.id, name="Lanches", order_index=1)
     cat_bebidas = Category(company_id=company.id, name="Bebidas", order_index=2)
     db.add_all([cat_lanches, cat_bebidas])
     db.commit()
 
-    # Produtos
     xbacon = Product(category_id=cat_lanches.id, name="X-Bacon", price=Decimal("28.90"), image_url="https://placehold.co/600x400/png?text=X-Bacon", station="kitchen")
     coca = Product(category_id=cat_bebidas.id, name="Coca-Cola", price=Decimal("6.00"), image_url="https://placehold.co/600x400/png?text=Coca", station="bar")
     db.add_all([xbacon, coca])
@@ -108,12 +109,11 @@ def seed_data():
     cat_pool = Category(company_id=hotel.id, name="Bar da Piscina", order_index=2)
     db.add_all([cat_room, cat_pool])
     db.commit()
-    
+
     db.add(Product(category_id=cat_room.id, name="Club Sandwich", price=Decimal("45.00"), description="Clássico sanduíche de hotel", station="kitchen"))
     db.add(Product(category_id=cat_room.id, name="Toalha Extra", price=Decimal("0.00"), description="Solicitar na recepção", station="other"))
     db.add(Product(category_id=cat_pool.id, name="Caipirinha", price=Decimal("30.00"), station="bar"))
-    
-    # Quartos (Mesas)
+
     db.add(Table(company_id=hotel.id, table_number=101, qr_token="room-101"))
     db.add(Table(company_id=hotel.id, table_number=102, qr_token="room-102"))
     db.commit()
@@ -124,9 +124,8 @@ def seed_data():
     db.commit()
     db.add(Product(category_id=cat_show.id, name="Cerveja Lata", price=Decimal("15.00"), station="bar"))
     db.add(Product(category_id=cat_show.id, name="Água", price=Decimal("8.00"), station="bar"))
-    
-    # Assentos
-    db.add(Table(company_id=arena.id, table_number=1, qr_token="seat-a1")) # Setor A, Cad 1
+    db.add(Table(company_id=arena.id, table_number=1, qr_token="seat-a1"))
+    db.commit()
 
     # --- POPULAR CORP ---
     cat_coffee = Category(company_id=corp.id, name="Coffee Break", order_index=1)
@@ -134,8 +133,9 @@ def seed_data():
     db.commit()
     db.add(Product(category_id=cat_coffee.id, name="Espresso", price=Decimal("5.00"), station="bar"))
     db.add(Product(category_id=cat_coffee.id, name="Pão de Queijo", price=Decimal("6.00"), station="kitchen"))
+    db.commit()
 
-    print("✅ Banco de dados resetado e populado com sucesso!")
+    print("✅ Banco de dados populado com sucesso!")
     db.close()
 
 if __name__ == "__main__": 

@@ -2,10 +2,10 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { getMenu, createOrder, getOrder, requestService, getWallet, checkTableStatus, getTableSession, joinTable } from "@/lib/api";
+import { getMenu, createOrder, getOrder, requestService, getWallet, checkTableStatus, getTableSession, joinTable, validateCoupon } from "@/lib/api";
 import { MenuResponse, Product, Option, Order, TableSession, Category } from "@/types";
 import { CartProvider, useCart } from "@/context/CartContext";
-import { Plus, X, AlertCircle, ShoppingBag, CreditCard, Banknote, QrCode, Phone, Bell, FileText, Edit2, Loader2, MapPin, Smartphone } from "lucide-react";
+import { Plus, X, AlertCircle, ShoppingBag, CreditCard, Banknote, QrCode, Phone, Bell, FileText, Edit2, Loader2, MapPin, Smartphone, ArrowUp, Tag, Check } from "lucide-react";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { getSegmentLabels } from "@/lib/segment-utils";
 import { generatePaymentIntent, detectSmartPOS, PaymentScheme } from "@/lib/smartpos";
@@ -45,6 +45,13 @@ function MenuContent({ slug }: { slug: string }) {
   const [loyaltyPercent, setLoyaltyPercent] = useState(0);
   const [useBalance, setUseBalance] = useState(false);
 
+  // Cupom State
+  const [couponCode, setCouponCode] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponMessage, setCouponMessage] = useState("");
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [appliedCouponId, setAppliedCouponId] = useState<string | null>(null);
+
   const [isUpsellOpen, setIsUpsellOpen] = useState(false);
   const [pendingItem, setPendingItem] = useState<any>(null);
   const [currentRecommendations, setCurrentRecommendations] = useState<Product[]>([]);
@@ -55,6 +62,7 @@ function MenuContent({ slug }: { slug: string }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [editingCartIndex, setEditingCartIndex] = useState<number | null>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
   // SmartPOS
   const [smartPosType, setSmartPosType] = useState<PaymentScheme | null>(null);
@@ -71,6 +79,32 @@ function MenuContent({ slug }: { slug: string }) {
   const isTakeout = isKiosk || (!tableId && !isDelivery);
 
   const labels = getSegmentLabels(menu?.company.segment);
+
+  // Resetar cupom se o carrinho mudar (para revalidar regras de mínimo)
+  useEffect(() => {
+    if (appliedCouponId) {
+      setCouponDiscount(0);
+      setAppliedCouponId(null);
+      setCouponMessage("Carrinho alterado. Valide o cupom novamente.");
+    }
+  }, [items, total]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        setShowBackToTop(true);
+      } else {
+        setShowBackToTop(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -256,6 +290,39 @@ function MenuContent({ slug }: { slug: string }) {
     }
   };
 
+  const handleRecoverSession = async (token: string) => {
+    setSessionToken(token);
+    localStorage.setItem(`mesaflow_session_${tableId}`, token);
+    setSessionStatus('active');
+    const session = await getTableSession(slug, token);
+    setSessionData(session);
+    setCustomerName(session.customer_name);
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+    setIsValidatingCoupon(true);
+    setCouponMessage("");
+    try {
+      const res = await validateCoupon(slug, couponCode, total);
+      if (res.valid) {
+        setCouponDiscount(res.discount_amount);
+        setAppliedCouponId(res.promotion_id || null);
+        setCouponMessage(`Desconto de R$ ${res.discount_amount.toFixed(2)} aplicado!`);
+      } else {
+        setCouponDiscount(0);
+        setAppliedCouponId(null);
+        setCouponMessage(res.message);
+      }
+    } catch (e: any) {
+      setCouponDiscount(0);
+      setAppliedCouponId(null);
+      setCouponMessage(e.message || "Cupom inválido");
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
   const handleCheckout = async () => {
     if (!isDelivery && !isTakeout && (!tableId || !qrToken)) return alert("Erro: QR Code inválido.");
     if (sessionStatus === 'blocked') return alert("Mesa ocupada.");
@@ -273,6 +340,7 @@ function MenuContent({ slug }: { slug: string }) {
         delivery_address: deliveryAddress,
         payment_method: paymentMethod,
         use_balance: useBalance,
+        coupon_code: appliedCouponId ? couponCode : null, // Envia o código se validado
         items: items.map((item) => ({
           product_id: item.product.id,
           quantity: item.quantity,
@@ -287,7 +355,7 @@ function MenuContent({ slug }: { slug: string }) {
       if (smartPosType && paymentMethod === 'card') {
         const intentUrl = generatePaymentIntent({
           scheme: smartPosType,
-          amount: total,
+          amount: total - couponDiscount, // Valor final
           type: 'credit', // Default, poderia ser selecionável
           orderId: order.id
         });
@@ -312,6 +380,9 @@ function MenuContent({ slug }: { slug: string }) {
       setActiveOrder(order);
 
       clearCart();
+      setCouponCode("");
+      setCouponDiscount(0);
+      setAppliedCouponId(null);
       setIsCartOpen(false);
       alert("Pedido enviado com sucesso!");
 
@@ -334,7 +405,7 @@ function MenuContent({ slug }: { slug: string }) {
       alert("✅ Solicitação enviada! Aguarde um instante.");
       setIsServiceModalOpen(false);
     } catch (e) {
-      alert("Erro ao chamar serviço.");
+      alert("Erro ao chamar garçom.");
     }
   };
 
@@ -352,7 +423,7 @@ function MenuContent({ slug }: { slug: string }) {
       const filteredProducts = cat.products.filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                               (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()));
-        const matchesTag = activeTag ? p.tags.includes(activeTag) : true;
+        const matchesTag = activeTag ? p.tags?.includes(activeTag) : true; 
         return matchesSearch && matchesTag;
       });
 
@@ -361,14 +432,24 @@ function MenuContent({ slug }: { slug: string }) {
   };
 
   const filteredCategories = getFilteredCategories();
-  const allTags = Array.from(new Set(menu?.categories.flatMap(c => c.products.flatMap(p => p.tags)) || []));
+  const allTags = Array.from(new Set(menu?.categories.flatMap(c => c.products.flatMap(p => p.tags || [])) || [])); 
 
   // --- RENDERIZAÇÃO ---
 
-  // USO DO SKELETON AQUI
   if (loading) return <MenuSkeleton />;
 
-  if (sessionStatus === 'blocked') return <BlockedTableScreen customerName={tableOwnerName} />;
+  if (sessionStatus === 'blocked') {
+    return (
+      <BlockedTableScreen 
+        customerName={tableOwnerName} 
+        tableId={tableId!} 
+        slug={slug} 
+        qrToken={qrToken!} 
+        onSuccess={handleRecoverSession} 
+      />
+    );
+  }
+
   if (!isDelivery && !isTakeout && sessionStatus === 'free') return <CheckInScreen tableId={tableId!} status="free" onJoin={handleJoinTable} segment={menu?.company.segment} />;
   if (!menu) return <div className="p-8 text-center">Restaurante não encontrado.</div>;
 
@@ -391,6 +472,9 @@ function MenuContent({ slug }: { slug: string }) {
   if (activeOrder) {
     return <OrderStatusView order={activeOrder} onNewOrder={handleNewOrder} primaryColor={primaryColor} />;
   }
+
+  // Cálculo do Total Final (Visual)
+  const finalTotalDisplay = Math.max(0, total - couponDiscount);
 
   return (
     <div className="min-h-screen pb-24 font-sans transition-colors duration-300" style={{ backgroundColor: bgColor, color: textColor }}>
@@ -445,12 +529,14 @@ function MenuContent({ slug }: { slug: string }) {
             </div>
         )}
 
-        <CategoryNav 
-            categories={filteredCategories} 
-            activeId={activeCategoryId} 
-            onSelect={scrollToCategory} 
-            primaryColor={primaryColor} 
-        />
+        <div className="sticky top-[130px] z-20 bg-white/95 backdrop-blur-sm">
+            <CategoryNav 
+                categories={filteredCategories} 
+                activeId={activeCategoryId} 
+                onSelect={scrollToCategory} 
+                primaryColor={primaryColor} 
+            />
+        </div>
       </div>
 
       {menu.company.banner_url && (
@@ -500,15 +586,13 @@ function MenuContent({ slug }: { slug: string }) {
                         <div className="flex-1 pr-4">
                         <h3 className="font-bold text-gray-900">{product.name}</h3>
                         <p className="text-sm text-gray-500 line-clamp-2 mt-1">{product.description}</p>
-
-                        {product.tags.length > 0 && (
+                        {product.tags?.length > 0 && (
                             <div className="flex gap-1 mt-2 flex-wrap">
                                 {product.tags.map((tag: string) => (
                                     <span key={tag} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium capitalize">{tag}</span>
                                 ))}
                             </div>
                         )}
-
                         <div className="flex items-center gap-2 mt-2">
                             <p className="font-bold" style={{ color: primaryColor }}>R$ {Number(product.price).toFixed(2)}</p>
                             {isOutOfStock && <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold uppercase">Esgotado</span>}
@@ -549,6 +633,16 @@ function MenuContent({ slug }: { slug: string }) {
         </div>
       )}
 
+      {showBackToTop && (
+        <button 
+            onClick={scrollToTop}
+            className="fixed bottom-24 right-4 bg-white p-3 rounded-full shadow-lg border border-gray-200 z-20 animate-in fade-in slide-in-from-bottom-4"
+            style={{ color: primaryColor }}
+        >
+            <ArrowUp size={20} />
+        </button>
+      )}
+
       <ProductModal 
         product={selectedProduct} 
         isOpen={!!selectedProduct} 
@@ -577,7 +671,7 @@ function MenuContent({ slug }: { slug: string }) {
           <div className="bg-white w-full max-w-md p-6 rounded-xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
             <div className="flex justify-between items-center mb-4 border-b pb-2">
                 <h2 className="text-xl font-bold text-gray-900">Seu Pedido</h2>
-                <button onClick={() => setIsCartOpen(false)} className="text-gray-400"><X size={24} /></button>
+                <button onClick={() => setIsCartOpen(false)} className="text-gray-400"><X size={24}/></button>
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-4">
@@ -637,6 +731,44 @@ function MenuContent({ slug }: { slug: string }) {
                 />
               )}
 
+              {/* CUPOM DE DESCONTO */}
+              <div className="bg-white p-3 rounded-lg border border-gray-200">
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
+                  <Tag size={12} /> Cupom de Desconto
+                </label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm uppercase font-mono outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="CÓDIGO"
+                    value={couponCode}
+                    onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                    disabled={!!appliedCouponId}
+                  />
+                  {appliedCouponId ? (
+                    <button 
+                      onClick={() => { setAppliedCouponId(null); setCouponDiscount(0); setCouponCode(""); setCouponMessage(""); }}
+                      className="bg-red-100 text-red-600 px-3 py-2 rounded-lg hover:bg-red-200 transition-colors"
+                    >
+                      <X size={16} />
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={handleApplyCoupon}
+                      disabled={!couponCode || isValidatingCoupon}
+                      className="bg-gray-900 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-800 transition-colors disabled:opacity-50"
+                    >
+                      {isValidatingCoupon ? <Loader2 className="animate-spin" size={14} /> : "Aplicar"}
+                    </button>
+                  )}
+                </div>
+                {couponMessage && (
+                  <p className={`text-xs mt-2 font-medium ${appliedCouponId ? 'text-green-600 flex items-center gap-1' : 'text-red-500'}`}>
+                    {appliedCouponId && <Check size={12} />} {couponMessage}
+                  </p>
+                )}
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Forma de Pagamento</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -661,6 +793,23 @@ function MenuContent({ slug }: { slug: string }) {
                         <Banknote size={20} /> <span className="text-[10px] font-bold">DINHEIRO</span>
                     </button>
                 </div>
+              </div>
+            </div>
+
+            <div className="mt-4 px-4">
+              <div className="flex justify-between text-sm text-gray-500 mb-1">
+                <span>Subtotal</span>
+                <span>R$ {total.toFixed(2)}</span>
+              </div>
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-sm text-green-600 font-bold mb-1">
+                  <span>Desconto</span>
+                  <span>- R$ {couponDiscount.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-xl font-black text-gray-900 border-t pt-2">
+                <span>Total</span>
+                <span>R$ {finalTotalDisplay.toFixed(2)}</span>
               </div>
             </div>
 

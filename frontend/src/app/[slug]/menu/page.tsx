@@ -1,8 +1,13 @@
+import { Suspense } from "react";
 import MenuClient from "./MenuClient";
+import MenuSkeleton from "@/components/menu/MenuSkeleton";
 
 export default function Page({ params }: { params: { slug: string } }) {
-  const { slug } = params; // Acesso direto (Next.js 14)
+  const { slug } = params; 
+  
   return (
-    <MenuClient slug={slug} />
+    <Suspense fallback={<MenuSkeleton />}>
+      <MenuClient slug={slug} />
+    </Suspense>
   );
 }

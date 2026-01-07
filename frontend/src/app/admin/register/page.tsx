@@ -42,6 +42,7 @@ function RegisterForm() {
   const searchParams = useSearchParams();
   const plan = searchParams.get("plan");
   const [currentSegment, setCurrentSegment] = useState<keyof typeof segmentAssets>("gastro");
+  const [passwordStrength, setPasswordStrength] = useState(0);
 
   const {
     register,
@@ -64,13 +65,16 @@ function RegisterForm() {
 
   const companyName = watch("company_name");
   const watchedSegment = watch("segment");
+  const watchedPassword = watch("password");
 
+  // Atualiza segmento visual
   useEffect(() => {
     if (watchedSegment) {
       setCurrentSegment(watchedSegment as keyof typeof segmentAssets);
     }
   }, [watchedSegment]);
 
+  // Gera slug automático
   useEffect(() => {
     if (companyName) {
       const slug = companyName
@@ -79,18 +83,44 @@ function RegisterForm() {
         .replace(/[^a-z0-9]/g, "-")
         .replace(/-+/g, "-")
         .replace(/^-|-$/g, "");
-      
+
       setValue("company_slug", slug, { shouldValidate: true });
     }
   }, [companyName, setValue]);
 
+  // Medidor de Força de Senha
+  useEffect(() => {
+    let strength = 0;
+    if (watchedPassword.length >= 8) strength += 1;
+    if (/[A-Z]/.test(watchedPassword)) strength += 1;
+    if (/[0-9]/.test(watchedPassword)) strength += 1;
+    if (/[^A-Za-z0-9]/.test(watchedPassword)) strength += 1;
+    setPasswordStrength(strength);
+  }, [watchedPassword]);
+
+  // Máscara de Telefone
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/\D/g, "");
+    if (val.length > 11) val = val.slice(0, 11);
+    
+    if (val.length > 2) val = `(${val.slice(0, 2)}) ${val.slice(2)}`;
+    if (val.length > 10) val = `${val.slice(0, 10)}-${val.slice(10)}`;
+    
+    setValue("owner_phone", val);
+  };
+
   const onSubmit = async (data: any) => {
     try {
-      const payload = data as RegisterSchema;
+      // Remove formatação do telefone antes de enviar
+      const payload = {
+        ...data,
+        owner_phone: data.owner_phone.replace(/\D/g, "")
+      } as RegisterSchema;
+
       const response = await registerApi(payload);
       setToken(response.access_token);
       toast.success("Conta criada com sucesso!");
-      
+
       if (plan === 'pro') {
         setTimeout(() => router.push(`/admin/${response.company_slug}/settings/billing?auto_checkout=true`), 500);
       } else {
@@ -99,6 +129,13 @@ function RegisterForm() {
     } catch (err: any) {
       toast.error(err.message || "Erro ao criar conta.");
     }
+  };
+
+  const getStrengthColor = () => {
+    if (passwordStrength <= 1) return "bg-red-500";
+    if (passwordStrength === 2) return "bg-yellow-500";
+    if (passwordStrength === 3) return "bg-blue-500";
+    return "bg-green-500";
   };
 
   return (
@@ -111,11 +148,11 @@ function RegisterForm() {
       >
         <div className="max-w-md mx-auto w-full py-8">
           <div className="mb-8">
-            <Link href="/" className="flex items-center gap-2 mb-8 group w-fit">
-              <div className="bg-orange-600 p-2.5 rounded-xl shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform">
-                <ChefHat className="text-white w-6 h-6" />
+            <Link href="/" className="flex items-center gap-3 mb-8 group w-fit">
+              <div className="bg-orange-600 p-3 rounded-2xl shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform">
+                <ChefHat className="text-white w-8 h-8" />
               </div>
-              <span className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">MesaFlow</span>
+              <span className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">MesaFlow</span>
             </Link>
             <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">Crie sua conta</h1>
             <p className="text-gray-500 dark:text-gray-400 text-lg">Comece a vender em minutos.</p>
@@ -128,7 +165,7 @@ function RegisterForm() {
                   <span>Plano <b>Pro</b> selecionado. Pagamento na próxima etapa.</span>
               </div>
             )}
-            
+
             <div>
               <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Seu Negócio</label>
               <div className="grid grid-cols-2 gap-3">
@@ -152,12 +189,14 @@ function RegisterForm() {
             <div>
               <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Link do Cardápio</label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                   <LinkIcon className={`h-5 w-5 ${errors.company_slug ? "text-red-500" : "text-gray-400 group-focus-within:text-orange-500"}`} />
                 </div>
                 <div className={`flex items-center w-full bg-gray-50 dark:bg-gray-800 border rounded-xl overflow-hidden transition-all ${errors.company_slug ? "border-red-300 focus-within:ring-2 focus-within:ring-red-200" : "border-gray-200 dark:border-gray-700 focus-within:ring-2 focus-within:ring-orange-100 focus-within:border-orange-500"}`}>
-                  <span className="pl-10 pr-1 text-gray-500 text-sm font-medium select-none">mesaflow.com/</span>
-                  <input {...register("company_slug")} className="flex-1 py-3 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none font-bold" placeholder="pizzaria-joao" />
+                  <div className="bg-gray-100 dark:bg-gray-700 px-3 py-3 pl-10 border-r border-gray-200 dark:border-gray-600">
+                    <span className="text-gray-500 text-sm font-medium select-none">mesaflow.com/</span>
+                  </div>
+                  <input {...register("company_slug")} className="flex-1 py-3 px-3 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none font-bold" placeholder="pizzaria-joao" />
                 </div>
               </div>
               {errors.company_slug && <p className="text-xs text-red-500 font-medium mt-1">{errors.company_slug.message as string}</p>}
@@ -165,11 +204,31 @@ function RegisterForm() {
 
             <div className="grid grid-cols-2 gap-4">
               <AuthInput label="Seu Nome" icon={User} placeholder="Gerente" {...register("owner_role")} />
-              <AuthInput label="WhatsApp" icon={Phone} placeholder="(11) 99999-9999" error={errors.owner_phone?.message as string} {...register("owner_phone")} />
+              <AuthInput 
+                label="WhatsApp" 
+                icon={Phone} 
+                placeholder="(11) 99999-9999" 
+                error={errors.owner_phone?.message as string} 
+                {...register("owner_phone")}
+                onChange={handlePhoneChange}
+              />
             </div>
 
             <AuthInput label="Email" type="email" icon={Mail} placeholder="admin@restaurante.com" error={errors.owner_email?.message as string} {...register("owner_email")} />
-            <AuthInput label="Senha" type="password" icon={Lock} placeholder="Mínimo 8 caracteres" error={errors.password?.message as string} {...register("password")} />
+            
+            <div>
+              <AuthInput label="Senha" type="password" icon={Lock} placeholder="Mínimo 8 caracteres" error={errors.password?.message as string} {...register("password")} />
+              {watchedPassword && (
+                <div className="mt-2 flex gap-1 h-1.5">
+                  {[1, 2, 3, 4].map((step) => (
+                    <div 
+                      key={step} 
+                      className={`flex-1 rounded-full transition-all duration-300 ${step <= passwordStrength ? getStrengthColor() : 'bg-gray-200'}`}
+                    ></div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <button type="submit" disabled={isSubmitting} className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2">
               {isSubmitting ? <Loader2 className="animate-spin" /> : <>Criar Conta <ArrowRight size={20} /></>}
@@ -197,7 +256,7 @@ function RegisterForm() {
           >
             <div className="absolute inset-0 bg-cover bg-center opacity-40" style={{ backgroundImage: `url('${segmentAssets[currentSegment].image}')` }}></div>
             <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent"></div>
-            
+
             <div className="relative z-10 flex flex-col justify-end p-16 h-full text-white">
               <div className="mb-6">
                 <h2 className="text-4xl font-bold mb-4">{segmentAssets[currentSegment].title}</h2>

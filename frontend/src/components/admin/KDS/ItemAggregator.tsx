@@ -26,27 +26,39 @@ export default function ItemAggregator({ isOpen, onClose, orders }: ItemAggregat
     const activeOrders = orders.filter(o => o.status === 'pending' || o.status === 'preparing');
 
     activeOrders.forEach(order => {
+      // Garante que items existe antes de iterar
+      if (!order.items) return;
+
       order.items.forEach(item => {
-        // Chave única: ID do produto + Opções (para não agrupar "Com Queijo" com "Sem Queijo")
-        // Simplificação: Agrupando por Produto Base para visão macro da chapa
-        const key = item.product.id.toString();
+        // FIX CRÍTICO: Proteção contra item.product ou id indefinidos
+        const productId = item?.product?.id;
+        if (!productId) {
+          console.warn("Item sem ID de produto detectado no agregador:", item);
+          return;
+        }
+
+        const key = productId.toString();
 
         if (!map.has(key)) {
           map.set(key, {
-            id: item.product.id,
-            name: item.product.name,
+            id: productId,
+            name: item.product.name || "Produto sem nome",
             quantity: 0,
-            station: item.product.station,
+            station: item.product.station || "other",
             notes: []
           });
         }
 
         const entry = map.get(key)!;
-        entry.quantity += item.quantity;
-        
-        // Coleta observações relevantes
+        entry.quantity += (item.quantity || 0);
+
+        // Coleta observações relevantes com segurança
         if (item.notes) entry.notes.push(item.notes);
-        item.selected_options.forEach(opt => entry.notes.push(opt.name));
+        if (item.selected_options) {
+          item.selected_options.forEach(opt => {
+            if (opt.name) entry.notes.push(opt.name);
+          });
+        }
       });
     });
 
@@ -81,7 +93,7 @@ export default function ItemAggregator({ isOpen, onClose, orders }: ItemAggregat
               <div className="bg-orange-600/20 text-orange-500 w-12 h-12 rounded-lg flex items-center justify-center text-xl font-black border border-orange-500/30 shrink-0">
                 {item.quantity}
               </div>
-              
+
               <div className="flex-1">
                 <h3 className="text-white font-bold text-lg leading-tight">{item.name}</h3>
                 <span className="text-[10px] uppercase font-bold text-gray-500 bg-gray-900 px-2 py-0.5 rounded mt-1 inline-block">

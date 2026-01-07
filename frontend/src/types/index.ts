@@ -1,28 +1,33 @@
 export interface Company {
   name: string;
   is_active: boolean;
-  logo_url?: string;
+  logo_url?: string | null;
   primary_color: string;
-  banner_url?: string;
-
-  // Novos campos de tema
-  background_color?: string;
-  text_color?: string;
-  accent_color?: string;
-
-  opens_at?: string;
-  closes_at?: string;
+  banner_url?: string | null;
+  background_color?: string | null;
+  text_color?: string | null;
+  accent_color?: string | null;
+  opens_at?: string | null;
+  closes_at?: string | null;
   owner_email?: string;
-  pix_key?: string;
+  pix_key?: string | null;
   loyalty_percentage?: number;
   segment?: 'gastro' | 'event' | 'hotel' | 'corp';
   plan_tier: 'free' | 'pro' | 'enterprise';
-  stripe_subscription_id?: string;
-  subscription_status?: string;
+  stripe_subscription_id?: string | null;
+  subscription_status?: string | null;
   fixed_delivery_fee?: number;
-
-  // Novos campos de Pagamento (Multi-Provedor)
-  payment_provider?: 'mercadopago' | 'efi' | 'stripe' | 'pagarme' | 'none';
+  cnpj?: string | null;
+  inscricao_estadual?: string | null;
+  fiscal_token?: string | null;
+  csc_token?: string | null;
+  csc_id?: string | null;
+  whatsapp_number?: string | null;
+  whatsapp_api_url?: string | null;
+  whatsapp_instance?: string | null;
+  whatsapp_token?: string | null;
+  ifood_merchant_id?: string | null;
+  payment_provider?: 'MERCADO_PAGO' | 'EFI' | 'STRIPE' | 'PAGARME' | 'NONE';
   payment_credentials?: any;
 }
 
@@ -69,6 +74,7 @@ export interface Product {
   station: 'kitchen' | 'bar' | 'dessert' | 'other';
   tags: string[];
   short_code?: string;
+  external_id?: string; // ID do iFood/Rappi
   option_groups: OptionGroup[];
   recommendations?: Product[];
   recipe_items?: RecipeItem[];
@@ -102,6 +108,7 @@ export interface OrderItemResponse {
   quantity: number;
   notes: string | null;
   product: {
+    id: number;
     name: string;
     image_url: string | null;
     price: number;
@@ -116,13 +123,13 @@ export interface Order {
     table_number: number;
   };
   order_type: 'dine_in' | 'delivery' | 'takeout';
+  origin?: 'mesaflow' | 'ifood' | 'rappi'; // Origem do pedido
+  external_order_id?: string; // ID externo do marketplace
   delivery_address?: string;
   customer_phone?: string;
-
   subtotal?: number;
   discount_amount?: number;
   cashback_earned?: number;
-
   customer_name: string | null;
   total_amount: number;
   status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivering' | 'delivered' | 'canceled';
@@ -134,12 +141,9 @@ export interface Order {
   mp_qr_code?: string;
   mp_qr_code_base64?: string;
   driver_id?: number;
-
   delivery_code?: string;
   delivery_fee?: number;
   service_fee?: number;
-
-  // Campos Fiscais
   fiscal_status?: 'pending' | 'processing' | 'emitted' | 'error' | 'canceled';
   nfe_url_pdf?: string;
   nfe_url_xml?: string;
@@ -196,4 +200,27 @@ export interface AuditLog {
   details: any;
   ip_address?: string;
   created_at: string;
+}
+
+export interface Promotion {
+  id: string;
+  name: string;
+  code?: string;
+  discount_type: 'percentage' | 'fixed' | 'shipping';
+  discount_value: number;
+  min_order_value: number;
+  max_discount_value?: number;
+  start_date?: string;
+  end_date?: string;
+  usage_limit?: number;
+  current_usage: number;
+  is_active: boolean;
+}
+
+export interface CouponValidationResponse {
+  valid: boolean;
+  discount_amount: number;
+  final_total: number;
+  message: string;
+  promotion_id?: string;
 }

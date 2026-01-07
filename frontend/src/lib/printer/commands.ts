@@ -6,11 +6,15 @@ export const COMMANDS = {
   INIT: [ESC, 0x40],                    // Inicializa a impressora
   CUT: [GS, 0x56, 0x41, 0x00],          // Corta o papel (Full Cut)
   
+  // Gaveta de Dinheiro (Cash Drawer)
+  // ESC p m t1 t2 (m=0: pino 2, t1=25*2ms, t2=250*2ms)
+  OPEN_DRAWER: [ESC, 0x70, 0x00, 0x19, 0xFA], 
+
   // Formatação de Texto
   TXT_NORMAL: [ESC, 0x21, 0x00],        // Fonte Normal
   TXT_BOLD_ON: [ESC, 0x45, 0x01],       // Negrito Ligado
   TXT_BOLD_OFF: [ESC, 0x45, 0x00],      // Negrito Desligado
-  
+
   // Tamanhos (GS ! n)
   TXT_SIZE: {
     NORMAL: [GS, 0x21, 0x00],
@@ -18,7 +22,7 @@ export const COMMANDS = {
     DOUBLE_WIDTH: [GS, 0x21, 0x01],
     QUAD: [GS, 0x21, 0x11],
   },
-  
+
   // Alinhamento
   ALIGN: {
     LEFT: [ESC, 0x61, 0x00],

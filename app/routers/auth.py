@@ -3,14 +3,14 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 from app.database import get_db
-from app.models import Company, Employee
+from app.models import Company, Employee, UserDevice, AuditAction
 from app.core.security import (
     verify_password, get_password_hash, create_access_token, 
     create_refresh_token, SECRET_KEY, ALGORITHM
 )
-from app.schemas import Token, SignUpRequest
-from app.core.limiter import limiter
-from datetime import timedelta, datetime
+from app.schemas import Token, SignUpRequest, DeviceRegister
+from app.services.audit_service import AuditService
+from pydantic import BaseModel
 import os
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
@@ -19,15 +19,69 @@ router = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
+class ImpersonateRequest(BaseModel):
+    target_email: str
+
+@router.post("/impersonate", response_model=Token)
+async def impersonate_user(
+    request: Request,
+    data: ImpersonateRequest,
+    x_super_secret: str = Header(...),
+    db: Session = Depends(get_db)
+):
+    """
+    GOD MODE: Permite que um Super Admin acesse qualquer conta.
+    Exige segredo mestre e gera log de auditoria obrigatório.
+    """
+    master_secret = os.getenv("SUPER_ADMIN_SECRET")
+    if not master_secret or x_super_secret != master_secret:
+        raise HTTPException(status_code=401, detail="Acesso negado ao modo suporte.")
+
+    # Busca a empresa alvo
+    company = db.query(Company).filter(Company.owner_email == data.target_email).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado.")
+
+    # Gera tokens com claim de impersonation
+    token_data = {
+        "sub": company.owner_email,
+        "role": "owner",
+        "account_type": "company",
+        "impersonator": True # Flag para o frontend/backend saber que é suporte
+    }
+    
+    access_token = create_access_token(data=token_data)
+    refresh_token = create_refresh_token(data=token_data)
+
+    # LOG DE AUDITORIA CRÍTICO
+    AuditService.log(
+        db, 
+        company, 
+        AuditAction.IMPERSONATE, 
+        "SupportAccess", 
+        str(company.id),
+        details={"impersonator_ip": request.client.host, "target": data.target_email},
+        request=request
+    )
+
+    return {
+        "access_token": access_token, 
+        "refresh_token": refresh_token, 
+        "token_type": "bearer", 
+        "company_slug": company.slug, 
+        "company_name": company.name, 
+        "user_role": "owner", 
+        "user_name": f"[SUPORTE] {company.name}"
+    }
+
 @router.post("/token", response_model=Token)
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    # Tenta autenticar Empresa
     company = db.query(Company).filter(Company.owner_email == form_data.username).first()
     if company and verify_password(form_data.password, company.password_hash):
         token_data = {"sub": company.owner_email, "role": "owner", "account_type": "company"}
         access_token = create_access_token(data=token_data)
         refresh_token = create_refresh_token(data=token_data)
-        
+
         return {
             "access_token": access_token, 
             "refresh_token": refresh_token, 
@@ -38,16 +92,15 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
             "user_name": "Admin"
         }
 
-    # Tenta autenticar Funcionário
     employee = db.query(Employee).filter(Employee.email == form_data.username).first()
     if employee and verify_password(form_data.password, employee.password_hash):
         if not employee.is_active: raise HTTPException(400, "Usuário inativo")
         company = db.query(Company).filter(Company.id == employee.company_id).first()
         token_data = {"sub": employee.email, "role": employee.role, "account_type": "employee", "company_id": str(company.id)}
-        
+
         access_token = create_access_token(data=token_data)
         refresh_token = create_refresh_token(data=token_data)
-        
+
         return {
             "access_token": access_token, 
             "refresh_token": refresh_token, 
@@ -62,26 +115,25 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
 
 @router.post("/refresh", response_model=Token)
 def refresh_token_endpoint(x_refresh_token: str = Header(...), db: Session = Depends(get_db)):
-    """Troca um refresh_token válido por um novo par de tokens."""
     try:
         payload = jwt.decode(x_refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
         if payload.get("type") != "refresh":
-            raise HTTPException(status_code=401, detail="Token inválido para esta operação")
-        
+            raise HTTPException(status_code=401, detail="Token inválido")
+
         email = payload.get("sub")
         user_type = payload.get("account_type")
-        
-        # Recarrega os dados para garantir que a conta ainda existe/está ativa
+        is_impersonated = payload.get("impersonator", False)
+
         if user_type == "company":
             user = db.query(Company).filter(Company.owner_email == email).first()
             if not user: raise HTTPException(401)
-            token_data = {"sub": user.owner_email, "role": "owner", "account_type": "company"}
+            token_data = {"sub": user.owner_email, "role": "owner", "account_type": "company", "impersonator": is_impersonated}
             company_info = {"slug": user.slug, "name": user.name, "role": "owner", "user_name": "Admin"}
         else:
             user = db.query(Employee).filter(Employee.email == email).first()
             if not user or not user.is_active: raise HTTPException(401)
             company = db.query(Company).filter(Company.id == user.company_id).first()
-            token_data = {"sub": user.email, "role": user.role, "account_type": "employee", "company_id": str(company.id)}
+            token_data = {"sub": user.email, "role": user.role, "account_type": "employee", "company_id": str(company.id), "impersonator": is_impersonated}
             company_info = {"slug": company.slug, "name": company.name, "role": user.role, "user_name": user.name}
 
         return {
@@ -95,7 +147,7 @@ def refresh_token_endpoint(x_refresh_token: str = Header(...), db: Session = Dep
         }
 
     except JWTError:
-        raise HTTPException(status_code=401, detail="Sessão expirada. Faça login novamente.")
+        raise HTTPException(status_code=401, detail="Sessão expirada.")
 
 @router.post("/google", response_model=Token)
 async def google_auth(request: Request, db: Session = Depends(get_db)):
@@ -158,6 +210,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         user_type: str = payload.get("account_type")
+        is_impersonator: bool = payload.get("impersonator", False) # Extrai a claim de suporte
+        
         if email is None: raise HTTPException(401, "Token inválido")
     except JWTError:
         raise HTTPException(401, "Token inválido")
@@ -166,6 +220,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         user = db.query(Company).filter(Company.owner_email == email).first()
         if user: 
             user.role = "owner"
+            user.is_impersonator = is_impersonator # Injeta no objeto para uso nos routers
             return user
 
     elif user_type == "employee":
@@ -174,6 +229,54 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             company = db.query(Company).filter(Company.id == user.company_id).first()
             user.company = company
             user.slug = company.slug
+            user.is_impersonator = is_impersonator # Injeta no objeto
             return user
 
     raise HTTPException(401, "Usuário não encontrado")
+
+@router.post("/device", status_code=200)
+def register_device(
+    data: DeviceRegister,
+    db: Session = Depends(get_db),
+    current_user: any = Depends(get_current_user)
+):
+    if not isinstance(current_user, Employee):
+        raise HTTPException(status_code=403, detail="Apenas funcionários podem registrar dispositivos móveis.")
+
+    device = db.query(UserDevice).filter(UserDevice.fcm_token == data.fcm_token).first()
+
+    if device:
+        device.employee_id = current_user.id
+        device.company_id = current_user.company_id
+        device.device_name = data.device_name
+        device.platform = data.platform
+        device.updated_at = datetime.now()
+    else:
+        device = UserDevice(
+            company_id=current_user.company_id,
+            employee_id=current_user.id,
+            fcm_token=data.fcm_token,
+            device_name=data.device_name,
+            platform=data.platform
+        )
+        db.add(device)
+
+    db.commit()
+    return {"message": "Dispositivo registrado com sucesso"}
+
+@router.delete("/device/{token}", status_code=204)
+def unregister_device(
+    token: str,
+    db: Session = Depends(get_db),
+    current_user: any = Depends(get_current_user)
+):
+    device = db.query(UserDevice).filter(UserDevice.fcm_token == token).first()
+    if device:
+        is_owner = isinstance(current_user, Employee) and device.employee_id == current_user.id
+        is_admin = isinstance(current_user, Company) and device.company_id == current_user.id
+        if is_owner or is_admin:
+            db.delete(device)
+            db.commit()
+        else:
+            raise HTTPException(status_code=403, detail="Sem permissão")
+    return None

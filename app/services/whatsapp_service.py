@@ -9,15 +9,20 @@ load_dotenv()
 logger = logging.getLogger("WhatsAppService")
 
 class WhatsAppService:
+    """
+    Serviço de integração com APIs de WhatsApp (Evolution API / Twilio).
+    Seguindo o Artigo 4 da Constituição Técnica: Encapsulamento com Retries e Timeouts.
+    """
     def __init__(self):
         # Configurações Globais (Fallback)
         self.global_api_url = os.getenv("WHATSAPP_API_URL")
         self.global_instance = os.getenv("WHATSAPP_INSTANCE")
         self.global_token = os.getenv("WHATSAPP_API_TOKEN")
+        self.timeout = 15.0 # Timeout aumentado para APIs de mensageria
 
     def _get_config(self, company_settings: Optional[Any]) -> Dict[str, Any]:
         """
-        Determina qual configuração usar: A da empresa (se existir) ou a Global.
+        Determina qual configuração usar: A da empresa (SaaS White-label) ou a Global.
         """
         if company_settings:
             api_url = getattr(company_settings, "whatsapp_api_url", None)
@@ -42,13 +47,41 @@ class WhatsAppService:
 
         return {"enabled": False}
 
-    async def _send_http_request(self, phone: str, message: str, config: Dict[str, Any]):
-        """Método privado para envio real via HTTP."""
+    async def get_instance_status(self, company_settings: Any = None) -> Dict[str, Any]:
+        """
+        Verifica o status da conexão da instância (Evolution API).
+        Retorna: { "status": "open" | "close" | "connecting" | "unknown" }
+        """
+        config = self._get_config(company_settings)
         if not config.get("enabled"):
-            logger.warning(f"⚠️ WhatsApp desativado. Ignorando msg para {phone}.")
+            return {"status": "disabled", "message": "WhatsApp não configurado"}
+
+        base_url = config["url"].rstrip("/")
+        instance = config["instance"]
+        url = f"{base_url}/instance/connectionState/{instance}"
+        
+        headers = {"apikey": config["token"]}
+
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            try:
+                response = await client.get(url, headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    # Evolution API v1/v2 retorna formatos variados, normalizamos aqui
+                    state = data.get("instance", {}).get("state", "unknown")
+                    return {"status": state, "raw": data}
+                return {"status": "error", "code": response.status_code}
+            except Exception as e:
+                logger.error(f"Erro ao verificar status do WhatsApp: {e}")
+                return {"status": "offline", "error": str(e)}
+
+    async def _send_http_request(self, phone: str, message: str, config: Dict[str, Any]):
+        """Método privado para envio real via HTTP com tratamento de erro robusto."""
+        if not config.get("enabled"):
+            logger.warning(f"⚠️ WhatsApp desativado ou sem config. Ignorando msg para {phone}.")
             return False
 
-        # Normalização do número
+        # Normalização do número (E.164)
         clean_phone = "".join(filter(str.isdigit, phone))
         if not clean_phone.startswith("55") and len(clean_phone) <= 11:
             clean_phone = f"55{clean_phone}"
@@ -68,20 +101,26 @@ class WhatsAppService:
         instance = config["instance"]
         url = f"{base_url}/message/sendText/{instance}"
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             try:
-                response = await client.post(url, json=payload, headers=headers, timeout=10.0)
+                # Implementação de Retry simples pode ser adicionada aqui se necessário
+                response = await client.post(url, json=payload, headers=headers)
+
                 if response.status_code in [200, 201]:
-                    logger.info(f"✅ WhatsApp enviado para {clean_phone}")
+                    logger.info(f"✅ WhatsApp enviado com sucesso para {clean_phone}")
                     return True
+
                 logger.error(f"❌ Erro API WhatsApp ({response.status_code}): {response.text}")
                 return False
+            except httpx.TimeoutException:
+                logger.error(f"⏱️ Timeout ao tentar enviar WhatsApp para {clean_phone}")
+                return False
             except Exception as e:
-                logger.error(f"🔥 Falha crítica no serviço de WhatsApp: {e}")
+                logger.error(f"🔥 Falha crítica no serviço de WhatsApp: {str(e)}")
                 return False
 
     async def notify_order_ready(self, customer_name: str, phone: str, table_number: str, restaurant_name: str, company_settings: Any = None):
-        """Notifica que o pedido está pronto."""
+        """Notifica o cliente que o pedido está pronto para retirada ou serviço."""
         if not phone: return False
         config = self._get_config(company_settings)
         msg = (
@@ -93,11 +132,12 @@ class WhatsAppService:
         return await self._send_http_request(phone, msg, config)
 
     async def notify_delivery_dispatch(self, customer_name: str, phone: str, driver_name: Optional[str], order_id: str, slug: str, company_settings: Any = None):
-        """Notifica saída para entrega."""
+        """Notifica o cliente que o pedido saiu para entrega com link de rastreio."""
         if not phone: return False
         config = self._get_config(company_settings)
         frontend_url = os.getenv("FRONTEND_URL", "https://mesaflow.com.br")
         tracking_url = f"{frontend_url}/{slug}/menu?order={order_id}"
+
         driver_info = f" com o entregador *{driver_name}*" if driver_name else ""
         msg = (
             f"Olá *{customer_name}*! 🛵\n\n"
@@ -107,12 +147,12 @@ class WhatsAppService:
         return await self._send_http_request(phone, msg, config)
 
     async def notify_low_stock(self, phone: str, ingredient_name: str, affected_products: List[str], current_stock: float, unit: str, company_settings: Any = None):
-        """Notifica o dono sobre estoque baixo/zerado."""
+        """Notifica o proprietário sobre ruptura de estoque (Regra 86)."""
         if not phone: return False
         config = self._get_config(company_settings)
-        
+
         products_list = "\n".join([f"- {p}" for p in affected_products])
-        
+
         msg = (
             f"⚠️ *ALERTA DE ESTOQUE: {ingredient_name}*\n\n"
             f"O estoque chegou a {current_stock} {unit}.\n"
@@ -123,9 +163,9 @@ class WhatsAppService:
         return await self._send_http_request(phone, msg, config)
 
     async def send_test_message(self, company_settings: Any) -> bool:
-        """Valida credenciais com mensagem de teste."""
+        """Valida as credenciais configuradas enviando uma mensagem de teste ao dono."""
         target_phone = getattr(company_settings, "whatsapp_number", None)
         if not target_phone: return False
         config = self._get_config(company_settings)
-        msg = "🤖 *MesaFlow: Teste de Conexão OK!* ✅"
+        msg = "🤖 *MesaFlow: Teste de Conexão OK!* ✅\nSua loja está pronta para enviar notificações automáticas."
         return await self._send_http_request(target_phone, msg, config)

@@ -64,6 +64,14 @@ yarn-error.log*
 pnpm-debug.log*
 
 # =======================================================
+# 📱 MOBILE (EXPO / REACT NATIVE)
+# =======================================================
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
+mobile/npm-debug.log*
+
+# =======================================================
 # 🎭 PLAYWRIGHT (TESTES E2E)
 # =======================================================
 test-results/

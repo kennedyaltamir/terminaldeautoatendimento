@@ -50,3 +50,25 @@ Automação e manutenção.
 - `security/`: Auditorias e correções de segurança.
 - `functional/`: Testes manuais de funcionalidades específicas.
 - `tests/`: **Suíte de Testes Automatizados (Pytest).**
+# 📂 Estrutura do Projeto MesaFlow
+
+## 🧠 Backend (`app/`)
+- `services/ifood_service.py`: Motor de polling e ingestão de pedidos do marketplace.
+- `services/webhook_dispatcher.py`: Motor de disparo de notificações externas com lógica de retry.
+- `services/fiscal/`: Camada de abstração para emissão de notas (Adapter Pattern).
+- `core/docs.py`: Configurações de metadados para o Swagger.
+
+## 🎨 Frontend (`frontend/src/`)
+- `hooks/useFiscalSync.ts`: Worker de sincronização de notas fiscais offline.
+- `hooks/useOfflineSync.ts`: Worker de sincronização de pedidos offline.
+- `lib/db.ts`: Definição do banco de dados local (Dexie.js/IndexedDB).
+- `components/admin/WebhookManager.tsx`: Interface de gestão de integrações.
+- `components/admin/WhatsappStatus.tsx`: Monitor de saúde da API de mensagens.
+
+## 🧪 Testes (`scripts/tests/`)
+- `test_promotion_flow_e2e.py`: Validação ultra-rígida do motor de promoções.
+- `test_fiscal_contingency_e2e.py`: Simulação de queda de internet e sincronização fiscal.
+- `test_outgoing_webhooks.py`: Validação de integridade e assinatura HMAC.
+- `test_ifood_integration.py`: Simulação de ingestão de pedidos externos.
+
+---

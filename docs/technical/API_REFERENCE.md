@@ -49,3 +49,29 @@ Muda o status do pedido (KDS).
 | `403` | Empresa A tentando acessar recurso da Empresa B (Anti-IDOR). |
 | `422` | Payload malformado ou campos faltando. |
 | `429` | Limite de requisições excedido. |
+# 🔌 API Reference - MesaFlow v3.0.0
+
+## 1. Autenticação
+Acesse `/api/auth/token` para obter seu Bearer JWT.
+
+## 2. Webhooks de Saída (Outgoing Webhooks)
+O MesaFlow notifica seu sistema sobre eventos em tempo real.
+
+### Eventos Disponíveis:
+- `order.created`: Novo pedido (Mesa, Delivery ou iFood).
+- `order.updated`: Mudança de status na cozinha.
+- `payment.updated`: Confirmação de pagamento.
+
+### Segurança:
+Valide o header `X-MesaFlow-Signature` usando seu **Signing Secret**. O hash é gerado via HMAC-SHA256 sobre o corpo bruto (raw body) da requisição.
+
+## 3. Integração iFood
+Para que os pedidos do iFood sejam mapeados corretamente:
+1. Cadastre o `ifood_merchant_id` nas configurações da empresa.
+2. No cadastro de produtos, preencha o campo `external_id` com o SKU correspondente no portal do iFood.
+
+## 4. Documentação Interativa
+- **Swagger UI:** `/docs` (Recomendado para testes rápidos).
+- **ReDoc:** `/redoc` (Recomendado para leitura técnica).
+
+---

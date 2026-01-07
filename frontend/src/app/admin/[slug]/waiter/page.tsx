@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getTablesDashboard } from "@/lib/api";
 import { Table } from "@/types";
-import { Search, User, Clock, DollarSign, ChevronRight, Filter, ShoppingBag, Bike } from "lucide-react";
+import { Search, Clock, ChevronRight, ShoppingBag, Bike, Key, RefreshCw } from "lucide-react";
 import WaiterBottomNav from "@/components/waiter/WaiterBottomNav";
 import { useTerminology } from "@/hooks/useTerminology";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 interface TableDashboard extends Table {
   status: 'free' | 'occupied' | 'alert';
@@ -16,6 +17,7 @@ interface TableDashboard extends Table {
     customer_name: string;
     total_spent: number;
     start_time: string;
+    access_pin?: string;
   };
 }
 
@@ -28,16 +30,29 @@ export default function WaiterTablesPage({ params }: { params: { slug: string } 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<'all' | 'free' | 'occupied'>('all');
 
-  useEffect(() => {
-    getTablesDashboard(slug)
-      .then(setTables)
-      .finally(() => setLoading(false));
+  const fetchTables = useCallback(async () => {
+    try {
+      const data = await getTablesDashboard(slug);
+      setTables(data);
+    } catch (e) {
+      toast.error("Erro ao atualizar mesas");
+    } finally {
+      setLoading(false);
+    }
   }, [slug]);
+
+  useEffect(() => { fetchTables(); }, [fetchTables]);
+
+  useWebSocket(slug, (data) => {
+    if (data.type === "order_update" || data.type === "new_order") {
+      fetchTables();
+    }
+  });
 
   const filteredTables = tables.filter(t => {
     const matchesSearch = t.table_number.toString().includes(search) || 
                           t.active_session?.customer_name.toLowerCase().includes(search.toLowerCase());
-    
+
     if (filter === 'all') return matchesSearch;
     if (filter === 'free') return matchesSearch && t.status === 'free';
     if (filter === 'occupied') return matchesSearch && (t.status === 'occupied' || t.status === 'alert');
@@ -48,7 +63,6 @@ export default function WaiterTablesPage({ params }: { params: { slug: string } 
     router.push(`/admin/${slug}/waiter/pos/${table.id}`);
   };
 
-  // --- ATUALIZAÇÃO: Redirecionamento Real ---
   const handleQuickOrder = (type: 'delivery' | 'takeout') => {
     router.push(`/admin/${slug}/waiter/pos/quick?mode=${type}`);
   };
@@ -56,17 +70,20 @@ export default function WaiterTablesPage({ params }: { params: { slug: string } 
   return (
     <>
       <Toaster position="top-center" richColors />
-      
+
       <div className="p-4 bg-gray-900 text-white sticky top-0 z-40 shadow-md">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-xl font-bold">Salão ({terms.table}s)</h1>
-          <div className="flex bg-gray-800 rounded-lg p-1">
-            <button onClick={() => setFilter('all')} className={`px-3 py-1 rounded text-xs font-bold ${filter === 'all' ? 'bg-gray-600 text-white' : 'text-gray-400'}`}>Todos</button>
-            <button onClick={() => setFilter('free')} className={`px-3 py-1 rounded text-xs font-bold ${filter === 'free' ? 'bg-green-600 text-white' : 'text-gray-400'}`}>Livres</button>
-            <button onClick={() => setFilter('occupied')} className={`px-3 py-1 rounded text-xs font-bold ${filter === 'occupied' ? 'bg-red-600 text-white' : 'text-gray-400'}`}>Ocupados</button>
+          <div className="flex gap-2">
+            <button onClick={fetchTables} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700"><RefreshCw size={18}/></button>
+            <div className="flex bg-gray-800 rounded-lg p-1">
+                <button onClick={() => setFilter('all')} className={`px-3 py-1 rounded text-xs font-bold ${filter === 'all' ? 'bg-gray-600 text-white' : 'text-gray-400'}`}>Todos</button>
+                <button onClick={() => setFilter('free')} className={`px-3 py-1 rounded text-xs font-bold ${filter === 'free' ? 'bg-green-600 text-white' : 'text-gray-400'}`}>Livres</button>
+                <button onClick={() => setFilter('occupied')} className={`px-3 py-1 rounded text-xs font-bold ${filter === 'occupied' ? 'bg-red-600 text-white' : 'text-gray-400'}`}>Ocupados</button>
+            </div>
           </div>
         </div>
-        
+
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input 
@@ -79,20 +96,19 @@ export default function WaiterTablesPage({ params }: { params: { slug: string } 
         </div>
       </div>
 
-      {/* AÇÕES RÁPIDAS (Links Reais) */}
       <div className="grid grid-cols-2 gap-3 p-4 pb-0">
-        <button onClick={() => handleQuickOrder('takeout')} className="bg-orange-50 border border-orange-200 p-3 rounded-xl flex items-center gap-3 active:scale-95 transition-transform">
-          <div className="bg-orange-100 p-2 rounded-full text-orange-600"><ShoppingBag size={20}/></div>
-          <div className="text-left">
-            <p className="text-xs font-bold text-orange-800 uppercase">Venda Balcão</p>
-            <p className="text-[10px] text-orange-600">Sem mesa</p>
+        <button onClick={() => handleQuickOrder('takeout')} className="bg-orange-50 border border-orange-200 p-4 rounded-2xl flex flex-col items-center gap-2 active:scale-95 transition-all shadow-sm">
+          <div className="bg-orange-100 p-3 rounded-full text-orange-600"><ShoppingBag size={24}/></div>
+          <div className="text-center">
+            <p className="text-sm font-black text-orange-800 uppercase">VENDA BALCÃO</p>
+            <p className="text-[10px] text-orange-600 font-bold">Atendimento Rápido</p>
           </div>
         </button>
-        <button onClick={() => handleQuickOrder('delivery')} className="bg-blue-50 border border-blue-200 p-3 rounded-xl flex items-center gap-3 active:scale-95 transition-transform">
-          <div className="bg-blue-100 p-2 rounded-full text-blue-600"><Bike size={20}/></div>
-          <div className="text-left">
-            <p className="text-xs font-bold text-blue-800 uppercase">Novo Delivery</p>
-            <p className="text-[10px] text-blue-600">Entrega</p>
+        <button onClick={() => handleQuickOrder('delivery')} className="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex flex-col items-center gap-2 active:scale-95 transition-all shadow-sm">
+          <div className="bg-blue-100 p-3 rounded-full text-blue-600"><Bike size={24}/></div>
+          <div className="text-center">
+            <p className="text-sm font-black text-blue-800 uppercase">NOVO DELIVERY</p>
+            <p className="text-[10px] text-blue-600 font-bold">Anotar Entrega</p>
           </div>
         </button>
       </div>
@@ -105,33 +121,41 @@ export default function WaiterTablesPage({ params }: { params: { slug: string } 
             <button 
               key={table.id}
               onClick={() => handleTableClick(table)}
-              className={`p-4 rounded-xl border-2 text-left transition-all active:scale-95 relative overflow-hidden ${
+              className={`p-4 rounded-2xl border-2 text-left transition-all active:scale-95 relative overflow-hidden flex flex-col justify-between min-h-[140px] ${
                 table.status === 'occupied' || table.status === 'alert'
-                  ? 'bg-white border-orange-500 shadow-md' 
+                  ? 'bg-white border-orange-500 shadow-lg' 
                   : 'bg-gray-50 border-gray-200 opacity-80'
               }`}
             >
-              <div className="flex justify-between items-start mb-2">
-                <span className="text-2xl font-black text-gray-800">{table.table_number}</span>
-                {table.status === 'occupied' && <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>}
-                {table.status === 'alert' && <div className="w-3 h-3 bg-red-500 rounded-full animate-bounce"></div>}
+              <div className="w-full">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-3xl font-black text-gray-900">#{table.table_number}</span>
+                  {table.status === 'occupied' && <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>}
+                  {table.status === 'alert' && <div className="w-3 h-3 bg-red-500 rounded-full animate-bounce"></div>}
+                </div>
+
+                {table.active_session ? (
+                  <div className="space-y-1">
+                    <p className="text-xs font-black text-orange-600 uppercase tracking-tighter truncate">{table.active_session.customer_name}</p>
+                    
+                    <div className="flex items-center gap-1 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 w-fit">
+                        <Key size={10} className="text-blue-500" />
+                        <span className="text-[10px] font-mono font-black text-blue-700">{table.active_session.access_pin}</span>
+                    </div>
+
+                    <p className="text-[10px] text-gray-400 flex items-center gap-1 mt-1">
+                      <Clock size={10}/> {new Date(table.active_session.start_time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                    </p>
+                    <p className="text-lg font-black text-green-600 mt-1">R$ {Number(table.active_session.total_spent).toFixed(2)}</p>
+                  </div>
+                ) : (
+                  <div className="h-12 flex items-center text-gray-400 text-xs font-bold uppercase tracking-widest">
+                    Livre
+                  </div>
+                )}
               </div>
-              
-              {table.active_session ? (
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-gray-900 truncate">{table.active_session.customer_name}</p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
-                    <Clock size={12}/> {new Date(table.active_session.start_time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
-                  </p>
-                  <p className="text-sm font-bold text-green-600 mt-2">R$ {Number(table.active_session.total_spent).toFixed(2)}</p>
-                </div>
-              ) : (
-                <div className="h-12 flex items-center text-gray-400 text-xs font-medium">
-                  Livre
-                </div>
-              )}
-              
-              <div className="absolute bottom-2 right-2 text-gray-300">
+
+              <div className="absolute bottom-2 right-2 text-gray-200">
                 <ChevronRight size={20} />
               </div>
             </button>

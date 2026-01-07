@@ -8,23 +8,21 @@ import re
 # --- VALIDATORS REUTILIZÁVEIS ---
 
 def sanitize_html(v: str | None) -> str | None:
-    """Remove tags HTML para prevenir XSS Stored"""
     if v is None:
         return None
-    # Remove qualquer coisa entre < e >
     clean = re.sub(r'<[^>]*>', '', v)
     return clean.strip()
 
 # --- AUTH & COMPANY ---
 
 class SignUpRequest(BaseModel):
-    company_name: str = Field(..., min_length=3)
-    company_slug: str = Field(..., min_length=3, pattern="^[a-z0-9-]+$")
-    owner_email: EmailStr
-    password: str = Field(..., min_length=8)
-    owner_phone: Optional[str] = None
-    owner_role: Optional[str] = None
-    segment: str = "gastro"
+    company_name: str = Field(..., min_length=3, example="Pizzaria do Bairro")
+    company_slug: str = Field(..., min_length=3, pattern="^[a-z0-9-]+$", example="pizzaria-bairro")
+    owner_email: EmailStr = Field(..., example="contato@pizzaria.com")
+    password: str = Field(..., min_length=8, example="SenhaSegura123")
+    owner_phone: Optional[str] = Field(None, example="5511999999999")
+    owner_role: Optional[str] = Field(None, example="Gerente")
+    segment: str = Field("gastro", example="gastro")
 
     @field_validator('company_name', 'owner_role')
     def sanitize(cls, v): return sanitize_html(v)
@@ -51,12 +49,6 @@ class PasswordUpdate(BaseModel):
     current_password: str
     new_password: str = Field(..., min_length=8)
 
-    @field_validator('new_password')
-    def validate_password_strength(cls, v):
-        if not re.search(r'[A-Za-z]', v) or not re.search(r'[0-9]', v):
-            raise ValueError('A senha deve conter letras e números')
-        return v
-
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
@@ -64,23 +56,15 @@ class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str = Field(..., min_length=8)
 
-    @field_validator('new_password')
-    def validate_password_strength(cls, v):
-        if not re.search(r'[A-Za-z]', v) or not re.search(r'[0-9]', v):
-            raise ValueError('A senha deve conter letras e números')
-        return v
-
 class CompanyPublic(BaseModel):
     name: str
     is_active: bool
     logo_url: Optional[str] = None
     primary_color: str = "#ea580c"
     banner_url: Optional[str] = None
-
     background_color: Optional[str] = "#f9fafb"
     text_color: Optional[str] = "#111827"
     accent_color: Optional[str] = "#ea580c"
-
     opens_at: Optional[time] = None
     closes_at: Optional[time] = None
     owner_email: Optional[str] = None
@@ -94,39 +78,34 @@ class CompanyPublic(BaseModel):
 
 class CompanyAdminSettings(CompanyPublic):
     mp_access_token: Optional[str] = None
+    payment_provider: str = "NONE"
     marketplace_fee_percentage: Decimal = Decimal(0)
     loyalty_percentage: Decimal = Decimal(0)
     plan_tier: str = "free"
     trial_ends_at: Optional[datetime] = None
     stripe_subscription_id: Optional[str] = None
     subscription_status: Optional[str] = None
-
     cnpj: Optional[str] = None
     inscricao_estadual: Optional[str] = None
     fiscal_token: Optional[str] = None
     csc_token: Optional[str] = None
     csc_id: Optional[str] = None
-
     service_fee_percentage: Decimal = Decimal(10.0)
     fixed_delivery_fee: Decimal = Decimal(0.0)
-
-    # Novos campos de Configuração de WhatsApp
     whatsapp_api_url: Optional[str] = None
     whatsapp_instance: Optional[str] = None
     whatsapp_token: Optional[str] = None
-
+    ifood_merchant_id: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
 class CompanyUpdate(BaseModel):
     name: Optional[str] = None
     logo_url: Optional[str] = None
     banner_url: Optional[str] = None
-
     primary_color: Optional[str] = None
     background_color: Optional[str] = None
     text_color: Optional[str] = None
     accent_color: Optional[str] = None
-
     opens_at: Optional[time] = None
     closes_at: Optional[time] = None
     pix_key: Optional[str] = None
@@ -134,33 +113,20 @@ class CompanyUpdate(BaseModel):
     loyalty_percentage: Optional[Decimal] = None
     instagram_url: Optional[str] = None
     whatsapp_number: Optional[str] = None
-
-    # Novos campos de Configuração de WhatsApp
     whatsapp_api_url: Optional[str] = None
     whatsapp_instance: Optional[str] = None
     whatsapp_token: Optional[str] = None
-
     wifi_ssid: Optional[str] = None
     wifi_password: Optional[str] = None
-
     cnpj: Optional[str] = None
     inscricao_estadual: Optional[str] = None
     fiscal_token: Optional[str] = None
     csc_token: Optional[str] = None
     csc_id: Optional[str] = None
-
     service_fee_percentage: Optional[Decimal] = None
     fixed_delivery_fee: Optional[Decimal] = None
-
-    @field_validator('name', 'wifi_ssid')
-    def sanitize(cls, v): return sanitize_html(v)
-
-    @field_validator('primary_color', 'background_color', 'text_color', 'accent_color')
-    def validate_hex_color(cls, v):
-        if v is not None:
-            if not re.match(r'^#(?:[0-9a-fA-F]{3}){1,2}$', v):
-                raise ValueError('Cor inválida. Use formato hexadecimal (ex: #FF0000)')
-        return v
+    ifood_merchant_id: Optional[str] = None
+    ifood_token: Optional[str] = None
 
 # --- MENU & PRODUCTS ---
 
@@ -200,6 +166,7 @@ class ProductResponse(BaseModel):
     short_code: Optional[str] = None
     ncm: Optional[str] = None
     cfop: Optional[str] = None
+    external_id: Optional[str] = None
     option_groups: List[OptionGroupResponse] = []
     recommendations: List[ProductSimpleResponse] = []
     model_config = ConfigDict(from_attributes=True)
@@ -218,14 +185,11 @@ class MenuResponse(BaseModel):
     categories: List[CategoryResponse]
 
 class CategoryCreate(BaseModel):
-    name: str
+    name: str = Field(..., example="Lanches")
     order_index: int = 0
     availability_days: Optional[List[int]] = None
     start_time: Optional[time] = None
     end_time: Optional[time] = None
-
-    @field_validator('name')
-    def sanitize(cls, v): return sanitize_html(v)
 
 class CategoryUpdate(BaseModel):
     name: Optional[str] = None
@@ -234,14 +198,11 @@ class CategoryUpdate(BaseModel):
     start_time: Optional[time] = None
     end_time: Optional[time] = None
 
-    @field_validator('name')
-    def sanitize(cls, v): return sanitize_html(v)
-
 class ProductCreate(BaseModel):
-    category_id: int
-    name: str
-    description: Optional[str] = None
-    price: Decimal
+    category_id: int = Field(..., example=1)
+    name: str = Field(..., example="X-Bacon")
+    description: Optional[str] = Field(None, example="Pão, carne, queijo e bacon crocante")
+    price: Decimal = Field(..., example=25.90)
     image_url: Optional[str] = None
     is_available: bool = True
     track_stock: bool = False
@@ -251,10 +212,8 @@ class ProductCreate(BaseModel):
     short_code: Optional[str] = None
     ncm: str = "21069090"
     cfop: str = "5102"
+    external_id: Optional[str] = None
     recommended_ids: List[int] = []
-
-    @field_validator('name', 'description', 'short_code')
-    def sanitize(cls, v): return sanitize_html(v)
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
@@ -269,25 +228,17 @@ class ProductUpdate(BaseModel):
     short_code: Optional[str] = None
     ncm: Optional[str] = None
     cfop: Optional[str] = None
+    external_id: Optional[str] = None
     recommended_ids: Optional[List[int]] = None
 
-    @field_validator('name', 'description', 'short_code')
-    def sanitize(cls, v): return sanitize_html(v)
-
 class OptionGroupCreate(BaseModel):
-    name: str
+    name: str = Field(..., example="Escolha o Ponto")
     min_selection: int = 0
     max_selection: int = 1
 
-    @field_validator('name')
-    def sanitize(cls, v): return sanitize_html(v)
-
 class OptionCreate(BaseModel):
-    name: str
+    name: str = Field(..., example="Bem Passado")
     price: Decimal = Decimal(0)
-
-    @field_validator('name')
-    def sanitize(cls, v): return sanitize_html(v)
 
 # --- ORDERS ---
 
@@ -298,8 +249,8 @@ class OrderItemOptionResponse(BaseModel):
 
 class OrderItemResponse(BaseModel):
     id: int
-    quantity: int
-    notes: Optional[str] = None
+    quantity: int = Field(..., example=1)
+    notes: Optional[str] = Field(None, example="Sem cebola")
     product: ProductResponse
     selected_options: List[OrderItemOptionResponse] = []
     model_config = ConfigDict(from_attributes=True)
@@ -315,18 +266,20 @@ class FeedbackResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class OrderResponse(BaseModel):
-    id: UUID
-    status: str
-    order_type: str
+    id: UUID = Field(..., example="550e8400-e29b-41d4-a716-446655440000")
+    status: str = Field(..., example="pending")
+    order_type: str = Field(..., example="dine_in")
+    origin: str = Field(..., example="mesaflow")
+    external_order_id: Optional[str] = None
     delivery_address: Optional[str] = None
     customer_phone: Optional[str] = None
     subtotal: Optional[Decimal] = None
     discount_amount: Decimal = Decimal(0)
     cashback_earned: Decimal = Decimal(0)
-    payment_method: str
-    payment_status: str
-    total_amount: Decimal
-    customer_name: Optional[str]
+    payment_method: str = Field(..., example="pix")
+    payment_status: str = Field(..., example="paid")
+    total_amount: Decimal = Field(..., example=45.90)
+    customer_name: Optional[str] = Field(None, example="João Silva")
     created_at: datetime
     finished_at: Optional[datetime] = None
     table: Optional[TableSimpleResponse] = None
@@ -334,17 +287,30 @@ class OrderResponse(BaseModel):
     mp_qr_code: Optional[str] = None
     mp_qr_code_base64: Optional[str] = None
     driver_id: Optional[int] = None
-
     fiscal_status: str = "pending"
     nfe_url_pdf: Optional[str] = None
     nfe_url_xml: Optional[str] = None
-
     service_fee: Decimal = Decimal(0)
     delivery_fee: Decimal = Decimal(0)
-    
     feedback: Optional[FeedbackResponse] = None
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "example": {
+                "id": "550e8400-e29b-41d4-a716-446655440000",
+                "status": "accepted",
+                "order_type": "delivery",
+                "origin": "ifood",
+                "total_amount": 59.90,
+                "customer_name": "Maria Oliveira",
+                "created_at": "2026-01-05T19:00:00Z",
+                "items": [
+                    {"id": 1, "quantity": 1, "product": {"name": "Pizza Margherita"}}
+                ]
+            }
+        }
+    )
 
 class OrderPagination(BaseModel):
     data: List[OrderResponse]
@@ -358,9 +324,6 @@ class OrderItemCreate(BaseModel):
     notes: Optional[str] = None
     selected_options: List[int] = []
 
-    @field_validator('notes')
-    def sanitize(cls, v): return sanitize_html(v)
-
 class OrderCreate(BaseModel):
     table_id: Optional[int] = None
     qr_token: Optional[str] = None
@@ -371,9 +334,7 @@ class OrderCreate(BaseModel):
     payment_method: str = "cash"
     use_balance: bool = False
     items: List[OrderItemCreate]
-
-    @field_validator('customer_name', 'delivery_address', 'customer_phone')
-    def sanitize(cls, v): return sanitize_html(v)
+    coupon_code: Optional[str] = None
 
 class DispatchOrderRequest(BaseModel):
     driver_id: Optional[int] = None
@@ -384,9 +345,6 @@ class CompleteDeliveryRequest(BaseModel):
 class FeedbackCreate(BaseModel):
     score: int = Field(..., ge=1, le=5)
     comment: Optional[str] = None
-    
-    @field_validator('comment')
-    def sanitize(cls, v): return sanitize_html(v)
 
 # --- TABLES & SESSIONS ---
 
@@ -411,9 +369,6 @@ class ServiceRequestCreate(BaseModel):
     qr_token: str
     service_type: str
     notes: Optional[str] = None
-
-    @field_validator('notes')
-    def sanitize(cls, v): return sanitize_html(v)
 
 class ServiceRequestResponse(BaseModel):
     id: int
@@ -447,6 +402,7 @@ class CheckTableResponse(BaseModel):
     status: str
     customer_name: Optional[str] = None
     session_token: Optional[str] = None
+    access_pin: Optional[str] = None
     requires_pin: bool = False
 
 class JoinTableRequest(BaseModel):
@@ -455,14 +411,12 @@ class JoinTableRequest(BaseModel):
     customer_name: str
     pin: Optional[str] = None
 
-    @field_validator('customer_name')
-    def sanitize(cls, v): return sanitize_html(v)
-
 class TableSessionSummary(BaseModel):
     id: int
     customer_name: str
     total_spent: Decimal
     start_time: datetime
+    access_pin: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
 class TableDashboardResponse(BaseModel):
@@ -479,11 +433,9 @@ class TableDashboardResponse(BaseModel):
 class OpenTableRequest(BaseModel):
     customer_name: str
 
-    @field_validator('customer_name')
-    def sanitize(cls, v): return sanitize_html(v)
-
 class CloseTableRequest(BaseModel):
     payment_method: str
+    custom_service_fee: Optional[Decimal] = None
 
 class TablePositionUpdate(BaseModel):
     id: int
@@ -492,9 +444,6 @@ class TablePositionUpdate(BaseModel):
 
 class SessionUpdate(BaseModel):
     customer_name: str
-
-    @field_validator('customer_name')
-    def sanitize(cls, v): return sanitize_html(v)
 
 class TableSessionDetail(BaseModel):
     id: int
@@ -512,15 +461,12 @@ class TableTransferRequest(BaseModel):
 # --- INVENTORY & SUPPLIERS ---
 
 class IngredientCreate(BaseModel):
-    name: str
+    name: str = Field(..., example="Pão de Hambúrguer")
     unit: str = "un"
     current_stock: Decimal = Decimal(0)
     min_stock_alert: Decimal = Decimal(0)
     cost_per_unit: Decimal = Decimal(0)
     supplier_id: Optional[int] = None
-
-    @field_validator('name')
-    def sanitize(cls, v): return sanitize_html(v)
 
 class IngredientResponse(BaseModel):
     id: int
@@ -541,20 +487,17 @@ class ProductRecipeUpdate(BaseModel):
     ingredients: List[RecipeItemCreate]
 
 class SupplierCreate(BaseModel):
-    name: str
+    name: str = Field(..., example="Distribuidora de Bebidas")
     contact_name: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
-
-    @field_validator('name', 'contact_name')
-    def sanitize(cls, v): return sanitize_html(v)
 
 class SupplierResponse(BaseModel):
     id: int
     name: str
     contact_name: Optional[str] = None
     phone: Optional[str] = None
-    email: Optional[str] = None
+    email: Optional[EmailStr] = None
     model_config = ConfigDict(from_attributes=True)
 
 class ShoppingListItem(BaseModel):
@@ -572,13 +515,10 @@ class ShoppingListResponse(BaseModel):
 # --- EMPLOYEES ---
 
 class EmployeeCreate(BaseModel):
-    name: str
-    email: EmailStr
+    name: str = Field(..., example="Carlos Garçom")
+    email: EmailStr = Field(..., example="carlos@restaurante.com")
     password: str = Field(..., min_length=4)
     role: str = "kitchen"
-
-    @field_validator('name')
-    def sanitize(cls, v): return sanitize_html(v)
 
 class EmployeeUpdate(BaseModel):
     name: Optional[str] = None
@@ -586,9 +526,6 @@ class EmployeeUpdate(BaseModel):
     password: Optional[str] = None
     role: Optional[str] = None
     is_active: Optional[bool] = None
-
-    @field_validator('name')
-    def sanitize(cls, v): return sanitize_html(v)
 
 class EmployeeResponse(BaseModel):
     id: int
@@ -684,11 +621,8 @@ class DriverBalanceResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class SettleDebtRequest(BaseModel):
-    amount: Decimal
+    amount: Decimal = Field(..., example=50.00)
     description: Optional[str] = "Acerto de contas"
-
-    @field_validator('description')
-    def sanitize(cls, v): return sanitize_html(v)
 
 class DriverRecommendation(BaseModel):
     driver_id: int
@@ -706,3 +640,105 @@ class LeadCreate(BaseModel):
 class LeadResponse(BaseModel):
     message: str
     download_url: str
+
+# --- MOBILE DEVICES ---
+
+class DeviceRegister(BaseModel):
+    fcm_token: str = Field(..., example="fcm_token_123...")
+    device_name: Optional[str] = Field(None, example="Samsung S21")
+    platform: Optional[str] = "android"
+
+# --- WEBHOOKS ---
+
+class WebhookCreate(BaseModel):
+    target_url: str = Field(..., example="https://meu-erp.com/webhooks/mesaflow")
+    events: List[str] = Field(..., example=["order.created", "order.updated"])
+    secret: Optional[str] = Field(None, description="Segredo para assinatura HMAC. Se vazio, será gerado automaticamente.")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "target_url": "https://webhook.site/my-id",
+                "events": ["order.created", "order.updated"],
+                "secret": "minha_chave_secreta_123"
+            }
+        }
+    )
+
+class WebhookResponse(BaseModel):
+    id: int
+    target_url: str
+    events: List[str]
+    secret: str
+    is_active: bool
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+# --- PROMOTIONS ---
+
+class PromotionCreate(BaseModel):
+    name: str = Field(..., example="Desconto de Verão")
+    code: Optional[str] = Field(None, example="VERAO10")
+    discount_type: str = Field("percentage", example="percentage")
+    discount_value: Decimal = Field(..., example=10.00)
+    min_order_value: Decimal = Field(Decimal(0), example=50.00)
+    max_discount_value: Optional[Decimal] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    usage_limit: Optional[int] = None
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "name": "Cupom Primeira Compra",
+                "code": "BEMVINDO",
+                "discount_type": "fixed",
+                "discount_value": 15.00,
+                "min_order_value": 60.00
+            }
+        }
+    )
+
+class PromotionUpdate(BaseModel):
+    name: Optional[str] = None
+    code: Optional[str] = None
+    discount_type: Optional[str] = None
+    discount_value: Optional[Decimal] = None
+    min_order_value: Optional[Decimal] = None
+    max_discount_value: Optional[Decimal] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    usage_limit: Optional[int] = None
+    is_active: Optional[bool] = None
+
+class PromotionResponse(BaseModel):
+    id: UUID
+    name: str
+    code: Optional[str] = None
+    discount_type: str
+    discount_value: Decimal
+    min_order_value: Decimal
+    max_discount_value: Optional[Decimal] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    usage_limit: Optional[int] = None
+    current_usage: int
+    is_active: bool
+    model_config = ConfigDict(from_attributes=True)
+
+class CouponValidationRequest(BaseModel):
+    code: str = Field(..., example="VERAO10")
+    total_amount: Decimal = Field(..., example=100.00)
+
+class CouponValidationResponse(BaseModel):
+    valid: bool
+    discount_amount: Decimal
+    final_total: Decimal
+    message: str
+    promotion_id: Optional[UUID] = None
+
+# --- FEATURE FLAGS ---
+
+class FeatureFlagUpdate(BaseModel):
+    key: str
+    is_enabled: bool

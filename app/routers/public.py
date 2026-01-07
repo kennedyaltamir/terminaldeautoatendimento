@@ -6,16 +6,18 @@ from app.models import (
     Company, Category, Table, Product, Order, OrderItem, OrderStatus, 
     Option, OrderItemOption, OptionGroup, PaymentMethod, OrderType, 
     ServiceRequest, ServiceType, CustomerWallet, TableSession, 
-    PaymentStatus, Employee, UserRole, Lead, OrderFeedback
+    PaymentStatus, Employee, UserRole, Lead, OrderFeedback, Promotion
 )
 from app.schemas import (
     MenuResponse, OrderCreate, OrderResponse, ServiceRequestCreate, 
     ServiceRequestResponse, WalletResponse, CheckTableRequest, 
     CheckTableResponse, TableSessionResponse, JoinTableRequest,
-    LeadCreate, LeadResponse, FeedbackCreate
+    LeadCreate, LeadResponse, FeedbackCreate, CouponValidationRequest, CouponValidationResponse
 )
 from app.services.payment_service import PaymentService
 from app.services.stock_service import StockService
+from app.services.webhook_dispatcher import WebhookDispatcher
+from app.services.promotion_service import PromotionService
 from app.websockets import manager
 from app.core.limiter import limiter
 from app.core.saas_limits import SaasLimits
@@ -25,6 +27,7 @@ from uuid import UUID
 from decimal import Decimal
 import uuid
 import random
+import string
 
 router = APIRouter()
 payment_service = PaymentService()
@@ -136,7 +139,8 @@ def check_table_status(
             return {
                 "status": "active",
                 "customer_name": active_session.customer_name,
-                "session_token": active_session.session_token
+                "session_token": active_session.session_token,
+                "access_pin": active_session.access_pin
             }
         return {"status": "free"}
 
@@ -186,7 +190,8 @@ def join_table(
     ).first()
 
     if not active_session:
-        pin = f"{random.randint(1000, 9999)}"
+        # Geração de PIN de 10 dígitos para autoatendimento
+        pin = ''.join(random.choices(string.digits, k=10))
         new_session = TableSession(
             company_id=company.id,
             table_id=table.id,
@@ -242,7 +247,7 @@ def get_order_status(order_id: UUID, db: Session = Depends(get_db)):
         selectinload(Order.table),
         selectinload(Order.items).selectinload(OrderItem.product),
         selectinload(Order.items).selectinload(OrderItem.selected_options),
-        selectinload(Order.feedback) # Carrega o feedback junto
+        selectinload(Order.feedback)
     ).filter(Order.id == order_id).first()
 
     if not order:
@@ -333,6 +338,7 @@ async def create_order(
     discount_amount = Decimal(0)
     clean_phone = "".join(filter(str.isdigit, order_data.customer_phone)) if order_data.customer_phone else None
 
+    # 1. Desconto de Saldo (Cashback)
     if order_data.use_balance and clean_phone:
         wallet = db.query(CustomerWallet).filter(
             CustomerWallet.company_id == company.id,
@@ -348,7 +354,22 @@ async def create_order(
     if order_data.order_type == OrderType.DELIVERY:
         delivery_fee = company.fixed_delivery_fee or Decimal(0)
 
+    # 2. Desconto de Cupom (NOVO)
+    promotion_id = None
+    if order_data.coupon_code:
+        valid, msg, promo = PromotionService.validate_coupon(db, order_data.coupon_code, subtotal, company.id)
+        if valid and promo:
+            coupon_discount = PromotionService.calculate_discount(promo, subtotal, delivery_fee)
+            discount_amount += coupon_discount
+            promotion_id = promo.id
+            PromotionService.increment_usage(db, promo.id)
+        else:
+            # Se o cupom for inválido, falha o pedido ou ignora?
+            # Melhor falhar para o cliente saber que não aplicou
+            raise HTTPException(status_code=400, detail=f"Erro no cupom: {msg}")
+
     total_amount = subtotal + delivery_fee - discount_amount
+    if total_amount < 0: total_amount = Decimal(0)
 
     cashback_earned = Decimal(0)
     if company.loyalty_percentage > 0 and total_amount > 0:
@@ -369,15 +390,14 @@ async def create_order(
         customer_phone=clean_phone,
         delivery_address=order_data.delivery_address,
         delivery_code=delivery_code,
-
         subtotal=subtotal,
         discount_amount=discount_amount,
         total_amount=total_amount,
         cashback_earned=cashback_earned,
         delivery_fee=delivery_fee,
-
         status=initial_status,
-        payment_method=order_data.payment_method
+        payment_method=order_data.payment_method,
+        promotion_id=promotion_id
     )
     db.add(new_order)
     db.commit()
@@ -409,6 +429,7 @@ async def create_order(
         new_order.status = OrderStatus.ACCEPTED
         db.commit()
 
+    # Notificações Real-time
     await manager.broadcast({
         "type": "new_order",
         "order_id": str(new_order.id),
@@ -417,11 +438,56 @@ async def create_order(
         "is_staff": is_staff
     }, company_slug)
 
+    # Webhook Dispatch (Integração Externa)
+    order_payload = OrderResponse.model_validate(new_order).model_dump(mode='json')
+    background_tasks.add_task(
+        WebhookDispatcher.dispatch,
+        "order.created",
+        order_payload,
+        str(company.id)
+    )
+
     return db.query(Order).options(
         selectinload(Order.table),
         selectinload(Order.items).selectinload(OrderItem.product),
         selectinload(Order.items).selectinload(OrderItem.selected_options)
     ).filter(Order.id == new_order.id).first()
+
+@router.post("/{company_slug}/cart/validate-coupon", response_model=CouponValidationResponse)
+def validate_coupon_endpoint(
+    company_slug: str,
+    data: CouponValidationRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Valida um cupom antes de fechar o pedido.
+    """
+    company = db.query(Company).filter(Company.slug == company_slug).first()
+    if not company:
+        raise HTTPException(404, "Empresa não encontrada")
+
+    valid, msg, promo = PromotionService.validate_coupon(db, data.code, data.total_amount, company.id)
+
+    if not valid or not promo:
+        return {
+            "valid": False,
+            "discount_amount": Decimal(0),
+            "final_total": data.total_amount,
+            "message": msg
+        }
+
+    # Calcular desconto (assumindo frete zero para validação de carrinho simples)
+    discount = PromotionService.calculate_discount(promo, data.total_amount)
+    final = data.total_amount - discount
+    if final < 0: final = Decimal(0)
+
+    return {
+        "valid": True,
+        "discount_amount": discount,
+        "final_total": final,
+        "message": msg,
+        "promotion_id": promo.id
+    }
 
 @router.post("/{company_slug}/service", response_model=ServiceRequestResponse, status_code=201)
 @limiter.limit("2/minute")
@@ -511,7 +577,6 @@ def submit_feedback(
     if not order:
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
 
-    # Verifica se já existe feedback
     if db.query(OrderFeedback).filter(OrderFeedback.order_id == order.id).first():
         raise HTTPException(status_code=400, detail="Feedback já enviado para este pedido")
 

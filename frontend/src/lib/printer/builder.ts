@@ -90,6 +90,11 @@ export class EscPosBuilder {
     return this;
   }
 
+  openDrawer(): this {
+    this.add(COMMANDS.OPEN_DRAWER);
+    return this;
+  }
+
   cut(): this {
     this.feed(3);
     this.add(COMMANDS.CUT);
@@ -163,6 +168,11 @@ export function buildOrderReceipt(order: Order, companyName: string, width: 58 |
   printer
     .line("MesaFlow Tecnologia")
     .cut();
+    
+  // Se for dinheiro, abre a gaveta no final da impressão
+  if (order.payment_method === 'cash') {
+    printer.openDrawer();
+  }
 
   return printer.getBase64();
 }
@@ -194,7 +204,8 @@ export function buildTestReceipt(width: 58 | 80 = 58): string {
     .qrCode("https://mesaflow.com.br")
     .line("QR Code Teste")
     .feed(2)
-    .cut();
+    .cut()
+    .openDrawer(); // Teste de gaveta
 
   return printer.getBase64();
 }

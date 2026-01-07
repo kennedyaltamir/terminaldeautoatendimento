@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getIngredients, createIngredient, updateIngredient, deleteIngredient } from "@/lib/api";
 import { Ingredient } from "@/types";
-import { Plus, Search, Edit2, Trash2, Package } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Package, AlertTriangle } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import Modal from "@/components/ui/Modal";
 import InventorySkeleton from "@/components/admin/InventorySkeleton";
@@ -135,24 +135,30 @@ export default function InventoryPage() {
               {filtered.length === 0 ? (
                 <tr><td colSpan={5} className="text-center py-8 text-gray-500">Nenhum ingrediente encontrado.</td></tr>
               ) : (
-                filtered.map(ing => (
-                  <tr key={ing.id} className="hover:bg-gray-700/50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-white">{ing.name}</td>
-                    <td className="px-4 py-3">
-                      <span className="bg-gray-700 px-2 py-1 rounded text-xs font-mono">{ing.unit}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`font-bold ${Number(ing.current_stock) <= Number(ing.min_stock_alert) ? 'text-red-500' : 'text-green-500'}`}>
-                        {Number(ing.current_stock).toFixed(3)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">R$ {Number(ing.cost_per_unit).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-right flex justify-end gap-2">
-                      <button onClick={() => openEdit(ing)} className="p-2 bg-blue-900/30 text-blue-400 rounded hover:bg-blue-900/50"><Edit2 size={16}/></button>
-                      <button onClick={() => handleDelete(ing.id)} className="p-2 bg-red-900/30 text-red-400 rounded hover:bg-red-900/50"><Trash2 size={16}/></button>
-                    </td>
-                  </tr>
-                ))
+                filtered.map(ing => {
+                  const isLowStock = Number(ing.current_stock) <= Number(ing.min_stock_alert);
+                  return (
+                    <tr key={ing.id} className={`transition-colors ${isLowStock ? 'bg-red-900/10 hover:bg-red-900/20' : 'hover:bg-gray-700/50'}`}>
+                      <td className="px-4 py-3 font-medium text-white flex items-center gap-2">
+                        {isLowStock && <AlertTriangle size={16} className="text-red-500" />}
+                        {ing.name}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="bg-gray-700 px-2 py-1 rounded text-xs font-mono">{ing.unit}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`font-bold ${isLowStock ? 'text-red-500' : 'text-green-500'}`}>
+                          {Number(ing.current_stock).toFixed(3)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">R$ {Number(ing.cost_per_unit).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right flex justify-end gap-2">
+                        <button onClick={() => openEdit(ing)} className="p-2 bg-blue-900/30 text-blue-400 rounded hover:bg-blue-900/50"><Edit2 size={16}/></button>
+                        <button onClick={() => handleDelete(ing.id)} className="p-2 bg-red-900/30 text-red-400 rounded hover:bg-red-900/50"><Trash2 size={16}/></button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

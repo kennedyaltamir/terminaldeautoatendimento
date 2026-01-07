@@ -1,7 +1,15 @@
 import { getToken, getRefreshToken, setTokens, removeTokens } from "./auth";
-import { Company, Ingredient, RecipeItem } from "@/types";
+import { Company, Ingredient, RecipeItem, Promotion, CouponValidationResponse } from "@/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+
+class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
 
 async function fetchClient(endpoint: string, options: RequestInit = {}) {
   const token = getToken();
@@ -14,7 +22,13 @@ async function fetchClient(endpoint: string, options: RequestInit = {}) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  let response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+  } catch (error) {
+    console.error("Erro de conexão com API:", error);
+    throw new ApiError("Servidor indisponível. Verifique sua conexão.", 0);
+  }
 
   if (response.status === 401) {
     const refreshToken = getRefreshToken();
@@ -23,7 +37,7 @@ async function fetchClient(endpoint: string, options: RequestInit = {}) {
       if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
         window.location.href = "/admin/login";
       }
-      throw new Error("Sessão expirada");
+      throw new ApiError("Sessão expirada", 401);
     }
 
     try {
@@ -45,23 +59,43 @@ async function fetchClient(endpoint: string, options: RequestInit = {}) {
       if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
         window.location.href = "/admin/login";
       }
-      throw new Error("Sessão expirada");
+      throw new ApiError("Sessão expirada", 401);
     }
+  }
+
+  if (!response.ok) {
+    let errorMessage = "Erro na requisição";
+    try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorMessage;
+    } catch (e) {
+        // Ignora erro de parse
+    }
+    throw new ApiError(errorMessage, response.status);
   }
 
   return response;
 }
 
 export async function getMenu(slug: string) {
-  const res = await fetch(`${API_BASE_URL}/${slug}/menu`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Falha ao carregar cardápio");
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE_URL}/${slug}/menu`, { cache: "no-store" });
+    if (!res.ok) throw new Error("Falha ao carregar cardápio");
+    return res.json();
+  } catch (error) {
+    console.error("Erro ao buscar menu:", error);
+    throw new Error("Não foi possível carregar o cardápio. O sistema pode estar offline.");
+  }
 }
 
 export async function getWallet(slug: string, phone: string) {
-  const res = await fetch(`${API_BASE_URL}/${slug}/wallet/${phone}`);
-  if (!res.ok) return { balance: 0, loyalty_percentage: 0 };
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE_URL}/${slug}/wallet/${phone}`);
+    if (!res.ok) return { balance: 0, loyalty_percentage: 0 };
+    return res.json();
+  } catch (e) {
+    return { balance: 0, loyalty_percentage: 0 };
+  }
 }
 
 export async function checkTableStatus(slug: string, tableId: number, qrToken: string, sessionToken?: string | null) {
@@ -137,7 +171,6 @@ export async function requestService(slug: string, data: { table_id: number, qr_
 
 export async function getServiceRequests(slug: string) {
   const res = await fetchClient(`/admin/${slug}/service-requests`);
-  if (!res.ok) throw new Error("Falha ao carregar chamados");
   return res.json();
 }
 
@@ -150,15 +183,25 @@ export async function login(username: string, password: string) {
   const formData = new URLSearchParams();
   formData.append("username", username);
   formData.append("password", password);
-  const res = await fetch(`${API_BASE_URL}/auth/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: formData,
-  });
-  if (!res.ok) throw new Error("Login falhou.");
-  const data = await res.json();
-  setTokens(data.access_token, data.refresh_token);
-  return data;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData,
+    });
+
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Login falhou.");
+    }
+
+    const data = await res.json();
+    setTokens(data.access_token, data.refresh_token);
+    return data;
+  } catch (error: any) {
+    throw new Error(error.message || "Erro de conexão ao tentar login.");
+  }
 }
 
 export async function register(data: any) {
@@ -184,31 +227,26 @@ export async function getDashboardMetrics(startDate?: string, endDate?: string) 
   if (params.toString()) query = `?${params.toString()}`;
 
   const res = await fetchClient(`/admin/metrics${query}`);
-  if (!res.ok) throw new Error("Falha ao carregar métricas");
   return res.json();
 }
 
 export async function getKitchenOrders(slug: string) {
   const res = await fetchClient(`/admin/${slug}/orders`);
-  if (!res.ok) throw new Error("Falha ao carregar pedidos");
   return res.json();
 }
 
 export async function getRecentCompletedOrders(slug: string) {
   const res = await fetchClient(`/admin/${slug}/orders/recent-completed`);
-  if (!res.ok) throw new Error("Falha ao carregar histórico recente");
   return res.json();
 }
 
 export async function getQuickProducts(slug: string) {
   const res = await fetchClient(`/admin/${slug}/products/quick-list`);
-  if (!res.ok) throw new Error("Falha ao carregar produtos");
   return res.json();
 }
 
 export async function getOrderHistory(slug: string, page = 1, limit = 10) {
   const res = await fetchClient(`/admin/${slug}/history?page=${page}&limit=${limit}`);
-  if (!res.ok) throw new Error("Falha ao carregar histórico");
   return res.json();
 }
 
@@ -331,7 +369,6 @@ export async function createTablesBulk(start: number, end: number) {
     method: "POST",
     body: JSON.stringify({ start, end })
   });
-  if (!res.ok) throw new Error("Erro ao criar mesas em lote");
   return res.json();
 }
 
@@ -342,7 +379,6 @@ export async function deleteTable(tableId: number) {
 
 export async function getTablesDashboard(slug: string) {
   const res = await fetchClient(`/admin/tables/dashboard`);
-  if (!res.ok) throw new Error("Erro ao carregar dashboard de mesas");
   return res.json();
 }
 
@@ -351,16 +387,25 @@ export async function openTable(tableId: number, customerName: string) {
     method: "POST",
     body: JSON.stringify({ customer_name: customerName })
   });
-  if (!res.ok) throw new Error("Erro ao abrir mesa");
   return res.json();
 }
 
-export async function closeTable(tableId: number, paymentMethod: string) {
+export async function closeTable(tableId: number, paymentMethod: string, customServiceFee?: number) {
   const res = await fetchClient(`/admin/tables/${tableId}/close`, {
     method: "POST",
-    body: JSON.stringify({ payment_method: paymentMethod })
+    body: JSON.stringify({ 
+      payment_method: paymentMethod,
+      custom_service_fee: customServiceFee 
+    })
   });
-  if (!res.ok) throw new Error("Erro ao fechar mesa");
+  return res.json();
+}
+
+export async function payTableSession(tableId: number, amount: number, method: string) {
+  const res = await fetchClient(`/admin/tables/${tableId}/pay`, {
+    method: "POST",
+    body: JSON.stringify({ amount, payment_method: method })
+  });
   return res.json();
 }
 
@@ -369,13 +414,11 @@ export async function updateTablePositions(positions: { id: number, x: number, y
     method: "PATCH",
     body: JSON.stringify(positions)
   });
-  if (!res.ok) throw new Error("Erro ao salvar layout");
   return res.json();
 }
 
 export async function getIngredients() {
   const res = await fetchClient(`/admin/inventory/ingredients`);
-  if (!res.ok) throw new Error("Erro ao carregar ingredientes");
   return res.json();
 }
 
@@ -384,7 +427,6 @@ export async function createIngredient(data: Partial<Ingredient>) {
     method: "POST",
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error("Erro ao criar ingrediente");
   return res.json();
 }
 
@@ -393,7 +435,6 @@ export async function updateIngredient(id: number, data: Partial<Ingredient>) {
     method: "PATCH",
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error("Erro ao atualizar ingrediente");
   return res.json();
 }
 
@@ -407,7 +448,6 @@ export async function updateProductRecipe(productId: number, ingredients: Recipe
     method: "POST",
     body: JSON.stringify({ product_id: productId, ingredients })
   });
-  if (!res.ok) throw new Error("Erro ao salvar ficha técnica");
   return res.json();
 }
 
@@ -416,13 +456,11 @@ export async function updateSessionName(sessionId: number, name: string) {
     method: "PATCH",
     body: JSON.stringify({ customer_name: name })
   });
-  if (!res.ok) throw new Error("Erro ao renomear mesa");
   return res.json();
 }
 
 export async function getSessionDetails(sessionId: number) {
   const res = await fetchClient(`/admin/tables/sessions/${sessionId}/details`);
-  if (!res.ok) throw new Error("Erro ao carregar detalhes da sessão");
   return res.json();
 }
 
@@ -431,17 +469,11 @@ export async function transferTable(data: { from_table_id: number, to_table_id: 
     method: "POST",
     body: JSON.stringify(data)
   });
-
-  if (!res.ok) {
-    const err = await res.json();
-    throw err;
-  }
   return res.json();
 }
 
 export async function getDrivers() {
   const res = await fetchClient(`/admin/employees?role=driver`);
-  if (!res.ok) throw new Error("Erro ao carregar entregadores");
   return res.json();
 }
 
@@ -450,19 +482,16 @@ export async function dispatchOrder(orderId: string, driverId?: number) {
     method: "PATCH",
     body: JSON.stringify({ driver_id: driverId })
   });
-  if (!res.ok) throw new Error("Erro ao despachar pedido");
   return res.json();
 }
 
 export async function getFranchiseDashboard() {
   const res = await fetchClient(`/admin/franchise/dashboard`);
-  if (!res.ok) throw new Error("Erro ao carregar dashboard de franquia");
   return res.json();
 }
 
 export async function getPaymentAuthUrl(provider: string) {
   const res = await fetchClient(`/admin/payment/auth-url/${provider}`);
-  if (!res.ok) throw new Error("Erro ao obter URL de autenticação");
   return res.json();
 }
 
@@ -470,7 +499,6 @@ export async function connectPaymentProvider(provider: string, code: string) {
   const res = await fetchClient(`/admin/payment/callback/${provider}?code=${code}`, {
     method: "POST"
   });
-  if (!res.ok) throw new Error("Erro ao conectar provedor");
   return res.json();
 }
 
@@ -478,7 +506,6 @@ export async function disconnectPaymentProvider() {
   const res = await fetchClient(`/admin/payment/disconnect`, {
     method: "DELETE"
   });
-  if (!res.ok) throw new Error("Erro ao desconectar");
   return res.json();
 }
 
@@ -486,7 +513,6 @@ export async function emitFiscalDocument(orderId: string) {
   const res = await fetchClient(`/admin/fiscal/orders/${orderId}/emit`, {
     method: "POST"
   });
-  if (!res.ok) throw new Error("Erro ao solicitar emissão fiscal");
   return res.json();
 }
 
@@ -494,13 +520,104 @@ export async function generateRecommendations() {
   const res = await fetchClient(`/admin/marketing/recommendations/generate`, {
     method: "POST"
   });
-  if (!res.ok) throw new Error("Erro ao gerar recomendações");
   return res.json();
 }
 
-// --- AUDITORIA ---
 export async function getAuditLogs(limit = 50) {
   const res = await fetchClient(`/admin/audit?limit=${limit}`);
-  if (!res.ok) throw new Error("Erro ao carregar logs de auditoria");
+  return res.json();
+}
+
+export async function getDriversWithBalance() {
+  const res = await fetchClient(`/admin/logistics/drivers`);
+  return res.json();
+}
+
+export async function settleDriverDebt(driverId: number, amount: number, description: string) {
+  const res = await fetchClient(`/admin/logistics/drivers/${driverId}/settle`, {
+    method: "POST",
+    body: JSON.stringify({ amount, description })
+  });
+  return res.json();
+}
+
+export async function getPromotions() {
+  const res = await fetchClient(`/admin/marketing/promotions`);
+  return res.json();
+}
+
+export async function createPromotion(data: any) {
+  const res = await fetchClient(`/admin/marketing/promotions`, {
+    method: "POST",
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
+
+export async function updatePromotion(id: string, data: any) {
+  const res = await fetchClient(`/admin/marketing/promotions/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
+
+export async function deletePromotion(id: string) {
+  const res = await fetchClient(`/admin/marketing/promotions/${id}`, { method: "DELETE" });
+  return res.ok;
+}
+
+export async function validateCoupon(slug: string, code: string, totalAmount: number): Promise<CouponValidationResponse> {
+  const res = await fetch(`${API_BASE_URL}/${slug}/cart/validate-coupon`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code, total_amount: totalAmount })
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Cupom inválido");
+  }
+
+  return res.json();
+}
+
+export async function getWebhooks() {
+  const res = await fetchClient(`/admin/integrations/webhooks`);
+  return res.json();
+}
+
+export async function createWebhook(data: any) {
+  const res = await fetchClient(`/admin/integrations/webhooks`, {
+    method: "POST",
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
+
+export async function deleteWebhook(id: number) {
+  const res = await fetchClient(`/admin/integrations/webhooks/${id}`, {
+    method: "DELETE"
+  });
+  return res.ok;
+}
+
+export async function getWhatsappStatus() {
+  const res = await fetchClient(`/admin/marketing/whatsapp/status`);
+  return res.json();
+}
+
+// --- FEATURE FLAGS ---
+
+export async function getFeatureFlags() {
+  const res = await fetchClient(`/admin/features`);
+  return res.json();
+}
+
+export async function updateFeatureFlag(key: string, isEnabled: boolean) {
+  const res = await fetchClient(`/admin/features`, {
+    method: "POST",
+    body: JSON.stringify({ key, is_enabled: isEnabled })
+  });
   return res.json();
 }

@@ -19,7 +19,7 @@ export default function DriverApp({ params }: { params: { slug: string } }) {
   const [confirmingOrderId, setConfirmingOrderId] = useState<string | null>(null);
   const [confirmationCode, setConfirmationCode] = useState("");
   const [isTracking, setIsTracking] = useState(false);
-  
+
   const router = useRouter();
   const { sendMessage } = useWebSocketContext();
   const watchId = useRef<number | null>(null);
@@ -30,7 +30,7 @@ export default function DriverApp({ params }: { params: { slug: string } }) {
       const res = await fetch(`${API_URL}/admin/delivery/orders`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (res.ok) {
         const data = await res.json();
         setOrders(data);
@@ -52,7 +52,7 @@ export default function DriverApp({ params }: { params: { slug: string } }) {
   // Lógica de Rastreamento GPS
   useEffect(() => {
     const myDeliveries = orders.filter(o => o.status === 'delivering');
-    
+
     if (myDeliveries.length > 0 && !isTracking) {
       startTracking(myDeliveries);
     } else if (myDeliveries.length === 0 && isTracking) {
@@ -71,7 +71,7 @@ export default function DriverApp({ params }: { params: { slug: string } }) {
     watchId.current = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        
+
         // Envia localização para cada pedido ativo
         activeOrders.forEach(order => {
           sendMessage({
@@ -104,7 +104,7 @@ export default function DriverApp({ params }: { params: { slug: string } }) {
         headers: { Authorization: `Bearer ${token}` },
         body: JSON.stringify({}) 
       });
-      
+
       toast.success("Rota iniciada!");
       fetchMyOrders();
       setActiveTab('delivering');
@@ -115,7 +115,7 @@ export default function DriverApp({ params }: { params: { slug: string } }) {
 
   const handleComplete = async () => {
     if (!confirmingOrderId) return;
-    
+
     try {
       const token = getToken();
       const res = await fetch(`${API_URL}/admin/delivery/orders/${confirmingOrderId}/complete`, {
@@ -167,7 +167,7 @@ export default function DriverApp({ params }: { params: { slug: string } }) {
   return (
     <div className="min-h-screen bg-gray-100 pb-20 font-sans">
       <Toaster position="top-center" richColors />
-      
+
       <div className="bg-blue-600 text-white p-4 sticky top-0 z-10 shadow-md flex justify-between items-center">
         <div>
           <h1 className="text-xl font-bold flex items-center gap-2">
@@ -183,8 +183,8 @@ export default function DriverApp({ params }: { params: { slug: string } }) {
           </div>
         </div>
         <div className="flex gap-2">
-            <button onClick={fetchMyOrders} className="p-2 bg-blue-700 rounded-full hover:bg-blue-800"><RefreshCw size={20}/></button>
-            <button onClick={handleLogout} className="p-2 bg-red-500/20 rounded-full hover:bg-red-500/40"><LogOut size={20}/></button>
+            <button onClick={fetchMyOrders} className="p-2 bg-blue-700 rounded-full hover:bg-blue-800" title="Atualizar"><RefreshCw size={20}/></button>
+            <button onClick={handleLogout} className="p-2 bg-red-500/20 rounded-full hover:bg-red-500/40" title="Sair"><LogOut size={20}/></button>
         </div>
       </div>
 
@@ -289,7 +289,7 @@ export default function DriverApp({ params }: { params: { slug: string } }) {
                 <p className="text-sm text-blue-800 font-bold">Segurança de Entrega</p>
                 <p className="text-xs text-blue-600">Peça o código de 4 dígitos ao cliente.</p>
             </div>
-            
+
             <input 
                 type="tel" 
                 maxLength={4}

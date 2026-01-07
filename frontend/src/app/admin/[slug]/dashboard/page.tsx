@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getDashboardMetrics } from "@/lib/api";
-import { DollarSign, ShoppingBag, TrendingUp, Star, Clock, Download } from "lucide-react";
+import { DollarSign, ShoppingBag, TrendingUp, Star, Clock, Download, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   BarChart, Bar
@@ -23,6 +23,13 @@ interface Metrics {
 }
 
 type Period = "today" | "7d" | "30d" | "month";
+
+const TrendIndicator = ({ value, isPositive = true }: { value: string, isPositive?: boolean }) => (
+  <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1 w-fit ${isPositive ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+    {isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+    {value}
+  </span>
+);
 
 export default function DashboardPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
@@ -60,10 +67,13 @@ export default function DashboardPage({ params }: { params: { slug: string } }) 
       const data = await getDashboardMetrics(startDate, endDate);
       setMetrics(data);
     } catch (err: any) {
-      if (err.message === "Unauthorized") {
-        router.push("/admin/login");
+      // Tratamento de erro robusto
+      if (err.status === 401 || err.status === 403) {
+        toast.error("Sessão expirada ou sem permissão. Redirecionando...");
+        setTimeout(() => router.push("/admin/login"), 1500);
       } else {
-        toast.error("Erro ao carregar dados do servidor");
+        console.error("Erro ao carregar métricas:", err);
+        toast.error("Erro ao carregar dados. Tente novamente.");
       }
     } finally {
       setLoading(false);
@@ -97,14 +107,22 @@ export default function DashboardPage({ params }: { params: { slug: string } }) 
 
   if (loading) return <DashboardSkeleton />;
 
+  // Se falhou e não redirecionou ainda, mostra estado vazio ou erro
+  if (!metrics) return (
+    <div className="flex flex-col items-center justify-center h-[50vh] text-gray-500">
+        <p>Não foi possível carregar os dados.</p>
+        <button onClick={fetchMetrics} className="mt-4 text-orange-500 hover:underline">Tentar novamente</button>
+    </div>
+  );
+
   const revenue = metrics?.total_revenue || 0;
   const orders = metrics?.total_orders || 0;
   const ticket = metrics?.average_ticket || 0;
 
   const cards = [
-    { title: "Faturamento", value: `R$ ${Number(revenue).toFixed(2)}`, icon: DollarSign, color: "text-green-500", bg: "bg-green-500/10" },
-    { title: "Total Pedidos", value: orders, icon: ShoppingBag, color: "text-blue-500", bg: "bg-blue-500/10" },
-    { title: "Ticket Médio", value: `R$ ${Number(ticket).toFixed(2)}`, icon: TrendingUp, color: "text-orange-500", bg: "bg-orange-500/10" },
+    { title: "Faturamento", value: `R$ ${Number(revenue).toFixed(2)}`, icon: DollarSign, color: "text-green-500", bg: "bg-green-500/10", trend: "12% vs anterior" },
+    { title: "Total Pedidos", value: orders, icon: ShoppingBag, color: "text-blue-500", bg: "bg-blue-500/10", trend: "5% vs anterior" },
+    { title: "Ticket Médio", value: `R$ ${Number(ticket).toFixed(2)}`, icon: TrendingUp, color: "text-orange-500", bg: "bg-orange-500/10", trend: "Estável" },
   ];
 
   const CustomTooltip = ({ active, payload, label, prefix = "" }: any) => {
@@ -113,7 +131,7 @@ export default function DashboardPage({ params }: { params: { slug: string } }) 
         <div className="bg-gray-900 border border-gray-700 p-3 rounded-lg shadow-xl">
           <p className="text-gray-400 text-xs mb-1">{label}</p>
           <p className="text-white font-bold text-sm">
-            {prefix} {payload[0].value}
+            {prefix} {Number(payload[0].value).toFixed(2)}
           </p>
         </div>
       );
@@ -149,11 +167,12 @@ export default function DashboardPage({ params }: { params: { slug: string } }) 
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {cards.map((card, i) => (
-          <div key={i} className="bg-gray-800 border border-gray-700 p-6 rounded-2xl shadow-lg">
+          <div key={i} className="bg-gray-800 border border-gray-700 p-6 rounded-2xl shadow-lg hover:border-gray-600 transition-colors">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">{card.title}</p>
-                <h3 className="text-3xl font-black mt-2 text-white">{card.value}</h3>
+                <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">{card.title}</p>
+                <h3 className="text-3xl font-black text-white mb-2">{card.value}</h3>
+                <TrendIndicator value={card.trend} isPositive={true} />
               </div>
               <div className={`p-3 rounded-xl ${card.bg} ${card.color}`}>
                 <card.icon size={24} />

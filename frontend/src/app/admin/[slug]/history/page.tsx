@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getOrderHistory, emitFiscalDocument } from "@/lib/api";
 import { Order } from "@/types";
-import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, AlertTriangle, RefreshCw, WifiOff } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import FiscalStatusBadge from "@/components/admin/FiscalStatusBadge";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
+import { useFiscalSync } from "@/hooks/useFiscalSync";
 
 export default function HistoryPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
@@ -18,7 +19,7 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
   const [emittingId, setEmittingId] = useState<string | null>(null);
   const limit = 10;
 
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getOrderHistory(slug, page, limit);
@@ -29,18 +30,22 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug, page, limit]);
+
+  // Ativa o motor de sincronização fiscal com callback de refresh
+  const { pendingCount, errorCount, isSyncing, syncNow } = useFiscalSync({
+    onSyncComplete: () => fetchHistory()
+  });
 
   useEffect(() => {
     fetchHistory();
-  }, [slug, page]);
+  }, [fetchHistory]);
 
   const handleEmitFiscal = async (orderId: string) => {
     setEmittingId(orderId);
     try {
       const res = await emitFiscalDocument(orderId);
       toast.success(res.message || "Emissão solicitada!");
-      // Atualiza a lista para mostrar "Processando"
       fetchHistory();
     } catch (e: any) {
       toast.error(e.message || "Erro ao emitir nota");
@@ -51,26 +56,32 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
 
   const totalPages = Math.ceil(total / limit);
 
-  const statusColors: Record<string, string> = {
-    pending: "bg-yellow-500/20 text-yellow-500",
-    accepted: "bg-blue-500/20 text-blue-500",
-    preparing: "bg-orange-500/20 text-orange-500",
-    ready: "bg-purple-500/20 text-purple-500",
-    delivered: "bg-green-500/20 text-green-500",
-    canceled: "bg-red-500/20 text-red-500",
-  };
-
-  const paymentColors: Record<string, string> = {
-    paid: "text-green-500",
-    pending: "text-yellow-500",
-    failed: "text-red-500",
-  };
-
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-white">Histórico de Pedidos</h1>
-        <div className="text-sm text-gray-400">Total: {total} pedidos</div>
+      <Toaster position="top-right" richColors />
+      
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Histórico de Pedidos</h1>
+          <p className="text-sm text-gray-400">Total: {total} pedidos registrados</p>
+        </div>
+
+        {/* Indicador de Contingência Fiscal */}
+        {(pendingCount > 0 || errorCount > 0) && (
+          <div 
+            onClick={() => !isSyncing && syncNow()}
+            className={`flex items-center gap-3 px-4 py-2 rounded-xl border cursor-pointer transition-all animate-in slide-in-from-right ${
+              errorCount > 0 ? 'bg-red-900/20 border-red-500 text-red-200' : 'bg-orange-900/20 border-orange-500 text-orange-200'
+            }`}
+          >
+            {isSyncing ? <RefreshCw size={18} className="animate-spin" /> : <AlertTriangle size={18} />}
+            <div className="text-xs">
+              <p className="font-bold">{pendingCount} Notas em Contingência</p>
+              {errorCount > 0 && <p className="opacity-80">{errorCount} erros detectados</p>}
+            </div>
+            {!isSyncing && <RefreshCw size={14} className="ml-2 opacity-50" />}
+          </div>
+        )}
       </div>
 
       <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-xl">
@@ -101,21 +112,23 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
                     <td className="px-6 py-4 font-bold text-white">{order.table?.table_number || "Delivery"}</td>
                     <td className="px-6 py-4 font-bold text-white">R$ {Number(order.total_amount).toFixed(2)}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${statusColors[order.status] || "bg-gray-700 text-gray-300"}`}>
+                      <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-gray-700 text-gray-300">
                         {order.status}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`font-bold uppercase text-xs ${paymentColors[order.payment_status]}`}>
+                      <span className={`font-bold uppercase text-xs ${order.payment_status === 'paid' ? 'text-green-500' : 'text-yellow-500'}`}>
                         {order.payment_status}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <FiscalStatusBadge 
+                        orderId={order.id}
                         status={order.fiscal_status || 'pending'} 
                         nfeUrl={order.nfe_url_pdf}
                         onEmit={() => handleEmitFiscal(order.id)}
                         loading={emittingId === order.id}
+                        slug={slug}
                       />
                     </td>
                     <td className="px-6 py-4">
@@ -129,7 +142,7 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
             </tbody>
           </table>
         </div>
-        
+
         <div className="bg-gray-900 px-6 py-4 border-t border-gray-700 flex justify-between items-center">
           <button 
             disabled={page === 1} 
@@ -161,22 +174,6 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
                 <p className="text-gray-500">Mesa</p>
                 <p className="font-bold text-white">{selectedOrder.table?.table_number || "Delivery"}</p>
               </div>
-            </div>
-
-            <div className="border-t border-gray-700 pt-4">
-              <h4 className="font-bold text-white mb-2">Itens</h4>
-              <ul className="space-y-2">
-                {selectedOrder.items.map((item, i) => (
-                  <li key={i} className="bg-gray-900 p-3 rounded-lg border border-gray-700">
-                    <div className="flex justify-between">
-                      <span className="font-bold text-white">{item.quantity}x {item.product.name}</span>
-                    </div>
-                    {item.selected_options.length > 0 && (
-                      <p className="text-xs text-gray-500 mt-1">+ {item.selected_options.map(o => o.name).join(", ")}</p>
-                    )}
-                  </li>
-                ))}
-              </ul>
             </div>
 
             <div className="border-t border-gray-700 pt-4 flex justify-between items-center">

@@ -7,7 +7,7 @@ import {
   deleteOptionGroup, deleteOption 
 } from "@/lib/api";
 import { MenuResponse, Product } from "@/types";
-import { Trash2, Plus, Edit2, Image as ImageIcon, Save, Settings2, ChevronDown, ChevronUp, X, Box, Link as LinkIcon, Utensils, Wine, Coffee, FileText, Hash, Copy, ExternalLink } from "lucide-react";
+import { Trash2, Plus, Edit2, Image as ImageIcon, Save, Settings2, ChevronDown, ChevronUp, X, Box, Link as LinkIcon, Utensils, Wine, Coffee, FileText, Hash, Copy, ExternalLink, Search, GripVertical } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import RecipeModal from "@/components/admin/RecipeModal";
 import ImageUpload from "@/components/ui/ImageUpload";
@@ -19,6 +19,8 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
   const [menu, setMenu] = useState<MenuResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedProduct, setExpandedProduct] = useState<number | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<number[]>([]); // Controle de colapso
+  const [searchTerm, setSearchTerm] = useState(""); // Busca interna
 
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [isProdModalOpen, setIsProdModalOpen] = useState(false);
@@ -42,6 +44,8 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
     try {
       const data = await getMenu(slug);
       setMenu(data);
+      // Expande todas as categorias por padrão
+      setExpandedCategories(data.categories.map(c => c.id));
     } catch (error) {
       console.error(error);
       toast.error("Erro ao carregar cardápio");
@@ -51,6 +55,12 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
   };
 
   useEffect(() => { fetchMenu(); }, [slug]);
+
+  const toggleCategory = (id: number) => {
+    setExpandedCategories(prev => 
+      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+    );
+  };
 
   if (loading) return <MenuAdminSkeleton />;
 
@@ -107,6 +117,15 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
     toast.success("Link copiado!");
   };
 
+  // Filtro de Busca
+  const filteredCategories = menu?.categories.map(cat => ({
+    ...cat,
+    products: cat.products.filter(p => 
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      p.short_code?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  })).filter(cat => cat.products.length > 0 || searchTerm === "");
+
   return (
     <div className="space-y-8 pb-20 animate-in fade-in duration-500">
       <div className="bg-gradient-to-r from-gray-800 to-gray-900 p-4 rounded-xl border border-gray-700 flex flex-col md:flex-row justify-between items-center gap-4 shadow-lg">
@@ -123,73 +142,97 @@ export default function AdminMenuPage({ params }: { params: { slug: string } }) 
         </div>
       </div>
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <h1 className="text-3xl font-bold text-white">Gestão de Produtos</h1>
-        <button onClick={() => setIsCatModalOpen(true)} className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-bold transition-all shadow-lg shadow-orange-900/20"><Plus size={20} /> Nova Categoria</button>
+        
+        <div className="flex gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input 
+              type="text" 
+              placeholder="Buscar produto..." 
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-white focus:ring-2 focus:ring-orange-500 outline-none"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button onClick={() => setIsCatModalOpen(true)} className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-bold transition-all shadow-lg shadow-orange-900/20 whitespace-nowrap"><Plus size={20} /> Categoria</button>
+        </div>
       </div>
 
       <div className="grid gap-6">
-        {menu?.categories.map((category) => (
+        {filteredCategories?.map((category) => (
           <div key={category.id} className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-xl">
-            <div className="p-4 bg-gray-700/30 border-b border-gray-700 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-orange-500">{category.name}</h2>
-              <button onClick={() => { if(confirm("Excluir categoria?")) deleteCategory(category.id).then(fetchMenu) }} className="text-red-400 hover:text-red-300 p-2 hover:bg-red-900/20 rounded-lg transition-all"><Trash2 size={18} /></button>
+            <div 
+              className="p-4 bg-gray-700/30 border-b border-gray-700 flex justify-between items-center cursor-pointer hover:bg-gray-700/50 transition-colors"
+              onClick={() => toggleCategory(category.id)}
+            >
+              <div className="flex items-center gap-3">
+                {expandedCategories.includes(category.id) ? <ChevronUp size={20} className="text-gray-400"/> : <ChevronDown size={20} className="text-gray-400"/>}
+                <h2 className="text-xl font-bold text-orange-500">{category.name}</h2>
+                <span className="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full">{category.products.length} itens</span>
+              </div>
+              <button onClick={(e) => { e.stopPropagation(); if(confirm("Excluir categoria?")) deleteCategory(category.id).then(fetchMenu) }} className="text-red-400 hover:text-red-300 p-2 hover:bg-red-900/20 rounded-lg transition-all"><Trash2 size={18} /></button>
             </div>
-            <div className="p-4 space-y-4">
-              {category.products.map((product) => (
-                <div key={product.id} className="space-y-2">
-                  <div className="flex items-center justify-between bg-gray-900/40 p-4 rounded-lg border border-gray-700 hover:border-gray-600 transition-all group">
-                    <div className="flex items-center gap-4">
-                      {product.image_url ? <img src={product.image_url} className="w-14 h-14 rounded-lg object-cover shadow-md" alt={product.name} /> : <div className="w-14 h-14 bg-gray-800 rounded-lg flex items-center justify-center"><ImageIcon className="text-gray-600" /></div>}
-                      <div>
-                        <h3 className="font-bold text-gray-100 text-lg flex items-center gap-2">{product.name} {product.short_code && <span className="text-xs bg-gray-700 text-gray-300 px-1.5 py-0.5 rounded font-mono">#{product.short_code}</span>}</h3>
-                        <div className="flex items-center gap-3">
-                          <p className="text-orange-500 font-mono font-bold">R$ {Number(product.price).toFixed(2)}</p>
-                          {product.track_stock && <span className={`text-xs px-2 py-0.5 rounded font-bold ${product.stock_quantity > 0 ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'}`}>{product.stock_quantity > 0 ? `${product.stock_quantity} un` : 'ESGOTADO'}</span>}
+            
+            {expandedCategories.includes(category.id) && (
+              <div className="p-4 space-y-4 animate-in slide-in-from-top-2">
+                {category.products.map((product) => (
+                  <div key={product.id} className="space-y-2">
+                    <div className="flex items-center justify-between bg-gray-900/40 p-4 rounded-lg border border-gray-700 hover:border-gray-600 transition-all group">
+                      <div className="flex items-center gap-4">
+                        <div className="cursor-grab text-gray-600 hover:text-gray-400"><GripVertical size={20} /></div>
+                        {product.image_url ? <img src={product.image_url} className="w-14 h-14 rounded-lg object-cover shadow-md" alt={product.name} /> : <div className="w-14 h-14 bg-gray-800 rounded-lg flex items-center justify-center"><ImageIcon className="text-gray-600" /></div>}
+                        <div>
+                          <h3 className="font-bold text-gray-100 text-lg flex items-center gap-2">{product.name} {product.short_code && <span className="text-xs bg-gray-700 text-gray-300 px-1.5 py-0.5 rounded font-mono">#{product.short_code}</span>}</h3>
+                          <div className="flex items-center gap-3">
+                            <p className="text-orange-500 font-mono font-bold">R$ {Number(product.price).toFixed(2)}</p>
+                            {product.track_stock && <span className={`text-xs px-2 py-0.5 rounded font-bold ${product.stock_quantity > 0 ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'}`}>{product.stock_quantity > 0 ? `${product.stock_quantity} un` : 'ESGOTADO'}</span>}
+                          </div>
                         </div>
                       </div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => { setEditingProduct(product); setIsRecipeModalOpen(true); }} className="p-2 bg-blue-900/20 hover:bg-blue-900/40 rounded-lg text-blue-400" title="Ficha Técnica"><FileText size={18} /></button>
+                        <button onClick={() => setExpandedProduct(expandedProduct === product.id ? null : product.id)} className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-colors ${expandedProduct === product.id ? 'bg-orange-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}><Settings2 size={14} /> Adicionais {expandedProduct === product.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>
+                        <button onClick={() => { setEditingProduct(product); setProdForm({ ...product, description: product.description || "", price: String(product.price), category_id: category.id, image_url: product.image_url || "", short_code: product.short_code || "", recommended_ids: product.recommendations?.map(r => r.id) || [] }); setIsProdModalOpen(true); }} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-gray-300" title="Editar"><Edit2 size={18} /></button>
+                        <button onClick={() => { if(confirm("Excluir produto?")) deleteProduct(product.id).then(fetchMenu) }} className="p-2 bg-red-900/20 hover:bg-red-900/40 rounded-lg text-red-400" title="Excluir"><Trash2 size={18} /></button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => { setEditingProduct(product); setIsRecipeModalOpen(true); }} className="p-2 bg-blue-900/20 hover:bg-blue-900/40 rounded-lg text-blue-400" title="Ficha Técnica"><FileText size={18} /></button>
-                      <button onClick={() => setExpandedProduct(expandedProduct === product.id ? null : product.id)} className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-colors ${expandedProduct === product.id ? 'bg-orange-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}><Settings2 size={14} /> Adicionais {expandedProduct === product.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>
-                      <button onClick={() => { setEditingProduct(product); setProdForm({ ...product, description: product.description || "", price: String(product.price), category_id: category.id, image_url: product.image_url || "", short_code: product.short_code || "", recommended_ids: product.recommendations?.map(r => r.id) || [] }); setIsProdModalOpen(true); }} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-gray-300" title="Editar"><Edit2 size={18} /></button>
-                      <button onClick={() => { if(confirm("Excluir produto?")) deleteProduct(product.id).then(fetchMenu) }} className="p-2 bg-red-900/20 hover:bg-red-900/40 rounded-lg text-red-400" title="Excluir"><Trash2 size={18} /></button>
-                    </div>
+                    {expandedProduct === product.id && (
+                      <div className="ml-8 p-4 bg-gray-900/60 border-l-2 border-orange-500 rounded-r-lg space-y-4 animate-in slide-in-from-top-2">
+                        <div className="flex justify-between items-center">
+                          <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Grupos de Adicionais</h4>
+                          <button onClick={() => { setActiveProductId(product.id); setIsGroupModalOpen(true); }} className="text-xs bg-orange-600/20 text-orange-500 px-3 py-1.5 rounded hover:bg-orange-600/30 font-bold transition-colors">+ Novo Grupo</button>
+                        </div>
+                        {product.option_groups.length === 0 ? <p className="text-xs text-gray-500 italic">Nenhum grupo configurado.</p> : (
+                          <div className="grid gap-4">
+                            {product.option_groups.map(group => (
+                              <div key={group.id} className="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+                                <div className="flex justify-between items-center mb-3">
+                                  <span className="font-bold text-gray-200 flex items-center gap-2">{group.name} <span className="text-[10px] bg-gray-700 px-2 py-0.5 rounded text-gray-300">Min: {group.min_selection} / Max: {group.max_selection}</span></span>
+                                  <button onClick={() => { if(confirm("Excluir grupo?")) deleteOptionGroup(group.id).then(fetchMenu) }} className="text-red-500 hover:text-red-400 p-1"><Trash2 size={14} /></button>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  {group.options.map(opt => (
+                                    <div key={opt.id} className="flex items-center gap-2 bg-gray-900 px-3 py-1.5 rounded border border-gray-700 text-xs group/opt">
+                                      <span className="text-gray-300">{opt.name}</span>
+                                      <span className="text-orange-500 font-bold">+ R$ {Number(opt.price).toFixed(2)}</span>
+                                      <button onClick={() => deleteOption(opt.id).then(fetchMenu)} className="text-gray-600 hover:text-red-500 ml-1 opacity-0 group-hover/opt:opacity-100 transition-opacity"><X size={12} /></button>
+                                    </div>
+                                  ))}
+                                  <button onClick={() => { setActiveGroupId(group.id); setIsOptModalOpen(true); }} className="text-[10px] border border-dashed border-gray-600 text-gray-500 px-3 py-1.5 rounded hover:text-orange-500 hover:border-orange-500 transition-colors">+ Opção</button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  {expandedProduct === product.id && (
-                    <div className="ml-8 p-4 bg-gray-900/60 border-l-2 border-orange-500 rounded-r-lg space-y-4 animate-in slide-in-from-top-2">
-                      <div className="flex justify-between items-center">
-                        <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Grupos de Adicionais</h4>
-                        <button onClick={() => { setActiveProductId(product.id); setIsGroupModalOpen(true); }} className="text-xs bg-orange-600/20 text-orange-500 px-3 py-1.5 rounded hover:bg-orange-600/30 font-bold transition-colors">+ Novo Grupo</button>
-                      </div>
-                      {product.option_groups.length === 0 ? <p className="text-xs text-gray-500 italic">Nenhum grupo configurado.</p> : (
-                        <div className="grid gap-4">
-                          {product.option_groups.map(group => (
-                            <div key={group.id} className="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
-                              <div className="flex justify-between items-center mb-3">
-                                <span className="font-bold text-gray-200 flex items-center gap-2">{group.name} <span className="text-[10px] bg-gray-700 px-2 py-0.5 rounded text-gray-300">Min: {group.min_selection} / Max: {group.max_selection}</span></span>
-                                <button onClick={() => { if(confirm("Excluir grupo?")) deleteOptionGroup(group.id).then(fetchMenu) }} className="text-red-500 hover:text-red-400 p-1"><Trash2 size={14} /></button>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {group.options.map(opt => (
-                                  <div key={opt.id} className="flex items-center gap-2 bg-gray-900 px-3 py-1.5 rounded border border-gray-700 text-xs group/opt">
-                                    <span className="text-gray-300">{opt.name}</span>
-                                    <span className="text-orange-500 font-bold">+ R$ {Number(opt.price).toFixed(2)}</span>
-                                    <button onClick={() => deleteOption(opt.id).then(fetchMenu)} className="text-gray-600 hover:text-red-500 ml-1 opacity-0 group-hover/opt:opacity-100 transition-opacity"><X size={12} /></button>
-                                  </div>
-                                ))}
-                                <button onClick={() => { setActiveGroupId(group.id); setIsOptModalOpen(true); }} className="text-[10px] border border-dashed border-gray-600 text-gray-500 px-3 py-1.5 rounded hover:text-orange-500 hover:border-orange-500 transition-colors">+ Opção</button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-              <button onClick={() => { setEditingProduct(null); setProdForm({ category_id: category.id, name: "", description: "", price: "", image_url: "", track_stock: false, stock_quantity: 0, station: "kitchen", short_code: "", recommended_ids: [] }); setIsProdModalOpen(true); }} className="w-full py-4 border-2 border-dashed border-gray-700 rounded-lg text-gray-500 hover:text-orange-500 hover:border-orange-500/50 transition-all font-bold text-sm flex items-center justify-center gap-2"><Plus size={16} /> Adicionar Produto em {category.name}</button>
-            </div>
+                ))}
+                <button onClick={() => { setEditingProduct(null); setProdForm({ category_id: category.id, name: "", description: "", price: "", image_url: "", track_stock: false, stock_quantity: 0, station: "kitchen", short_code: "", recommended_ids: [] }); setIsProdModalOpen(true); }} className="w-full py-4 border-2 border-dashed border-gray-700 rounded-lg text-gray-500 hover:text-orange-500 hover:border-orange-500/50 transition-all font-bold text-sm flex items-center justify-center gap-2"><Plus size={16} /> Adicionar Produto em {category.name}</button>
+              </div>
+            )}
           </div>
         ))}
       </div>

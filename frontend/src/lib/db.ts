@@ -10,13 +10,25 @@ export interface PendingOrder {
   retryCount: number;
 }
 
+export interface FiscalQueueItem {
+  id?: number;
+  orderId: string;
+  slug: string;
+  status: 'pending' | 'error';
+  createdAt: Date;
+  retryCount: number;
+  errorMessage?: string;
+}
+
 export class MesaFlowDB extends Dexie {
   pendingOrders!: Table<PendingOrder>;
+  fiscalQueue!: Table<FiscalQueueItem>; // Nova tabela para contingência fiscal
 
   constructor() {
     super('MesaFlowDB');
-    this.version(1).stores({
-      pendingOrders: '++id, slug, status, createdAt'
+    this.version(2).stores({ // Incrementado para v2
+      pendingOrders: '++id, slug, status, createdAt',
+      fiscalQueue: '++id, orderId, slug, status, createdAt'
     });
   }
 }

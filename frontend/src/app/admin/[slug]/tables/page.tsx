@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { getTablesDashboard, createTable, deleteTable, openTable, closeTable, createTablesBulk } from "@/lib/api";
 import { Table } from "@/types";
-import { Plus, Trash2, Printer, QrCode, Grid, User, DollarSign, Clock, Copy, Check, Banknote, CreditCard } from "lucide-react";
+import { Plus, Trash2, Printer, QrCode, Grid, User, DollarSign, Clock, Copy, Check, Banknote, CreditCard, Key, Lock, ChefHat } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import Modal from "@/components/ui/Modal";
 import { useTerminology } from "@/hooks/useTerminology";
@@ -16,6 +16,7 @@ interface TableDashboard extends Table {
     customer_name: string;
     total_spent: number;
     start_time: string;
+    access_pin?: string;
   };
   service_request?: string;
 }
@@ -25,18 +26,15 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
   const terms = useTerminology();
   const [tables, setTables] = useState<TableDashboard[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // Modais
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTable, setSelectedTable] = useState<TableDashboard | null>(null);
-  
-  // Forms
+
   const [newTableNum, setNewTableNum] = useState("");
   const [bulkStart, setBulkStart] = useState("");
   const [bulkEnd, setBulkEnd] = useState("");
   const [customerName, setCustomerName] = useState("");
-  
-  // Estados de UI
+
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [printMode, setPrintMode] = useState<'all' | 'single'>('all');
 
@@ -54,7 +52,6 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
 
   useEffect(() => { fetchTables(); }, [fetchTables]);
 
-  // --- HANDLERS ---
   const handleCreate = async () => {
     if (!newTableNum) return;
     try {
@@ -115,8 +112,7 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
 
   const handlePrint = (mode: 'all' | 'single') => {
     setPrintMode(mode);
-    // Pequeno delay para garantir que o React renderizou o layout de impressão
-    setTimeout(() => window.print(), 100);
+    setTimeout(() => window.print(), 500);
   };
 
   if (loading) return <div className="text-center py-20 text-gray-500">Carregando...</div>;
@@ -125,12 +121,7 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
     <div className="pb-20">
       <Toaster position="top-right" richColors />
 
-      {/* =================================================================================
-          CAMADA DE TELA (UI) - Some na impressão (print:hidden)
-         ================================================================================= */}
       <div className="space-y-8 print:hidden">
-        
-        {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -148,7 +139,6 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
           </div>
         </div>
 
-        {/* GRID DE MESAS */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {tables.map((table) => {
             const isOccupied = table.status === 'occupied' || table.status === 'alert';
@@ -175,8 +165,8 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       <Clock size={12} /> {new Date(table.active_session.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </div>
-                    <div className="mt-2 pt-2 border-t border-gray-700 flex items-center gap-1 text-lg font-bold text-green-400">
-                      <DollarSign size={16} /> {Number(table.active_session.total_spent).toFixed(2)}
+                    <div className="mt-2 pt-2 border-t border-gray-700 flex items-center justify-between">
+                      <span className="text-lg font-bold text-green-400">R$ {Number(table.active_session.total_spent).toFixed(2)}</span>
                     </div>
                   </div>
                 ) : (
@@ -190,7 +180,6 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
           })}
         </div>
 
-        {/* MODAL DE CRIAÇÃO */}
         <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title={`Adicionar ${terms.tables}`}>
           <div className="space-y-6">
             <div>
@@ -212,12 +201,9 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
           </div>
         </Modal>
 
-        {/* MODAL DE GESTÃO DA MESA */}
         <Modal isOpen={!!selectedTable} onClose={() => setSelectedTable(null)} title={`${terms.table} ${selectedTable?.table_number}`}>
           {selectedTable && (
             <div className="space-y-6">
-              
-              {/* Seção de Status */}
               {selectedTable.status === 'free' ? (
                 <div className="bg-gray-900 p-4 rounded-xl border border-gray-700">
                   <p className="text-gray-400 text-sm mb-3">Mesa livre. Deseja abrir manualmente?</p>
@@ -234,20 +220,27 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
                   </div>
                 </div>
               ) : (
-                <div className="bg-orange-900/20 p-4 rounded-xl border border-orange-500/30">
-                  <div className="flex justify-between items-start mb-4">
+                <div className="bg-orange-900/20 p-5 rounded-2xl border border-orange-500/30 space-y-4">
+                  <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-orange-200 text-xs font-bold uppercase">Ocupada por</p>
-                      <p className="text-white font-bold text-lg">{selectedTable.active_session?.customer_name}</p>
+                      <p className="text-orange-200 text-[10px] font-black uppercase tracking-widest">OCUPADA POR:</p>
+                      <p className="text-white font-black text-2xl uppercase">{selectedTable.active_session?.customer_name}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-orange-200 text-xs font-bold uppercase">Total</p>
+                      <p className="text-orange-200 text-[10px] font-black uppercase tracking-widest">TOTAL:</p>
                       <p className="text-white font-black text-2xl">R$ {Number(selectedTable.active_session?.total_spent).toFixed(2)}</p>
                     </div>
                   </div>
-                  
-                  <p className="text-gray-400 text-xs font-bold uppercase mb-2">Fechar Conta & Liberar</p>
-                  <div className="grid grid-cols-3 gap-2">
+
+                  <div className="bg-black/40 p-4 rounded-xl border border-white/10">
+                    <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest mb-1">TOKEN DE ACESSO:</p>
+                    <p className="text-white font-mono text-2xl font-black tracking-[0.3em] text-center">
+                        {selectedTable.active_session?.access_pin || "----------"}
+                    </p>
+                    <p className="text-[9px] text-gray-500 mt-2 text-center italic">Forneça este código se o cliente perder o acesso ao QR Code.</p>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 pt-2">
                     <button onClick={() => handleCloseTable('cash')} className="bg-gray-800 hover:bg-green-600 text-gray-300 hover:text-white p-2 rounded-lg flex flex-col items-center gap-1 transition-colors border border-gray-700">
                       <Banknote size={18} /> <span className="text-[10px] font-bold">Dinheiro</span>
                     </button>
@@ -261,7 +254,6 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
                 </div>
               )}
 
-              {/* Seção de QR Code e Links */}
               <div className="border-t border-gray-700 pt-4">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="bg-white p-2 rounded-lg">
@@ -285,7 +277,6 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
                 </div>
               </div>
 
-              {/* Zona de Perigo */}
               <div className="border-t border-gray-700 pt-4 flex justify-between items-center">
                 <span className="text-xs text-gray-500">ID: {selectedTable.id}</span>
                 <button onClick={() => handleDelete(selectedTable.id)} className="text-red-400 hover:text-red-300 text-xs font-bold flex items-center gap-1 hover:bg-red-900/20 px-3 py-1.5 rounded-lg transition-colors">
@@ -297,20 +288,22 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
         </Modal>
       </div>
 
-      {/* =================================================================================
-          CAMADA DE IMPRESSÃO (PRINT) - Aparece só na impressão (hidden print:block)
-          Esta div está fora do fluxo principal para não ser afetada por estilos globais
-         ================================================================================= */}
-      <div className="hidden print:block fixed inset-0 bg-white z-[9999] p-0 m-0 overflow-visible">
-        <div className="grid grid-cols-2 gap-8 p-8 w-full h-full">
+      {/* HEART OF THE PROJECT: PRINT LAYER */}
+      <div id="print-layer" className="hidden print:block fixed inset-0 z-[9999] bg-white w-full h-full overflow-visible">
+        <div className="grid grid-cols-2 gap-8 p-8 w-full h-full content-start">
           {(printMode === 'single' && selectedTable ? [selectedTable] : tables).map((table) => (
-            <div key={table.id} className="border-4 border-black rounded-3xl p-8 flex flex-col items-center justify-center text-center aspect-[3/4] break-inside-avoid page-break-inside-avoid">
-              <h2 className="text-5xl font-black mb-4 text-black uppercase tracking-tighter">{terms.table} {table.table_number}</h2>
-              <p className="text-xl mb-8 text-gray-600 font-bold uppercase tracking-widest">Escaneie para pedir</p>
-              <QRCodeSVG value={getQrUrl(table)} size={250} />
-              <div className="mt-8 flex items-center gap-2 text-gray-400 font-bold">
-                <span className="text-sm">MesaFlow</span>
+            <div key={table.id} className="border-4 border-black rounded-[2rem] p-8 flex flex-col items-center justify-center text-center break-inside-avoid page-break-inside-avoid h-[450px] relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-4 bg-black"></div>
+              <h2 className="text-5xl font-black mb-2 text-black uppercase tracking-tighter">{terms.table} {table.table_number}</h2>
+              <p className="text-lg mb-8 text-gray-600 font-black uppercase tracking-[0.2em]">Escaneie para pedir</p>
+              <div className="bg-white p-4 border-4 border-black rounded-2xl">
+                <QRCodeSVG value={getQrUrl(table)} size={200} fgColor="#000000" bgColor="#ffffff" />
               </div>
+              <div className="mt-8 flex items-center gap-3 text-black font-black">
+                <ChefHat size={24} />
+                <span className="text-xl tracking-tighter">MesaFlow</span>
+              </div>
+              <div className="absolute bottom-0 left-0 w-full h-4 bg-black"></div>
             </div>
           ))}
         </div>
@@ -318,28 +311,10 @@ export default function TablesPage({ params }: { params: { slug: string } }) {
 
       <style jsx global>{`
         @media print {
-          @page { margin: 0.5cm; size: A4 portrait; }
-          /* Força o fundo branco e texto preto */
-          body { 
-            background-color: white !important; 
-            color: black !important; 
-            -webkit-print-color-adjust: exact;
-          }
-          
-          /* Garante que a div de impressão ocupe tudo */
-          .print\\:block { 
-            display: block !important; 
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-          }
-
-          /* Evita quebra de página no meio do QR Code */
-          .page-break-inside-avoid { 
-            break-inside: avoid; 
-          }
+          @page { margin: 0; size: A4 portrait; }
+          body > *:not(#print-layer) { display: none !important; }
+          #print-layer { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
+          .page-break-inside-avoid { break-inside: avoid; }
         }
       `}</style>
     </div>

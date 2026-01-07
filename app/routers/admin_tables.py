@@ -1,41 +1,61 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, selectinload
-from typing import List
+from typing import List, Optional
 import uuid
+import random
+import string
 from datetime import datetime
 from decimal import Decimal
 from app.database import get_db
-from app.models import Company, Table, TableSession, Order, ServiceRequest, OrderStatus, PaymentStatus, OrderItem, PaymentMethod, Employee, ServiceFeeLedger
+from app.models import Company, Table, TableSession, Order, ServiceRequest, OrderStatus, PaymentStatus, PaymentMethod, ServiceFeeLedger, Employee
 from app.schemas import (
     TableResponse, TableCreate, TableBulkCreate, TableDashboardResponse, 
-    OpenTableRequest, CloseTableRequest, TablePositionUpdate, SessionUpdate, 
-    TableSessionDetail, TableTransferRequest
+    OpenTableRequest, CloseTableRequest, TablePositionUpdate, 
+    SessionUpdate, TableSessionDetail, TableTransferRequest
 )
 from app.routers.auth import get_current_user
 from app.websockets import manager
+from app.services.payment_service import PaymentService
+from pydantic import BaseModel
 
 router = APIRouter()
+payment_service = PaymentService()
+
+class PartialPaymentRequest(BaseModel):
+    amount: Decimal
+    payment_method: str
+
+def generate_secure_pin(length: int = 10) -> str:
+    """Gera um token numérico aleatório para acesso à mesa."""
+    return ''.join(random.choices(string.digits, k=length))
+
+# --- CRUD BÁSICO (RESTAURADO) ---
 
 @router.get("", response_model=List[TableResponse])
 def get_tables(
     db: Session = Depends(get_db),
     current_user: any = Depends(get_current_user)
 ):
-    # Correção: Usar company_id corretamente dependendo do tipo de usuário
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
     return db.query(Table).filter(Table.company_id == company_id).order_by(Table.table_number).all()
 
 @router.post("", response_model=TableResponse, status_code=201)
 def create_table(
-    table_data: TableCreate,
+    data: TableCreate,
     db: Session = Depends(get_db),
     current_user: any = Depends(get_current_user)
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    exists = db.query(Table).filter(Table.company_id == company_id, Table.table_number == table_data.table_number).first()
-    if exists:
-        raise HTTPException(status_code=400, detail=f"Mesa {table_data.table_number} já existe")
-    new_table = Table(company_id=company_id, table_number=table_data.table_number, qr_token=uuid.uuid4().hex)
+    
+    # Verificar duplicidade
+    if db.query(Table).filter(Table.company_id == company_id, Table.table_number == data.table_number).first():
+        raise HTTPException(400, "Número de mesa já existe")
+
+    new_table = Table(
+        company_id=company_id,
+        table_number=data.table_number,
+        qr_token=str(uuid.uuid4())
+    )
     db.add(new_table)
     db.commit()
     db.refresh(new_table)
@@ -43,20 +63,22 @@ def create_table(
 
 @router.post("/bulk", status_code=201)
 def create_tables_bulk(
-    bulk_data: TableBulkCreate,
+    data: TableBulkCreate,
     db: Session = Depends(get_db),
     current_user: any = Depends(get_current_user)
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    if bulk_data.start > bulk_data.end:
-        raise HTTPException(status_code=400, detail="O início deve ser menor que o fim")
+    
     created_count = 0
-    for num in range(bulk_data.start, bulk_data.end + 1):
-        exists = db.query(Table).filter(Table.company_id == company_id, Table.table_number == num).first()
-        if not exists:
-            new_table = Table(company_id=company_id, table_number=num, qr_token=uuid.uuid4().hex)
-            db.add(new_table)
+    for num in range(data.start, data.end + 1):
+        if not db.query(Table).filter(Table.company_id == company_id, Table.table_number == num).first():
+            db.add(Table(
+                company_id=company_id,
+                table_number=num,
+                qr_token=str(uuid.uuid4())
+            ))
             created_count += 1
+    
     db.commit()
     return {"message": f"{created_count} mesas criadas"}
 
@@ -68,11 +90,32 @@ def delete_table(
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
     table = db.query(Table).filter(Table.id == table_id, Table.company_id == company_id).first()
+    
     if not table:
-        raise HTTPException(status_code=404, detail="Mesa não encontrada")
+        raise HTTPException(404, "Mesa não encontrada")
+        
     db.delete(table)
     db.commit()
     return None
+
+@router.patch("/positions", status_code=200)
+def update_table_positions(
+    positions: List[TablePositionUpdate],
+    db: Session = Depends(get_db),
+    current_user: any = Depends(get_current_user)
+):
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    
+    for pos in positions:
+        db.query(Table).filter(Table.id == pos.id, Table.company_id == company_id).update({
+            "position_x": pos.x,
+            "position_y": pos.y
+        })
+    
+    db.commit()
+    return {"message": "Posições atualizadas"}
+
+# --- DASHBOARD & OPERAÇÃO ---
 
 @router.get("/dashboard", response_model=List[TableDashboardResponse])
 def get_tables_dashboard(
@@ -81,24 +124,35 @@ def get_tables_dashboard(
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
     tables = db.query(Table).filter(Table.company_id == company_id).order_by(Table.table_number).all()
+
     dashboard_data = []
     for table in tables:
         active_session = db.query(TableSession).filter(TableSession.table_id == table.id, TableSession.is_active == True).first()
         active_request = db.query(ServiceRequest).filter(ServiceRequest.table_id == table.id, ServiceRequest.status == "pending").first()
+
         status = "free"
         session_summary = None
+
         if active_session:
             status = "occupied"
-            orders = db.query(Order).filter(Order.session_id == active_session.id).all()
+            # Calcula apenas pedidos não pagos
+            orders = db.query(Order).filter(
+                Order.session_id == active_session.id,
+                Order.payment_status != PaymentStatus.PAID
+            ).all()
             total = sum(o.total_amount for o in orders)
+
             session_summary = {
                 "id": active_session.id,
                 "customer_name": active_session.customer_name,
                 "total_spent": total,
-                "start_time": active_session.created_at
+                "start_time": active_session.created_at,
+                "access_pin": active_session.access_pin 
             }
+
         if active_request:
             status = "alert"
+
         dashboard_data.append({
             "id": table.id,
             "table_number": table.table_number,
@@ -121,26 +175,81 @@ def open_table_session(
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
     table = db.query(Table).filter(Table.id == table_id, Table.company_id == company_id).first()
     if not table: raise HTTPException(404, "Mesa não encontrada")
+
     existing = db.query(TableSession).filter(TableSession.table_id == table.id, TableSession.is_active == True).first()
     if existing: raise HTTPException(400, "Mesa já está ocupada")
-    
-    # Identificar quem abriu (para gorjeta)
-    opener_id = None
-    if isinstance(current_user, Employee):
-        opener_id = current_user.id # Agora é um Inteiro correto
+
+    opener_id = current_user.id if isinstance(current_user, Employee) else None
+    pin = generate_secure_pin(10)
 
     new_session = TableSession(
         company_id=company_id,
         table_id=table.id,
         customer_name=data.customer_name,
         session_token=str(uuid.uuid4()),
-        access_pin="0000",
+        access_pin=pin,
         is_active=True,
         opened_by_employee_id=opener_id
     )
     db.add(new_session)
     db.commit()
-    return {"message": "Mesa aberta"}
+    return {"message": "Mesa aberta", "pin": pin}
+
+@router.post("/{table_id}/pay", status_code=200)
+async def pay_table_partial(
+    table_id: int,
+    data: PartialPaymentRequest,
+    db: Session = Depends(get_db),
+    current_user: any = Depends(get_current_user)
+):
+    """
+    Processa um pagamento parcial.
+    Abate o valor dos pedidos mais antigos para os mais novos.
+    """
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    company = db.query(Company).filter(Company.id == company_id).first()
+    
+    session = db.query(TableSession).filter(
+        TableSession.table_id == table_id,
+        TableSession.is_active == True,
+        TableSession.company_id == company_id
+    ).first()
+
+    if not session: raise HTTPException(404, "Nenhuma sessão ativa")
+
+    # Busca pedidos pendentes ordenados por data
+    orders = db.query(Order).filter(
+        Order.session_id == session.id,
+        Order.payment_status != PaymentStatus.PAID
+    ).order_by(Order.created_at.asc()).all()
+
+    remaining_payment = data.amount
+    paid_orders_count = 0
+
+    for order in orders:
+        if remaining_payment <= 0:
+            break
+        
+        # Se o pagamento cobre o pedido inteiro
+        if remaining_payment >= order.total_amount:
+            order.payment_status = PaymentStatus.PAID
+            order.payment_method = data.payment_method
+            remaining_payment -= order.total_amount
+            paid_orders_count += 1
+        else:
+            # Pagamento parcial de um pedido (Complexo sem tabela de transações)
+            # Por enquanto, vamos apenas permitir quitar pedidos inteiros para manter consistência
+            pass
+
+    db.commit()
+    
+    await manager.broadcast({"type": "order_update", "table_id": table_id}, company.slug)
+
+    return {
+        "message": f"Pagamento de R$ {data.amount} processado.",
+        "orders_paid": paid_orders_count,
+        "remaining_credit": remaining_payment
+    }
 
 @router.post("/{table_id}/close", status_code=200)
 async def close_table_session(
@@ -150,75 +259,64 @@ async def close_table_session(
     current_user: any = Depends(get_current_user)
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
-    
+    company = db.query(Company).filter(Company.id == company_id).first()
+    slug = company.slug
+
     session = db.query(TableSession).filter(
         TableSession.table_id == table_id,
         TableSession.is_active == True,
         TableSession.company_id == company_id
     ).first()
-    
+
     if not session: raise HTTPException(404, "Nenhuma sessão ativa")
+
+    # Busca apenas pedidos pendentes para calcular o total final a pagar
+    orders = db.query(Order).filter(
+        Order.session_id == session.id,
+        Order.payment_status != PaymentStatus.PAID
+    ).all()
     
-    orders = db.query(Order).filter(Order.session_id == session.id).all()
     total_amount = sum(o.total_amount for o in orders)
-    
-    # 1. Calcular Gorjeta (Service Fee)
-    company = db.query(Company).filter(Company.id == company_id).first()
+
+    pix_data = None
+    if data.payment_method == "pix" and total_amount > 0:
+        try:
+            if company.payment_provider != "NONE":
+                mock_order = Order(id=uuid.uuid4(), total_amount=total_amount, customer_name=session.customer_name)
+                pix_data = await payment_service.create_pix_payment(mock_order, company)
+        except Exception as e:
+            print(f"Erro ao gerar Pix: {e}")
+
+    # Lógica de Gorjeta
     service_fee_pct = company.service_fee_percentage or Decimal(0)
-    
-    if service_fee_pct > 0 and total_amount > 0:
-        # Calcula 10% sobre o total
-        tip_amount = (total_amount * (service_fee_pct / Decimal(100))).quantize(Decimal("0.01"))
-        
-        # Se a mesa foi aberta por um funcionário, credita a ele
-        if session.opened_by_employee_id:
-            ledger_entry = ServiceFeeLedger(
-                company_id=company_id,
-                employee_id=session.opened_by_employee_id,
-                amount=tip_amount
-            )
-            db.add(ledger_entry)
+    if data.custom_service_fee is not None:
+        tip_amount = data.custom_service_fee
+    else:
+        all_orders = db.query(Order).filter(Order.session_id == session.id).all()
+        total_consumption = sum(o.total_amount for o in all_orders)
+        tip_amount = (total_consumption * (service_fee_pct / Decimal(100))).quantize(Decimal("0.01"))
 
-    # 2. Lógica de Comissão SaaS (Split)
-    if data.payment_method in [PaymentMethod.CASH, PaymentMethod.CARD]:
-        if company.marketplace_fee_percentage > 0:
-            fee = (total_amount * (company.marketplace_fee_percentage / Decimal(100))).quantize(Decimal("0.01"))
-            if company.pending_commission_balance is None:
-                company.pending_commission_balance = Decimal(0)
-            company.pending_commission_balance += fee
+    if tip_amount > 0 and session.opened_by_employee_id:
+        db.add(ServiceFeeLedger(company_id=company_id, employee_id=session.opened_by_employee_id, amount=tip_amount))
 
+    # Marca restantes como pagos
     for order in orders:
         order.payment_status = PaymentStatus.PAID
         order.payment_method = data.payment_method
         if order.status == OrderStatus.PENDING:
             order.status = OrderStatus.ACCEPTED
-            
+
     session.is_active = False
     session.closed_at = datetime.now()
-    
-    requests = db.query(ServiceRequest).filter(ServiceRequest.table_id == table_id, ServiceRequest.status == "pending").all()
-    for req in requests:
-        req.status = "resolved"
-        
+
+    db.query(ServiceRequest).filter(ServiceRequest.table_id == table_id, ServiceRequest.status == "pending").update({"status": "resolved"})
+
     db.commit()
     await manager.broadcast({"type": "order_update", "table_id": table_id}, slug)
-    return {"message": "Mesa fechada"}
 
-@router.patch("/positions", status_code=200)
-def update_table_positions(
-    positions: List[TablePositionUpdate],
-    db: Session = Depends(get_db),
-    current_user: any = Depends(get_current_user)
-):
-    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    for pos in positions:
-        table = db.query(Table).filter(Table.id == pos.id, Table.company_id == company_id).first()
-        if table:
-            table.position_x = pos.x
-            table.position_y = pos.y
-    db.commit()
-    return {"message": "Layout atualizado"}
+    return {"message": "Mesa fechada", "pix_data": pix_data}
+
+# --- GESTÃO DE SESSÃO (RESTAURADO) ---
 
 @router.patch("/sessions/{session_id}", status_code=200)
 def update_session_name(
@@ -229,8 +327,9 @@ def update_session_name(
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
     session = db.query(TableSession).filter(TableSession.id == session_id, TableSession.company_id == company_id).first()
-    if not session:
-        raise HTTPException(404, "Sessão não encontrada")
+    
+    if not session: raise HTTPException(404, "Sessão não encontrada")
+    
     session.customer_name = data.customer_name
     db.commit()
     return {"message": "Nome atualizado"}
@@ -242,80 +341,67 @@ def get_session_details(
     current_user: any = Depends(get_current_user)
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    session = db.query(TableSession).options(
-        selectinload(TableSession.orders).selectinload(Order.items).selectinload(OrderItem.product),
-        selectinload(TableSession.orders).selectinload(Order.items).selectinload(OrderItem.selected_options)
-    ).filter(TableSession.id == session_id, TableSession.company_id == company_id).first()
-    if not session:
-        raise HTTPException(404, "Sessão não encontrada")
-    total = sum(o.total_amount for o in session.orders)
+    session = db.query(TableSession).filter(TableSession.id == session_id, TableSession.company_id == company_id).first()
+    
+    if not session: raise HTTPException(404, "Sessão não encontrada")
+    
+    orders = db.query(Order).options(
+        selectinload(Order.items).selectinload(OrderItem.product),
+        selectinload(Order.items).selectinload(OrderItem.selected_options)
+    ).filter(Order.session_id == session.id).all()
+    
+    total = sum(o.total_amount for o in orders)
+    
     return {
         "id": session.id,
         "customer_name": session.customer_name,
         "total_spent": total,
         "start_time": session.created_at,
-        "orders": session.orders
+        "orders": orders
     }
 
 @router.post("/transfer", status_code=200)
-async def transfer_table(
+def transfer_table(
     data: TableTransferRequest,
     db: Session = Depends(get_db),
     current_user: any = Depends(get_current_user)
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
-
-    from_session = db.query(TableSession).filter(
+    
+    # Validar origem
+    source_session = db.query(TableSession).filter(
         TableSession.table_id == data.from_table_id,
         TableSession.is_active == True,
         TableSession.company_id == company_id
     ).first()
-
-    if not from_session:
-        raise HTTPException(404, "Mesa de origem não tem sessão ativa")
-
-    to_table = db.query(Table).filter(Table.id == data.to_table_id, Table.company_id == company_id).first()
-    if not to_table:
-        raise HTTPException(404, "Mesa de destino não encontrada")
-
-    to_session = db.query(TableSession).filter(
+    
+    if not source_session: raise HTTPException(404, "Mesa de origem não tem sessão ativa")
+    
+    # Validar destino
+    target_session = db.query(TableSession).filter(
         TableSession.table_id == data.to_table_id,
         TableSession.is_active == True,
         TableSession.company_id == company_id
     ).first()
-
-    if to_session:
+    
+    if target_session:
         if not data.merge:
-            raise HTTPException(409, "Mesa de destino ocupada. Deseja juntar?")
+            raise HTTPException(409, detail=f"Mesa de destino ocupada por {target_session.customer_name}. Deseja juntar?")
         
-        orders = db.query(Order).filter(Order.session_id == from_session.id).all()
-        for order in orders:
-            order.session_id = to_session.id
-            order.table_id = to_table.id
+        # Merge: Mover pedidos para a sessão de destino
+        db.query(Order).filter(Order.session_id == source_session.id).update({"session_id": target_session.id, "table_id": data.to_table_id})
         
-        requests = db.query(ServiceRequest).filter(ServiceRequest.table_id == data.from_table_id, ServiceRequest.status == "pending").all()
-        for req in requests:
-            req.table_id = to_table.id
-
-        from_session.is_active = False
-        from_session.closed_at = datetime.now()
+        # Fechar sessão de origem
+        source_session.is_active = False
+        source_session.closed_at = datetime.now()
+        
         db.commit()
-        
-        await manager.broadcast({"type": "order_update", "message": "Mesas unificadas"}, slug)
-        return {"message": f"Mesas unificadas em {to_table.table_number}"}
-
+        return {"message": "Mesas unificadas com sucesso"}
+    
     else:
-        from_session.table_id = to_table.id
+        # Transferência Simples: Mudar o table_id da sessão e dos pedidos
+        source_session.table_id = data.to_table_id
+        db.query(Order).filter(Order.session_id == source_session.id).update({"table_id": data.to_table_id})
         
-        orders = db.query(Order).filter(Order.session_id == from_session.id).all()
-        for order in orders:
-            order.table_id = to_table.id
-            
-        requests = db.query(ServiceRequest).filter(ServiceRequest.table_id == data.from_table_id, ServiceRequest.status == "pending").all()
-        for req in requests:
-            req.table_id = to_table.id
-
         db.commit()
-        await manager.broadcast({"type": "order_update", "message": "Mesa transferida"}, slug)
-        return {"message": f"Transferido para Mesa {to_table.table_number}"}
+        return {"message": "Mesa transferida com sucesso"}

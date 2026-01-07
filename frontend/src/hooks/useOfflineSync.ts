@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 export function useOfflineSync() {
   const [isSyncing, setIsSyncing] = useState(false);
-  
+
   // Monitora a tabela local reativamente
   const pendingCount = useLiveQuery(() => db.pendingOrders.where('status').equals('pending').count()) || 0;
   const errorCount = useLiveQuery(() => db.pendingOrders.where('status').equals('error').count()) || 0;
@@ -27,25 +27,29 @@ export function useOfflineSync() {
     for (const order of pendingOrders) {
       try {
         await createOrder(order.slug, order.payload);
-        
+
         // Sucesso: Remove da fila
         await db.pendingOrders.delete(order.id!);
         successCount++;
-        
+
       } catch (error: any) {
         console.error("Erro na sincronização:", error);
-        
+
         // Se for erro de validação (400/422), marca como erro para intervenção manual
         // Se for erro de rede (500 ou fetch fail), mantém como pending para tentar depois
-        const isValidationError = error.message && (error.message.includes("Estoque") || error.message.includes("fechado"));
         
+        // Verifica se é um erro de API conhecido (ApiError) ou erro genérico
+        const isValidationError = error.status === 400 || error.status === 422 || 
+                                  (error.message && (error.message.includes("Estoque") || error.message.includes("fechado") || error.message.includes("indisponível")));
+
         if (isValidationError) {
           await db.pendingOrders.update(order.id!, {
             status: 'error',
-            errorMessage: error.message || "Erro desconhecido"
+            errorMessage: error.message || "Erro de validação"
           });
+          toast.error(`Erro ao sincronizar pedido: ${error.message}`);
         } else {
-          // Apenas incrementa retry, mantém pending
+          // Apenas incrementa retry, mantém pending para próxima tentativa
           await db.pendingOrders.update(order.id!, {
             retryCount: (order.retryCount || 0) + 1
           });

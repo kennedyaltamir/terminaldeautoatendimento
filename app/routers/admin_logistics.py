@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, case
 from typing import List, Optional
 from app.database import get_db
 from app.models import Company, Employee, DriverLedger, LedgerType, UserRole, Order, OrderStatus, OrderType
@@ -22,6 +22,12 @@ class LogisticsDashboard(BaseModel):
     total_collected_cash: float
     top_driver: Optional[str] = None
 
+class DriverDebtSummary(BaseModel):
+    driver_id: int
+    driver_name: str
+    current_debt: float
+    last_settlement: Optional[datetime] = None
+
 def require_manager(current_user: any = Depends(get_current_user)):
     if isinstance(current_user, Company):
         return current_user
@@ -40,7 +46,7 @@ def get_logistics_dashboard(
     Retorna KPIs de logística em tempo real para o gestor da frota.
     """
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    
+
     today = date.today()
     start_of_day = datetime.combine(today, time.min)
     end_of_day = datetime.combine(today, time.max)
@@ -78,7 +84,7 @@ def get_logistics_dashboard(
         Order.status == OrderStatus.DELIVERED,
         Order.finished_at >= start_of_day
     ).scalar()
-    
+
     avg_minutes = int(avg_time_query / 60) if avg_time_query else 0
 
     # 5. Total Arrecadado em Dinheiro (Cash Management)
@@ -109,6 +115,50 @@ def get_logistics_dashboard(
         "top_driver": top_driver_name
     }
 
+@router.get("/drivers", response_model=List[DriverDebtSummary])
+def get_drivers_with_balances(
+    db: Session = Depends(get_db),
+    current_user: any = Depends(require_manager)
+):
+    """
+    Lista todos os motoristas e seus saldos devedores atuais.
+    """
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+
+    # Subquery para calcular saldo
+    # Saldo = Soma(Debitos) - Soma(Pagamentos)
+    balance_query = db.query(
+        DriverLedger.driver_id,
+        (
+            func.sum(case((DriverLedger.type == LedgerType.DEBT, DriverLedger.amount), else_=0)) -
+            func.sum(case((DriverLedger.type.in_([LedgerType.PAYMENT, LedgerType.CREDIT]), DriverLedger.amount), else_=0))
+        ).label("balance")
+    ).filter(
+        DriverLedger.company_id == company_id
+    ).group_by(DriverLedger.driver_id).subquery()
+
+    # Join com Employees
+    drivers = db.query(
+        Employee.id,
+        Employee.name,
+        func.coalesce(balance_query.c.balance, 0).label("current_debt")
+    ).outerjoin(
+        balance_query, Employee.id == balance_query.c.driver_id
+    ).filter(
+        Employee.company_id == company_id,
+        Employee.role == UserRole.DRIVER,
+        Employee.is_active == True
+    ).all()
+
+    return [
+        {
+            "driver_id": d.id,
+            "driver_name": d.name,
+            "current_debt": float(d.current_debt)
+        }
+        for d in drivers
+    ]
+
 @router.get("/drivers/{driver_id}/balance", response_model=DriverBalanceResponse)
 def get_driver_balance(
     driver_id: int,
@@ -116,13 +166,13 @@ def get_driver_balance(
     current_user: any = Depends(require_manager)
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    
+
     driver = db.query(Employee).filter(
         Employee.id == driver_id,
         Employee.company_id == company_id,
         Employee.role == UserRole.DRIVER
     ).first()
-    
+
     if not driver:
         raise HTTPException(status_code=404, detail="Motorista não encontrado")
 
@@ -157,12 +207,12 @@ def settle_driver_debt(
     current_user: any = Depends(require_manager)
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    
+
     driver = db.query(Employee).filter(
         Employee.id == driver_id,
         Employee.company_id == company_id
     ).first()
-    
+
     if not driver:
         raise HTTPException(status_code=404, detail="Motorista não encontrado")
 
@@ -176,8 +226,8 @@ def settle_driver_debt(
         amount=data.amount,
         description=data.description
     )
-    
+
     db.add(ledger_entry)
     db.commit()
-    
+
     return {"message": "Pagamento registrado com sucesso"}

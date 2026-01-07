@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Users, CheckCircle2, Calculator } from "lucide-react";
+import { X, Users, CheckCircle2, Calculator, DollarSign } from "lucide-react";
 import { Order } from "@/types";
 
 interface SplitBillModalProps {
@@ -10,9 +10,10 @@ interface SplitBillModalProps {
   orders: Order[];
   totalAmount: number;
   primaryColor: string;
+  onPayPartial?: (amount: number) => void; // Callback para pagamento
 }
 
-export default function SplitBillModal({ isOpen, onClose, orders, totalAmount, primaryColor }: SplitBillModalProps) {
+export default function SplitBillModal({ isOpen, onClose, orders, totalAmount, primaryColor, onPayPartial }: SplitBillModalProps) {
   const [mode, setMode] = useState<"equal" | "items">("equal");
   const [peopleCount, setPeopleCount] = useState(2);
   const [selectedItems, setSelectedItems] = useState<string[]>([]); // IDs dos itens selecionados (orderId-itemIndex)
@@ -47,12 +48,20 @@ export default function SplitBillModal({ isOpen, onClose, orders, totalAmount, p
 
   const myShare = calculateMyShare();
 
+  const handleConfirm = () => {
+    if (onPayPartial) {
+      onPayPartial(myShare);
+    } else {
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[90] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
       <div className="bg-white w-full sm:max-w-md sm:rounded-xl rounded-t-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-        
+
         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
           <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
             <Calculator size={20} className="text-gray-500"/> Dividir Conta
@@ -96,7 +105,7 @@ export default function SplitBillModal({ isOpen, onClose, orders, totalAmount, p
                   +
                 </button>
               </div>
-              
+
               <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                 <p className="text-gray-500 text-sm mb-1">Cada um paga</p>
                 <p className="text-4xl font-black text-green-600">R$ {myShare.toFixed(2)}</p>
@@ -136,11 +145,11 @@ export default function SplitBillModal({ isOpen, onClose, orders, totalAmount, p
             <span className="text-2xl font-black text-gray-900">R$ {myShare.toFixed(2)}</span>
           </div>
           <button 
-            onClick={onClose} // Em um app real, isso levaria para o checkout com o valor parcial
+            onClick={handleConfirm}
             className="w-full py-3.5 rounded-xl font-bold text-white shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2"
             style={{ backgroundColor: primaryColor }}
           >
-            Confirmar Valor
+            {onPayPartial ? <><DollarSign size={18} /> Pagar Agora</> : "Confirmar Valor"}
           </button>
         </div>
 

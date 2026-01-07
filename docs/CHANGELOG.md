@@ -109,3 +109,46 @@ Foco total em experiência do usuário (UX), resiliência e operações de cozin
 
 ## [2.0.0] - 2025-12-31 - "MVP Híbrido"
 Lançamento da versão base com suporte a Mesa e Delivery.
+# 📝 Changelog - MesaFlow
+
+## [3.0.0] - 2026-01-05 - "The Enterprise Milestone"
+Esta versão marca a transição do MesaFlow de um software de gestão para uma plataforma de integração e resiliência.
+
+### ✨ Novidades (Fase 9)
+- **Contingência Fiscal:** Emissão de notas em modo offline com sincronização automática via IndexedDB.
+- **Hub iFood:** Integração nativa com iFood. Pedidos externos agora caem direto no KDS do MesaFlow.
+- **Webhooks de Saída:** Sistema de notificações para desenvolvedores com assinatura HMAC-SHA256.
+- **Motor de Promoções:** Criação e validação de cupons de desconto (fixo/percentual) com regras de valor mínimo.
+- **Developer Experience:** Documentação técnica completa via Swagger (/docs) e Redoc (/redoc).
+
+### 🛠️ Melhorias Técnicas
+- **Integridade:** Migração total de lógica financeira para o tipo `Decimal`.
+- **Segurança:** Implementação de GUIDs (UUID v4) em todas as tabelas para compatibilidade SQLite/Postgres.
+- **KDS:** Suporte visual para pedidos iFood e atalhos de teclado (Bump Bar).
+- **Infra:** Otimização do loop de eventos do FastAPI para suportar polling de múltiplos merchants iFood.
+
+---
+
+## [2.3.2] - 2026-01-05 - "CI/CD Stabilization"
+- Correção de 29 regressões na suíte de testes.
+- Implementação de GUID híbrido.
+
+---
+# 📝 Changelog - MesaFlow
+
+## [4.0.0] - 2026-01-07 - "The Mobile Revolution"
+Esta versão consolida a entrada do MesaFlow no ecossistema nativo com o lançamento do KDS Mobile.
+
+### ✨ Novidades (Fase 10)
+- **KDS Nativo:** Aplicativo de alta performance para tablets e celulares.
+- **Active Attention:** Sistema de alertas sensoriais (vibração) inteligente com controle de SLA.
+- **Global Clock:** Sincronização temporal determinística em todo o app.
+- **Resiliência Total:** Reconexão automática de WebSocket e persistência local de pedidos.
+- **Observabilidade:** Logs estruturados para diagnóstico em tempo real.
+
+### 🛠️ Melhorias Técnicas
+- **Auth Hardening:** Validação semântica de JWT e barreira de renderização soberana.
+- **Zustand Persistence:** Estado operacional salvo no dispositivo (Offline-ready).
+- **API Contracts:** Padronização de esquemas de erro para clientes nativos.
+
+---

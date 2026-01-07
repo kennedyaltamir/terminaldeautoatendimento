@@ -11,6 +11,7 @@ from app.schemas import OrderResponse, ServiceRequestResponse, ProductResponse, 
 from app.websockets import manager
 from app.services.whatsapp_service import WhatsAppService
 from app.services.loyalty_service import LoyaltyService
+from app.services.webhook_dispatcher import WebhookDispatcher
 
 router = APIRouter()
 whatsapp_service = WhatsAppService()
@@ -174,6 +175,20 @@ async def update_order_status(
                 restaurant_name=order.company.name,
                 company_settings=order.company
             )
+
+    # Webhook Dispatch (Integração Externa)
+    webhook_payload = {
+        "id": str(order.id),
+        "status": order.status,
+        "old_status": old_status,
+        "updated_at": str(datetime.now())
+    }
+    background_tasks.add_task(
+        WebhookDispatcher.dispatch,
+        "order.updated",
+        webhook_payload,
+        str(company_id)
+    )
 
     table_num = order.table.table_number if order.table else "Delivery"
     user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
