@@ -11,3 +11,6 @@
 [2026-01-07 06:30:51] UPDATE: docs/TASKS.md
 [2026-01-07 06:33:29] CREATE: docs/mobile/PRINTER_HOMOLOGATION_GUIDE.md
 [2026-01-07 07:04:13] CREATE: scripts/maintenance/check_mobile_readiness.py
+[2026-01-07 07:41:08] CREATE: scripts/setup/refresh_mobile_app.ps1
+[2026-01-07 07:42:34] CREATE: scripts/setup/refresh_mobile_app.py
+[2026-01-07 07:52:55] CREATE: scripts/setup/final_build_push.sh
