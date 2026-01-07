@@ -29,7 +29,7 @@ def generate_secure_pin(length: int = 10) -> str:
     """Gera um token numérico aleatório para acesso à mesa."""
     return ''.join(random.choices(string.digits, k=length))
 
-# --- CRUD BÁSICO (RESTAURADO) ---
+# --- CRUD BÁSICO ---
 
 @router.get("", response_model=List[TableResponse])
 def get_tables(
@@ -46,8 +46,6 @@ def create_table(
     current_user: any = Depends(get_current_user)
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    
-    # Verificar duplicidade
     if db.query(Table).filter(Table.company_id == company_id, Table.table_number == data.table_number).first():
         raise HTTPException(400, "Número de mesa já existe")
 
@@ -68,7 +66,6 @@ def create_tables_bulk(
     current_user: any = Depends(get_current_user)
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    
     created_count = 0
     for num in range(data.start, data.end + 1):
         if not db.query(Table).filter(Table.company_id == company_id, Table.table_number == num).first():
@@ -78,7 +75,6 @@ def create_tables_bulk(
                 qr_token=str(uuid.uuid4())
             ))
             created_count += 1
-    
     db.commit()
     return {"message": f"{created_count} mesas criadas"}
 
@@ -90,10 +86,8 @@ def delete_table(
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
     table = db.query(Table).filter(Table.id == table_id, Table.company_id == company_id).first()
-    
     if not table:
         raise HTTPException(404, "Mesa não encontrada")
-        
     db.delete(table)
     db.commit()
     return None
@@ -105,13 +99,11 @@ def update_table_positions(
     current_user: any = Depends(get_current_user)
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    
     for pos in positions:
         db.query(Table).filter(Table.id == pos.id, Table.company_id == company_id).update({
             "position_x": pos.x,
             "position_y": pos.y
         })
-    
     db.commit()
     return {"message": "Posições atualizadas"}
 
@@ -135,7 +127,6 @@ def get_tables_dashboard(
 
         if active_session:
             status = "occupied"
-            # Calcula apenas pedidos não pagos
             orders = db.query(Order).filter(
                 Order.session_id == active_session.id,
                 Order.payment_status != PaymentStatus.PAID
@@ -166,13 +157,18 @@ def get_tables_dashboard(
     return dashboard_data
 
 @router.post("/{table_id}/open", status_code=200)
-def open_table_session(
+async def open_table_session(
     table_id: int,
     data: OpenTableRequest,
     db: Session = Depends(get_db),
     current_user: any = Depends(get_current_user)
 ):
-    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    """
+    Abre uma sessão de mesa e notifica o Mobile POS via WebSocket.
+    """
+    company = current_user if isinstance(current_user, Company) else current_user.company
+    company_id = company.id
+    
     table = db.query(Table).filter(Table.id == table_id, Table.company_id == company_id).first()
     if not table: raise HTTPException(404, "Mesa não encontrada")
 
@@ -193,6 +189,10 @@ def open_table_session(
     )
     db.add(new_session)
     db.commit()
+
+    # GATILHO REAL-TIME: Notifica o Mobile POS para atualizar o mapa de mesas
+    await manager.broadcast({"type": "order_update", "table_id": table_id}, company.slug)
+
     return {"message": "Mesa aberta", "pin": pin}
 
 @router.post("/{table_id}/pay", status_code=200)
@@ -202,12 +202,8 @@ async def pay_table_partial(
     db: Session = Depends(get_db),
     current_user: any = Depends(get_current_user)
 ):
-    """
-    Processa um pagamento parcial.
-    Abate o valor dos pedidos mais antigos para os mais novos.
-    """
-    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    company = db.query(Company).filter(Company.id == company_id).first()
+    company = current_user if isinstance(current_user, Company) else current_user.company
+    company_id = company.id
     
     session = db.query(TableSession).filter(
         TableSession.table_id == table_id,
@@ -217,7 +213,6 @@ async def pay_table_partial(
 
     if not session: raise HTTPException(404, "Nenhuma sessão ativa")
 
-    # Busca pedidos pendentes ordenados por data
     orders = db.query(Order).filter(
         Order.session_id == session.id,
         Order.payment_status != PaymentStatus.PAID
@@ -227,22 +222,14 @@ async def pay_table_partial(
     paid_orders_count = 0
 
     for order in orders:
-        if remaining_payment <= 0:
-            break
-        
-        # Se o pagamento cobre o pedido inteiro
+        if remaining_payment <= 0: break
         if remaining_payment >= order.total_amount:
             order.payment_status = PaymentStatus.PAID
             order.payment_method = data.payment_method
             remaining_payment -= order.total_amount
             paid_orders_count += 1
-        else:
-            # Pagamento parcial de um pedido (Complexo sem tabela de transações)
-            # Por enquanto, vamos apenas permitir quitar pedidos inteiros para manter consistência
-            pass
 
     db.commit()
-    
     await manager.broadcast({"type": "order_update", "table_id": table_id}, company.slug)
 
     return {
@@ -258,8 +245,8 @@ async def close_table_session(
     db: Session = Depends(get_db),
     current_user: any = Depends(get_current_user)
 ):
-    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    company = db.query(Company).filter(Company.id == company_id).first()
+    company = current_user if isinstance(current_user, Company) else current_user.company
+    company_id = company.id
     slug = company.slug
 
     session = db.query(TableSession).filter(
@@ -270,7 +257,6 @@ async def close_table_session(
 
     if not session: raise HTTPException(404, "Nenhuma sessão ativa")
 
-    # Busca apenas pedidos pendentes para calcular o total final a pagar
     orders = db.query(Order).filter(
         Order.session_id == session.id,
         Order.payment_status != PaymentStatus.PAID
@@ -287,7 +273,6 @@ async def close_table_session(
         except Exception as e:
             print(f"Erro ao gerar Pix: {e}")
 
-    # Lógica de Gorjeta
     service_fee_pct = company.service_fee_percentage or Decimal(0)
     if data.custom_service_fee is not None:
         tip_amount = data.custom_service_fee
@@ -299,7 +284,6 @@ async def close_table_session(
     if tip_amount > 0 and session.opened_by_employee_id:
         db.add(ServiceFeeLedger(company_id=company_id, employee_id=session.opened_by_employee_id, amount=tip_amount))
 
-    # Marca restantes como pagos
     for order in orders:
         order.payment_status = PaymentStatus.PAID
         order.payment_method = data.payment_method
@@ -310,13 +294,10 @@ async def close_table_session(
     session.closed_at = datetime.now()
 
     db.query(ServiceRequest).filter(ServiceRequest.table_id == table_id, ServiceRequest.status == "pending").update({"status": "resolved"})
-
     db.commit()
     await manager.broadcast({"type": "order_update", "table_id": table_id}, slug)
 
     return {"message": "Mesa fechada", "pix_data": pix_data}
-
-# --- GESTÃO DE SESSÃO (RESTAURADO) ---
 
 @router.patch("/sessions/{session_id}", status_code=200)
 def update_session_name(
@@ -327,9 +308,7 @@ def update_session_name(
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
     session = db.query(TableSession).filter(TableSession.id == session_id, TableSession.company_id == company_id).first()
-    
     if not session: raise HTTPException(404, "Sessão não encontrada")
-    
     session.customer_name = data.customer_name
     db.commit()
     return {"message": "Nome atualizado"}
@@ -342,16 +321,12 @@ def get_session_details(
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
     session = db.query(TableSession).filter(TableSession.id == session_id, TableSession.company_id == company_id).first()
-    
     if not session: raise HTTPException(404, "Sessão não encontrada")
-    
     orders = db.query(Order).options(
         selectinload(Order.items).selectinload(OrderItem.product),
         selectinload(Order.items).selectinload(OrderItem.selected_options)
     ).filter(Order.session_id == session.id).all()
-    
     total = sum(o.total_amount for o in orders)
-    
     return {
         "id": session.id,
         "customer_name": session.customer_name,
@@ -367,41 +342,27 @@ def transfer_table(
     current_user: any = Depends(get_current_user)
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    
-    # Validar origem
     source_session = db.query(TableSession).filter(
         TableSession.table_id == data.from_table_id,
         TableSession.is_active == True,
         TableSession.company_id == company_id
     ).first()
-    
     if not source_session: raise HTTPException(404, "Mesa de origem não tem sessão ativa")
-    
-    # Validar destino
     target_session = db.query(TableSession).filter(
         TableSession.table_id == data.to_table_id,
         TableSession.is_active == True,
         TableSession.company_id == company_id
     ).first()
-    
     if target_session:
         if not data.merge:
             raise HTTPException(409, detail=f"Mesa de destino ocupada por {target_session.customer_name}. Deseja juntar?")
-        
-        # Merge: Mover pedidos para a sessão de destino
         db.query(Order).filter(Order.session_id == source_session.id).update({"session_id": target_session.id, "table_id": data.to_table_id})
-        
-        # Fechar sessão de origem
         source_session.is_active = False
         source_session.closed_at = datetime.now()
-        
         db.commit()
         return {"message": "Mesas unificadas com sucesso"}
-    
     else:
-        # Transferência Simples: Mudar o table_id da sessão e dos pedidos
         source_session.table_id = data.to_table_id
         db.query(Order).filter(Order.session_id == source_session.id).update({"table_id": data.to_table_id})
-        
         db.commit()
         return {"message": "Mesa transferida com sucesso"}

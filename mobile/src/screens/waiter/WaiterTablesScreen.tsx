@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useWaiterStore } from '../../store/waiter.store';
@@ -8,7 +8,7 @@ import { Card } from '../../ui/components/Card';
 import { colors } from '../../ui/tokens/colors';
 import { spacing } from '../../ui/tokens/spacing';
 import { typography } from '../../ui/tokens/typography';
-import { LayoutGrid, User, ChevronRight, BellRing } from 'lucide-react-native';
+import { User, ChevronRight, BellRing, RefreshCw } from 'lucide-react-native';
 import { logger } from '../../services/logger.service';
 
 const TAG = 'WaiterTablesScreen';
@@ -17,10 +17,11 @@ export default function WaiterTablesScreen() {
   const navigation = useNavigation<any>();
   const [tables, setTables] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  
   const slug = useSessionStore(state => state.slug);
-  const { selectTable, setSession, serviceRequests } = useWaiterStore();
+  const { selectTable, setSession, serviceRequests, lastTableUpdate } = useWaiterStore();
 
-  const fetchTables = async () => {
+  const fetchTables = useCallback(async () => {
     if (!slug) return;
     try {
       const response = await api.get(`/admin/tables/dashboard`);
@@ -30,11 +31,12 @@ export default function WaiterTablesScreen() {
     } finally {
       setRefreshing(false);
     }
-  };
+  }, [slug]);
 
+  // Reage a atualizações manuais, automáticas e via WebSocket (lastTableUpdate)
   useEffect(() => {
     fetchTables();
-  }, [slug, serviceRequests]); // Recarrega se houver novos chamados
+  }, [fetchTables, lastTableUpdate, serviceRequests]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -43,11 +45,7 @@ export default function WaiterTablesScreen() {
 
   const handleTableSelect = (item: any) => {
     selectTable(item.id, item.table_number);
-    if (item.active_session) {
-      setSession(item.active_session.session_token);
-    } else {
-      setSession(null);
-    }
+    setSession(item.active_session?.session_token || null);
     navigation.navigate('OrderEntry');
   };
 

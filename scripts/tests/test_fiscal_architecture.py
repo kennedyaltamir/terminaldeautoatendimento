@@ -7,6 +7,7 @@ from app.core.security import create_access_token
 from decimal import Decimal
 import uuid
 import time
+import os
 
 client = TestClient(app)
 
@@ -68,9 +69,14 @@ def test_factory_switching():
     from app.services.fiscal.providers.mock import MockProvider
     
     # Default -> Mock
-    with patch.dict("os.environ", {}, clear=True):
+    with patch.dict(os.environ, {"FISCAL_ENV": "mock", "FISCAL_PROVIDER": "mock"}, clear=True):
         assert isinstance(get_fiscal_provider(), MockProvider)
         
     # Configured -> Focus
-    with patch.dict("os.environ", {"FISCAL_PROVIDER": "focus"}):
+    env_vars = {
+        "FISCAL_PROVIDER": "focus",
+        "FISCAL_ENV": "production",
+        "FISCAL_PRODUCTION_CONFIRMED": "true"
+    }
+    with patch.dict(os.environ, env_vars):
         assert isinstance(get_fiscal_provider(), FocusNFeProvider)

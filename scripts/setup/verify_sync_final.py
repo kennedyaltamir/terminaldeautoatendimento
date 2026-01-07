@@ -1,7 +1,12 @@
 import os
 import sys
+import io
 
 # [TEST_EXEMPT: Script de auditoria de integridade para Handover]
+
+# Força UTF-8 no Windows
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 def verify():
     print("🔍 Iniciando Auditoria Final para Handover (v5.4)...")

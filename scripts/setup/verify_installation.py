@@ -1,6 +1,11 @@
 import os
 import sys
 import importlib.util
+import io
+
+# Força UTF-8 no Windows
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 def check_file(path):
     if os.path.exists(path):

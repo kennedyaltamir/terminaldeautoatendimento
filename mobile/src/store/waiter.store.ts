@@ -4,6 +4,7 @@ import { logger } from '../services/logger.service';
 
 /**
  * WaiterStore: Gerencia o estado do fluxo de atendimento (Mobile POS).
+ * Atualizado para suportar sincronização reativa de mesas.
  */
 
 const TAG = 'WaiterStore';
@@ -23,55 +24,27 @@ export interface ServiceRequest {
   status: 'pending' | 'resolved';
 }
 
-export interface PaymentData {
-  qrCode: string;
-  totalAmount: number;
-  method: string;
-}
-
-export interface PendingOrder {
-  id: string;
-  payload: any;
-  createdAt: number;
-}
-
 export interface WaiterState {
   selectedTableId: number | null;
   selectedTableNumber: number | null;
   activeSessionToken: string | null;
   cart: CartItem[];
   serviceRequests: ServiceRequest[];
-  pendingQueue: PendingOrder[];
   isSubmitting: boolean;
-  lastSubmittedOrder: any | null;
-  paymentData: PaymentData | null;
+  lastTableUpdate: number; // Timestamp para gatilho de UI
   
-  // Actions - Contexto
+  // Actions
   selectTable: (id: number | null, num: number | null) => void;
   setSession: (token: string | null) => void;
-  
-  // Actions - Carrinho
   addToCart: (product: { id: number; name: string; price: number }) => void;
-  removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, delta: number) => void;
   clearCart: () => void;
-  
-  // Actions - Chamados
   addServiceRequest: (event: any) => void;
   resolveRequest: (id: number) => Promise<void>;
-  setInitialRequests: (reqs: ServiceRequest[]) => void;
-  
-  // Actions - Pagamento
-  initiatePayment: (slug: string, method: string) => Promise<boolean>;
-  clearPayment: () => void;
-  
-  // Actions - API & Offline
-  submitOrder: (slug: string) => Promise<{ success: boolean; offline: boolean }>;
-  removeFromQueue: (orderId: string) => void;
-  
-  // Getters
-  getCartTotal: () => number;
+  triggerRefresh: () => void; // Sinaliza que as mesas mudaram
   resetWaiterFlow: () => void;
+  getCartTotal: () => number;
+  submitOrder: (slug: string) => Promise<{ success: boolean; offline: boolean }>;
 }
 
 export const useWaiterStore = create<WaiterState>((set, get) => ({
@@ -80,13 +53,16 @@ export const useWaiterStore = create<WaiterState>((set, get) => ({
   activeSessionToken: null,
   cart: [],
   serviceRequests: [],
-  pendingQueue: [],
   isSubmitting: false,
-  lastSubmittedOrder: null,
-  paymentData: null,
+  lastTableUpdate: Date.now(),
 
   selectTable: (id, num) => set({ selectedTableId: id, selectedTableNumber: num }),
   setSession: (token) => set({ activeSessionToken: token }),
+
+  triggerRefresh: () => {
+    logger.debug(TAG, 'Gatilho de atualização de mesas acionado.');
+    set({ lastTableUpdate: Date.now() });
+  },
 
   addToCart: (product) => {
     const { cart } = get();
@@ -97,8 +73,6 @@ export const useWaiterStore = create<WaiterState>((set, get) => ({
       set({ cart: [...cart, { productId: product.id, name: product.name, price: product.price, quantity: 1 }] });
     }
   },
-
-  removeFromCart: (productId) => set((state) => ({ cart: state.cart.filter(item => item.productId !== productId) })),
 
   updateQuantity: (productId, delta) => {
     const { cart } = get();
@@ -115,8 +89,6 @@ export const useWaiterStore = create<WaiterState>((set, get) => ({
 
   clearCart: () => set({ cart: [] }),
 
-  setInitialRequests: (reqs) => set({ serviceRequests: reqs }),
-
   addServiceRequest: (event) => {
     const { serviceRequests } = get();
     if (!serviceRequests.find(r => r.id === event.id)) {
@@ -128,7 +100,6 @@ export const useWaiterStore = create<WaiterState>((set, get) => ({
         status: 'pending'
       };
       set({ serviceRequests: [newRequest, ...serviceRequests] });
-      logger.info(TAG, `Novo chamado adicionado: Mesa ${event.table}`);
     }
   },
 
@@ -136,29 +107,10 @@ export const useWaiterStore = create<WaiterState>((set, get) => ({
     set({ serviceRequests: get().serviceRequests.filter(r => r.id !== id) });
   },
 
-  initiatePayment: async (slug, method) => {
-    const { selectedTableId } = get();
-    if (!selectedTableId) return false;
-    set({ isSubmitting: true });
-    try {
-      const response = await api.post(`/admin/tables/${selectedTableId}/close`, { payment_method: method });
-      if (method === 'pix' && response.data.pix_data) {
-        set({ paymentData: { qrCode: response.data.pix_data.qr_code, totalAmount: response.data.total_amount || 0, method: 'pix' } });
-      }
-      return true;
-    } catch (e) {
-      logger.error(TAG, 'Erro ao iniciar pagamento', e);
-      return false;
-    } finally {
-      set({ isSubmitting: false });
-    }
-  },
-
-  clearPayment: () => set({ paymentData: null }),
-
   submitOrder: async (slug: string) => {
     const { cart, selectedTableId, isSubmitting } = get();
     if (isSubmitting || cart.length === 0) return { success: false, offline: false };
+    
     const payload = {
       table_id: selectedTableId,
       qr_token: "staff-override",
@@ -166,24 +118,26 @@ export const useWaiterStore = create<WaiterState>((set, get) => ({
       customer_name: "Atendimento Garçom",
       items: cart.map(item => ({ product_id: item.productId, quantity: item.quantity, notes: "" }))
     };
+
     set({ isSubmitting: true });
     try {
-      const response = await api.post(`/${slug}/orders`, payload);
-      set({ lastSubmittedOrder: { ...response.data, items: cart }, cart: [] });
+      await api.post(`/${slug}/orders`, payload);
+      set({ cart: [] });
       return { success: true, offline: false };
     } catch (e: any) {
-      if (!e.response || e.response.status >= 500) {
-        const offlineOrder: PendingOrder = { id: Math.random().toString(36).substr(2, 9), payload, createdAt: Date.now() };
-        set({ pendingQueue: [...get().pendingQueue, offlineOrder], cart: [] });
-        return { success: true, offline: true };
-      }
       return { success: false, offline: false };
     } finally {
       set({ isSubmitting: false });
     }
   },
 
-  removeFromQueue: (orderId) => set((state) => ({ pendingQueue: state.pendingQueue.filter(o => o.id !== orderId) })),
   getCartTotal: () => get().cart.reduce((acc, item) => acc + (item.price * item.quantity), 0),
-  resetWaiterFlow: () => set({ selectedTableId: null, selectedTableNumber: null, activeSessionToken: null, cart: [], isSubmitting: false, lastSubmittedOrder: null, paymentData: null }),
+  
+  resetWaiterFlow: () => set({ 
+    selectedTableId: null, 
+    selectedTableNumber: null, 
+    activeSessionToken: null, 
+    cart: [], 
+    isSubmitting: false 
+  }),
 }));

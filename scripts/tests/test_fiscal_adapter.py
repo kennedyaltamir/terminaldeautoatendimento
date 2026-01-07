@@ -1,4 +1,5 @@
 import pytest
+import os
 from unittest.mock import patch, AsyncMock
 from app.services.fiscal.factory import get_fiscal_provider
 from app.services.fiscal.providers.focus_nfe import FocusNFeProvider
@@ -6,13 +7,18 @@ from app.services.fiscal.providers.mock import MockProvider
 
 def test_factory_returns_mock_by_default():
     """Se não configurar nada, deve retornar o Mock (Segurança)"""
-    with patch.dict("os.environ", {}, clear=True):
+    with patch.dict("os.environ", {"FISCAL_ENV": "mock", "FISCAL_PROVIDER": "mock"}, clear=True):
         provider = get_fiscal_provider()
         assert isinstance(provider, MockProvider)
 
 def test_factory_returns_focus_when_configured():
-    """Se configurar 'focus', deve retornar o provedor real"""
-    with patch.dict("os.environ", {"FISCAL_PROVIDER": "focus"}):
+    """Se configurar 'focus' e ambiente de produção confirmado, deve retornar o provedor real"""
+    env_vars = {
+        "FISCAL_PROVIDER": "focus",
+        "FISCAL_ENV": "production",
+        "FISCAL_PRODUCTION_CONFIRMED": "true"
+    }
+    with patch.dict("os.environ", env_vars):
         provider = get_fiscal_provider()
         assert isinstance(provider, FocusNFeProvider)
 

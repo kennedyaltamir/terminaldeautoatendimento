@@ -26,6 +26,7 @@ class FranchiseDashboard(BaseModel):
     total_revenue: float
     total_profit: float
     avg_margin: float
+    total_orders: int
     stores: List[StoreSummary]
 
 @router.get("/dashboard", response_model=FranchiseDashboard)
@@ -46,15 +47,15 @@ def get_franchise_dashboard(
     if not companies:
         raise HTTPException(404, "Nenhuma loja encontrada")
 
-    # Define o range de "Hoje" (Início e Fim do dia atual)
+    # Define o range de "Hoje"
     today = date.today()
     start_dt = datetime.combine(today, time.min)
-    # Estendemos o fim do dia para cobrir possíveis delays de timezone no banco
     end_dt = datetime.combine(today, time.max)
 
     stores_data = []
     global_revenue = Decimal("0.00")
     global_profit = Decimal("0.00")
+    global_orders = 0
 
     for company in companies:
         # 1. Agregação de Receita e Taxas
@@ -72,8 +73,9 @@ def get_franchise_dashboard(
 
         revenue = order_metrics.revenue or Decimal("0.00")
         service_fees = order_metrics.service_fees or Decimal("0.00")
+        orders_count = int(order_metrics.count or 0)
         
-        # 2. Cálculo de CMV Teórico (Baseado em Ficha Técnica)
+        # 2. Cálculo de CMV Teórico
         cmv_query = db.query(
             func.sum(OrderItem.quantity * ProductRecipe.quantity_required * Ingredient.cost_per_unit)
         ).join(Order, Order.id == OrderItem.order_id)\
@@ -101,14 +103,12 @@ def get_franchise_dashboard(
             fees=float(service_fees),
             profit=float(profit),
             margin_percent=float(margin),
-            orders_count=int(order_metrics.count or 0)
+            orders_count=orders_count
         ))
 
         global_revenue += revenue
         global_profit += profit
-
-    # Ordenar por Lucro (Melhores primeiro)
-    stores_data.sort(key=lambda x: x.profit, reverse=True)
+        global_orders += orders_count
 
     avg_global_margin = (global_profit / global_revenue * 100) if global_revenue > 0 else 0
 
@@ -116,5 +116,6 @@ def get_franchise_dashboard(
         total_revenue=float(global_revenue),
         total_profit=float(global_profit),
         avg_margin=float(avg_global_margin),
+        total_orders=global_orders,
         stores=stores_data
     )

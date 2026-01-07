@@ -1,7 +1,12 @@
 import os
 import sys
+import io
 from sqlalchemy import text
 from pathlib import Path
+
+# Força UTF-8 no Windows
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # Ajuste de Path
 root_path = Path(__file__).resolve().parent.parent.parent

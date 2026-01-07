@@ -1,30 +1,26 @@
-from fastapi.testclient import TestClient
-from app.main import app
-from app.database import SessionLocal
-from app.models import Order, OrderStatus, OrderType, Company, PaymentStatus
-from datetime import datetime
 import pytest
+from app.models import Order, OrderStatus, OrderType, Company, PaymentStatus
+from app.core.security import create_access_token
+from datetime import datetime
+import uuid
 
-client = TestClient(app)
-
-def test_delivery_lifecycle():
+def test_delivery_lifecycle(client, db_session):
     """
-    Testa o ciclo de vida de uma entrega:
-    1. Login como Admin.
-    2. Criação de pedido READY.
-    3. Listagem.
-    4. Despacho e Finalização (com código POD).
+    Testa o fluxo de vida de uma entrega usando fixtures de banco de teste.
     """
-    # 1. Login
-    login_res = client.post("/api/auth/token", data={"username": "admin@mesaflow.com", "password": "123456"})
-    assert login_res.status_code == 200
-    token = login_res.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
+    # 1. Setup Empresa e Usuário
+    unique_id = uuid.uuid4().hex[:6]
+    email = f"admin-{unique_id}@mesaflow.com"
+    company = Company(
+        name="Delivery Test Corp",
+        slug=f"del-{unique_id}",
+        owner_email=email,
+        password_hash="hash"
+    )
+    db_session.add(company)
+    db_session.commit()
 
-    # 2. Setup
-    db = SessionLocal()
-    company = db.query(Company).filter(Company.owner_email == "admin@mesaflow.com").first()
-    
+    # 2. Criar Pedido READY
     order = Order(
         company_id=company.id,
         order_type=OrderType.DELIVERY,
@@ -32,24 +28,30 @@ def test_delivery_lifecycle():
         payment_status=PaymentStatus.PAID,
         customer_name="Delivery Tester",
         delivery_address="Rua Teste, 123",
-        delivery_code="1234", # Código fixo para o teste
+        delivery_code="1234",
         total_amount=50.00,
         created_at=datetime.now()
     )
-    db.add(order)
-    db.commit()
+    db_session.add(order)
+    db_session.commit()
     order_id = str(order.id)
-    db.close()
 
-    # 3. Listar
+    # 3. Token de Acesso
+    token = create_access_token(data={"sub": email, "role": "owner", "account_type": "company"})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 4. Listar Pedidos de Delivery
+    # Nota: O router de delivery pode exigir permissões específicas. 
+    # Como o usuário é 'owner', ele deve ter acesso total.
     list_res = client.get("/api/admin/delivery/orders", headers=headers)
+    
+    # Se retornar 403, investigamos se o router tem dependências de role restritas
     assert list_res.status_code == 200
     
-    # 4. Fluxo de Status
-    # Despacho
+    # 5. Despacho
     dispatch_res = client.patch(f"/api/admin/delivery/orders/{order_id}/dispatch", headers=headers, json={})
     assert dispatch_res.status_code == 200
     
-    # Finalização (Agora enviando o código obrigatório)
+    # 6. Finalização (POD)
     complete_res = client.patch(f"/api/admin/delivery/orders/{order_id}/complete", headers=headers, json={"code": "1234"})
     assert complete_res.status_code == 200

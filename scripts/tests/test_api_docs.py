@@ -8,9 +8,9 @@ def test_openapi_schema_exists():
     response = client.get("/openapi.json")
     assert response.status_code == 200
     schema = response.json()
-    assert schema["info"]["title"] == "MesaFlow API"
-    # Atualizado para a versão atual do main.py
-    assert schema["info"]["version"] == "2.3.1"
+    # Sincronizado com app/main.py v3.1.0
+    assert schema["info"]["title"] == "MesaFlow Enterprise API"
+    assert schema["info"]["version"] == "3.1.0"
 
 def test_docs_page_exists():
     """Verifica se a página do Swagger UI carrega."""

@@ -1,5 +1,11 @@
 import subprocess
 import sys
+import os
+import io
+
+# Força UTF-8 no Windows
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 def run_all_verifications():
     scripts = [
@@ -19,7 +25,10 @@ def run_all_verifications():
     failed = []
     for script in scripts:
         try:
-            subprocess.check_call([sys.executable, script])
+            # Injeta UTF-8 para sub-scripts
+            env = os.environ.copy()
+            env["PYTHONUTF8"] = "1"
+            subprocess.check_call([sys.executable, script], env=env)
             print("-" * 40)
         except subprocess.CalledProcessError:
             failed.append(script)

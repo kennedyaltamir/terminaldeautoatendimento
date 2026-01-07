@@ -13,7 +13,7 @@ import { OrdersSyncService } from '../../services/orders.sync.service';
 import { WaiterSyncService } from '../../services/waiter.sync.service';
 import { clockService } from '../../services/global.clock.service';
 import { useOrdersStore } from '../../store/orders.store';
-import { useWaiterStore, WaiterState } from '../../store/waiter.store';
+import { useWaiterStore } from '../../store/waiter.store';
 import { useAuthStore } from '../../store/auth.store';
 import { useSessionStore } from '../../store/session.store';
 import { SessionBootstrapService } from '../../services/session.bootstrap.service';
@@ -31,7 +31,9 @@ export const AppStack = () => {
   const updateSLAs = useOrdersStore(state => state.updateSLAs);
   const evaluateAlerts = useOrdersStore(state => state.evaluateAlerts);
   const handleRealtimeEvent = useOrdersStore(state => state.handleRealtimeEvent);
-  const addServiceRequest = useWaiterStore((state: WaiterState) => state.addServiceRequest);
+  
+  const triggerTableRefresh = useWaiterStore(state => state.triggerRefresh);
+  const addServiceRequest = useWaiterStore(state => state.addServiceRequest);
 
   useEffect(() => {
     if (authStatus === 'authenticated' && !isSessionReady) {
@@ -55,14 +57,17 @@ export const AppStack = () => {
         (event) => {
           if (event.type === 'new_order') {
             OrdersSyncService.fetchAndAddOrder(slug, event.order_id);
+            triggerTableRefresh(); // Atualiza mapa de mesas se houver novo pedido
           } else if (event.type === 'waiter_call') {
             addServiceRequest(event);
-          } else {
+          } else if (event.type === 'order_update') {
             handleRealtimeEvent(event);
+            triggerTableRefresh(); // Atualiza mapa de mesas em mudanças de status/pagamento
           }
         },
         () => {
           OrdersSyncService.performFullSync(slug);
+          triggerTableRefresh();
         }
       );
 
@@ -72,7 +77,7 @@ export const AppStack = () => {
         unsubscribeClock();
       };
     }
-  }, [isSessionReady, slug, accessToken, handleRealtimeEvent, updateSLAs, evaluateAlerts, addServiceRequest]);
+  }, [isSessionReady, slug, accessToken, handleRealtimeEvent, updateSLAs, evaluateAlerts, addServiceRequest, triggerTableRefresh]);
 
   if (!isSessionReady) {
     return (

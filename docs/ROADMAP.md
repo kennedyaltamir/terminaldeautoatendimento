@@ -3516,3 +3516,84 @@ expand_less
 - [ ] **OTA Updates:** Configuração do Expo Updates para correções críticas.
 
 ---
+# 🗺️ Roadmap do Produto: MesaFlow
+**Versão:** 3.0 (Enterprise Edition)
+**Status:** Fase 7 em Andamento (Ecossistema & Growth)
+
+---
+
+## ✅ Fases 1 a 6: Fundação, Operação & Estabilidade (CONCLUÍDO)
+*Funcionalidades auditadas, testadas e em produção.*
+
+### 🏛️ Core & Arquitetura
+- [x] **Backend:** FastAPI (Async) + Pydantic v2 + SQLAlchemy.
+- [x] **Frontend:** Next.js 14 (SSR) + TailwindCSS + ShadcnUI.
+- [x] **Multi-tenancy:** Isolamento lógico estrito por `company_id` (RLS).
+- [x] **Infraestrutura:** Docker, Redis Pub/Sub, Sentry e Health Checks.
+- [x] **Segurança:** Rate Limiting, Sanitização XSS, Auditoria de Logs e Refresh Tokens.
+
+### 🔪 Operação (KDS & Estoque)
+- [x] **KDS 2.0:** Setorização (Bar vs Cozinha), Agrupador de Itens e Bump Bar.
+- [x] **Estoque:** Baixa automática via Ficha Técnica e Regra 86 (Bloqueio de Venda).
+- [x] **Impressão:** Suporte a ESC/POS (58/80mm), ZPL (Etiquetas) e RawBT (Android).
+
+### 📱 Experiência (Garçom & Cliente)
+- [x] **App do Garçom:** Mobile POS com vibração, sons e gestão de mesas.
+- [x] **Gestão de Mesas:** Mapa Drag & Drop e Token de Segurança (PIN 10 dígitos).
+- [x] **Modo Kiosk:** Totem de autoatendimento com proteção de inatividade.
+- [x] **Cardápio Digital:** Suporte a variações complexas (Meio-a-Meio) e Adicionais.
+
+### 💸 Fintech & Logística
+- [x] **Split de Pagamento:** Integração OAuth Mercado Pago (SaaS vs Restaurante).
+- [x] **Assinaturas:** Gestão completa via Stripe (Checkout/Portal).
+- [x] **Logística:** App do Entregador (PWA), Rastreamento GPS e POD (Proof of Delivery).
+- [x] **Fidelidade:** Cashback Local e Ledger de Gorjetas (10%).
+
+---
+
+## 🔄 Fase 7: Ecossistema, Marketing & Growth (EM ANDAMENTO)
+*Foco: Ferramentas de venda ativa para o restaurante e abertura de API.*
+
+### 📢 Marketing & CRM (Novo)
+- [ ] **Motor de Promoções:** Criação de regras de desconto (ex: "Cupom PRIMEIRACOMPRA", "Frete Grátis > R$50").
+- [ ] **CRM Automatizado (Win-back):** Disparo automático de mensagens para clientes inativos há 30+ dias.
+- [ ] **Pesquisa NPS:** Envio automático de pesquisa de satisfação pós-delivery.
+
+### 🔌 Integrações & Developer Experience
+- [x] **WhatsApp Pro:** Integração real com Evolution API (Notificações Transacionais).
+- [ ] **OpenAPI (Swagger):** Documentação pública para integração de ERPs terceiros.
+- [ ] **Webhooks UI:** Interface para o cliente configurar callbacks (ex: Pedido Finalizado -> Zapier).
+
+### 🧠 Inteligência Artificial
+- [x] **IA Upselling (v1):** Recomendação baseada em histórico ("Quem comprou X, levou Y").
+- [ ] **IA de Cardápio:** Sugestão automática de descrições e traduções de itens.
+
+---
+
+## 🚀 Fase 8: Escala Enterprise & Integrações Pesadas (PRÓXIMOS PASSOS)
+*Foco: Remover barreiras de entrada para grandes redes e franquias.*
+
+### 🏛️ Fiscal & Legal (Crítico)
+- [ ] **Homologação SEFAZ:** Emissão real de NFC-e/SAT com validação por estado.
+- [ ] **Contingência Offline:** Módulo para emitir notas fiscais sem internet e transmitir posteriormente.
+- [ ] **Exportação LGPD:** Ferramenta "Takeout" para o dono baixar todos os dados da conta.
+
+### 🌐 Hub de Delivery
+- [ ] **Integração iFood/Rappi:** Middleware para centralizar pedidos externos no KDS do MesaFlow.
+- [ ] **Sincronização de Cardápio:** Atualizar preço no MesaFlow e refletir nos Marketplaces.
+
+### ⚙️ DevOps & Gestão
+- [ ] **Tenant Impersonation:** Modo "Suporte" para acessar a conta do cliente sem senha (God Mode).
+- [ ] **Feature Flags:** Sistema para liberar funcionalidades gradualmente (Canary Release).
+- [ ] **Dashboard Multi-loja v2:** DRE e CMV consolidados para franquias.
+
+---
+
+## 🔮 Fase 9: Futuro & Deep Tech (VISÃO 2026)
+*Diferenciais competitivos de longo prazo.*
+
+- [ ] **App Nativo (React Native):** Publicação nas lojas Apple/Google (Cliente e Garçom).
+- [ ] **Fila de Espera Digital:** Gestão de filas com notificação via WhatsApp.
+- [ ] **Voice Ordering:** Pedidos por voz nos Totens de autoatendimento.
+- [ ] **IA Preditiva:** Sugestão de compras de insumos baseada em previsão de demanda.
+- [ ] **SmartPOS SDK:** Rodar o MesaFlow embarcado em maquininhas Stone/Cielo.
