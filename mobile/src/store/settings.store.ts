@@ -3,44 +3,30 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
- * SettingsState: Gerencia preferências locais do dispositivo.
- * Evoluído na Missão 30B para persistir a impressora selecionada.
+ * @file settings.store.ts
+ * @description Gerenciamento de preferências locais do operador (Task 023).
+ * Persiste configurações como Modo Silencioso entre sessões.
  */
-
-interface BluetoothPrinter {
-  id: string;
-  name: string;
-  address: string;
-}
 
 interface SettingsState {
   isSilentMode: boolean;
-  vibrationEnabled: boolean;
-  selectedPrinter: BluetoothPrinter | null;
   
   // Actions
-  setSilentMode: (enabled: boolean) => void;
   toggleSilentMode: () => void;
-  setSelectedPrinter: (printer: BluetoothPrinter | null) => void;
+  setSilentMode: (value: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
       isSilentMode: false,
-      vibrationEnabled: true,
-      selectedPrinter: null,
 
-      setSilentMode: (enabled) => set({ isSilentMode: enabled }),
+      toggleSilentMode: () => set((state) => ({ isSilentMode: !state.isSilentMode })),
       
-      toggleSilentMode: () => set((state) => ({ 
-        isSilentMode: !state.isSilentMode 
-      })),
-
-      setSelectedPrinter: (printer) => set({ selectedPrinter: printer }),
+      setSilentMode: (value) => set({ isSilentMode: value }),
     }),
     {
-      name: 'mesaflow-operator-settings',
+      name: 'mesaflow-settings-storage',
       storage: createJSONStorage(() => AsyncStorage),
     }
   )

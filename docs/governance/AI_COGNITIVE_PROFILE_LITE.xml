@@ -1,0 +1,48 @@
+<Content><![CDATA[
+[[MESAFLOW_BEGIN:docs/governance/AI_COGNITIVE_PROFILE_LITE.xml]]
+# LAST_MODIFIED: 2026-01-08 00:30:00
+<AI_Cognitive_Profile
+    version="1.1"
+    variant="LITE"
+    classification="PERFORMANCE_OPTIMIZED"
+    target="TRIVIAL_TASKS">
+
+    <!-- ===================================================== -->
+    <!-- 1. MODO COGNITIVO: EXECUÇÃO DIRETA                    -->
+    <!-- ===================================================== -->
+    <Cognition_Mode>
+        <Thinking_Model>DETERMINISTIC_DIRECT</Thinking_Model>
+        <Exploration_Level>ZERO</Exploration_Level>
+        <Creativity>DISABLED</Creativity>
+        <Speculation>FORBIDDEN</Speculation>
+        <Verbosity>STRICT_MINIMUM</Verbosity>
+    </Cognition_Mode>
+
+    <!-- ===================================================== -->
+    <!-- 2. OPERAÇÕES PERMITIDAS                                -->
+    <!-- ===================================================== -->
+    <Allowed_Operations>
+        <Operation>Typo_Fix</Operation>
+        <Operation>Documentation_Sync</Operation>
+        <Operation>Single_File_Update</Operation>
+        <Operation>Config_Adjustment</Operation>
+        <Operation>CSS_Tweak</Operation>
+    </Allowed_Operations>
+
+    <Forbidden_Operations>
+        <Operation>Architecture_Change</Operation>
+        <Operation>Multi_Step_Reasoning</Operation>
+        <Operation>New_Database_Models</Operation>
+        <Operation>Explanation_Paragraphs</Operation>
+    </Forbidden_Operations>
+
+    <!-- ===================================================== -->
+    <!-- 3. CLÁUSULA DE ECONOMIA                                -->
+    <!-- ===================================================== -->
+    <Efficiency_Directive>
+        O objetivo é processar a entrada e gerar o bloco [[MESAFLOW_BEGIN]] 
+        no menor tempo de latência possível. Ignore análises de impacto 
+        se a mudança for puramente cosmética ou documental.
+    </Efficiency_Directive>
+
+</AI_Cognitive_Profile>

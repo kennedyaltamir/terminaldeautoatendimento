@@ -4,12 +4,15 @@ import { AuthStack } from './stacks/AuthStack';
 import { AppStack } from './stacks/AppStack';
 
 /**
- * AuthGate: Orquestrador soberano da árvore de renderização.
- * Decide qual Stack montar baseado exclusivamente no status semântico.
+ * @file AuthGate.tsx
+ * @description Componente de fronteira soberana (Task 14B).
+ * Responsável único por decidir qual árvore de navegação montar
+ * baseado no estado semântico da autenticação.
  */
 export const AuthGate = () => {
   const status = useAuthStore((state) => state.status);
 
+  // Mapeamento de Estados para Stacks
   switch (status) {
     case 'authenticated':
       return <AppStack />;
@@ -18,6 +21,7 @@ export const AuthGate = () => {
     case 'error':
       return <AuthStack />;
 
+    // Estados de transição (Splash Screen nativa deve persistir)
     case 'idle':
     case 'hydrating':
     case 'checking_expiry':

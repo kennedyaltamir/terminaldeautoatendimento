@@ -1,17 +1,20 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import RootNavigator from './src/navigation/RootNavigator';
+import { RootNavigator } from './src/navigation/RootNavigator';
+import { useAuthStore } from './src/store/auth.store';
 
-/**
- * App Bootstrap: Inicializa o container de navegação e o roteador mestre.
- * Este arquivo é validado pelo script verify_mobile_navigation.py.
- */
 export default function App() {
+  const hydrate = useAuthStore((state) => state.hydrate);
+
+  React.useEffect(() => {
+    hydrate();
+  }, [hydrate]);
+
   return (
     <NavigationContainer>
-      <RootNavigator />
       <StatusBar style="light" />
+      <RootNavigator />
     </NavigationContainer>
   );
 }

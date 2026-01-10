@@ -1,21 +1,12 @@
+// DOMAIN: MOBILE
+// LAST_MODIFIED: 2026-01-10 01:55:00
+
 /**
  * Configurações de ambiente para o App Mobile.
+ * Em desenvolvimento, aponta para o IP da máquina host (192.168.0.150).
  */
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000/api';
-
-/**
- * Deriva a URL de WebSocket a partir da API_URL.
- * Substitui o protocolo e remove o sufixo /api se presente.
- */
-const WS_URL = API_URL.replace('http', 'ws').replace('/api', '/ws');
-
 export const ENV = {
-  API_URL,
-  WS_URL,
-  IS_PROD: !__DEV__,
+  API_URL: "http://192.168.0.150:8000/api",
+  WS_URL: "ws://192.168.0.150:8000/ws",
+  ENVIRONMENT: "development",
 };
-
-if (!API_URL) {
-  console.warn('⚠️ EXPO_PUBLIC_API_URL não definida. Usando fallback localhost.');
-}

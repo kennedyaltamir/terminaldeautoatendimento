@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AI_Startup_Sequence
+    version="2.3"
+    classification="CONSTITUTIONAL"
+    enforcement="MANDATORY_BOOTLOADER">
+
+    <!-- ===================================================== -->
+    <!-- 0. BOOT SECTOR                                        -->
+    <!-- ===================================================== -->
+    <Boot_Sector>
+        <Directive>
+            ESTE ARQUIVO DEVE SER O PRIMEIRO A SER LIDO EM TODA NOVA SESSÃO.
+            É PROIBIDO processar qualquer solicitação do usuário
+            antes da conclusão da Fase 4.
+        </Directive>
+    </Boot_Sector>
+
+    <!-- ===================================================== -->
+    <!-- 1. IDENTITY LOAD                                      -->
+    <!-- ===================================================== -->
+    <Phase id="1" name="Identity_Load">
+        <Action>Ingerir System Persona</Action>
+        <Source>docs/Prompts/System_Persona.xml</Source>
+        <Validation>
+            Confirmar papel ativo e tom pragmático.
+        </Validation>
+        <On_Failure>ABORT_SESSION</On_Failure>
+    </Phase>
+
+    <!-- ===================================================== -->
+    <!-- 2. GOVERNANCE LOAD                                    -->
+    <!-- ===================================================== -->
+    <Phase id="2" name="Governance_Load">
+        <Action>Ingerir protocolos constitucionais</Action>
+        <Order>
+            1. FAIL_FAST_PROTOCOL.md
+            2. ERROR_RESPONSE_MAPPING_PROTOCOL.md
+            3. UPDATE_EXECUTION_PROTOCOL.md
+            4. SECURITY_BOUNDARY_PROTOCOL.md
+            5. AI_OPERATIONAL_MEMORY_PROTOCOL.xml
+        </Order>
+        <Validation>
+            Ciente de que placeholders resultam em FFP-02?
+            Ciente de que override sem aprovação resulta em abort?
+        </Validation>
+    </Phase>
+
+    <!-- ===================================================== -->
+    <!-- GLOBAL ENFORCEMENT                                    -->
+    <!-- ===================================================== -->
+    <Global_Enforcement>
+
+        <Mission_Gate id="MG-001">
+            <Condition>
+                Ausência de &lt;Schema_Mission&gt; válido e explícito.
+            </Condition>
+            <Enforcement>
+                Proibir Task_Classification, Domain e Schema_Execution.
+                Permitir apenas Schema_Boot ou HANDOFF_ACK.
+            </Enforcement>
+        </Mission_Gate>
+
+    </Global_Enforcement>
+
+    <!-- ===================================================== -->
+    <!-- 3. COGNITIVE PROFILE SELECTION                        -->
+    <!-- ===================================================== -->
+    <Phase id="3" name="Profile_Selection">
+        <Decision_Tree>
+            <If condition="Task == TRIVIAL">
+                <Load>docs/governance/AI_COGNITIVE_PROFILE_LITE.xml</Load>
+            </If>
+            <Else>
+                <Load>docs/governance/AI_COGNITIVE_PROFILE.xml</Load>
+            </Else>
+        </Decision_Tree>
+    </Phase>
+
+    <!-- ===================================================== -->
+    <!-- 4. CONTEXT INGESTION                                  -->
+    <!-- ===================================================== -->
+    <Phase id="4" name="Context_Ingestion">
+        <Source>todososarquivos.txt</Source>
+        <Heuristic>
+            Priorizar arquivos recentemente modificados
+            para compreensão de deltas.
+        </Heuristic>
+    </Phase>
+
+    <!-- ===================================================== -->
+    <!-- 5. SYSTEM READY                                       -->
+    <!-- ===================================================== -->
+    <Phase id="5" name="System_Ready">
+        <Output>
+            Emitir exclusivamente &lt;Schema_Boot&gt;.
+        </Output>
+    </Phase>
+
+</AI_Startup_Sequence>

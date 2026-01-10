@@ -1,9 +1,12 @@
+# DOMAIN: BACKEND
+# LAST_MODIFIED: 2026-01-09
 import stripe
 import os
 import logging
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from app.models import Company, PlanTier
+from datetime import datetime
 
 # Configuração de Logs para Rastreabilidade Financeira
 logger = logging.getLogger("StripeService")
@@ -44,8 +47,8 @@ class StripeService:
                     "quantity": 1,
                 }],
                 mode="subscription",
-                success_url=f"{FRONTEND_URL}/admin/{company.slug}/settings?billing=success",
-                cancel_url=f"{FRONTEND_URL}/admin/{company.slug}/settings?billing=cancel",
+                success_url=f"{FRONTEND_URL}/admin/{company.slug}/settings/billing?billing=success",
+                cancel_url=f"{FRONTEND_URL}/admin/{company.slug}/settings/billing?billing=cancel",
                 metadata={"company_id": str(company.id)},
                 subscription_data={
                     "metadata": {"company_id": str(company.id)}
@@ -70,12 +73,57 @@ class StripeService:
         try:
             session = stripe.billing_portal.Session.create(
                 customer=company.stripe_customer_id,
-                return_url=f"{FRONTEND_URL}/admin/{company.slug}/settings"
+                return_url=f"{FRONTEND_URL}/admin/{company.slug}/settings/billing"
             )
             return session.url
         except stripe.error.StripeError as e:
             logger.error(f"Erro Stripe Portal: {str(e)}")
             raise HTTPException(status_code=500, detail="Erro ao gerar portal de faturamento.")
+
+    @staticmethod
+    def report_usage(company: Company, amount_cents: int, action: str = 'increment'):
+        """
+        Reporta uso (Metered Billing) para o Stripe.
+        Utilizado para cobrar comissões de vendas offline.
+        
+        Args:
+            company: Objeto da empresa.
+            amount_cents: Valor em centavos a ser reportado.
+            action: 'increment' (padrão) ou 'set'.
+        """
+        if not company.stripe_subscription_id:
+            logger.warning(f"Empresa {company.id} não possui assinatura ativa para reportar uso.")
+            return
+
+        try:
+            # 1. Buscar a assinatura para encontrar o item de uso medido
+            subscription = stripe.Subscription.retrieve(company.stripe_subscription_id)
+            metered_item_id = None
+            
+            for item in subscription['items']['data']:
+                # Verifica se o preço é recorrente e tem usage_type='metered'
+                if item['price']['recurring']['usage_type'] == 'metered':
+                    metered_item_id = item['id']
+                    break
+            
+            if not metered_item_id:
+                logger.info(f"Assinatura {company.stripe_subscription_id} não possui item metered. Ignorando reporte.")
+                return
+
+            # 2. Enviar Usage Record
+            # Revertido para SubscriptionItem.create_usage_record para compatibilidade
+            stripe.SubscriptionItem.create_usage_record(
+                metered_item_id,
+                quantity=amount_cents,
+                timestamp=int(datetime.now().timestamp()),
+                action=action
+            )
+            
+            logger.info(f"Uso reportado para {company.name}: {amount_cents} centavos (Action: {action})")
+
+        except stripe.error.StripeError as e:
+            logger.error(f"Erro ao reportar uso no Stripe: {e}")
+            # Não lançamos exceção para não travar o fluxo principal (fail-safe)
 
     @staticmethod
     def construct_event(payload: bytes, sig_header: str):
@@ -123,7 +171,7 @@ class StripeService:
                     company.plan_tier = PlanTier.PRO
                 elif status in ["past_due", "unpaid", "canceled"]:
                     company.plan_tier = PlanTier.FREE
-                
+
                 db.commit()
                 logger.info(f"Status de assinatura atualizado: {status} para {company.id}")
 

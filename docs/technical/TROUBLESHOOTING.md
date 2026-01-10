@@ -91,3 +91,40 @@ assert mock_post.called
 O SQLite não tem tipo UUID nativo e salva como string. O SQLAlchemy tenta tratar como objeto UUID.
 **Solução:**
 Use o tipo customizado `GUID` definido em `app/models.py` que trata essa compatibilidade automaticamente.
+# DOMAIN: DOCUMENTATION
+# LAST_MODIFIED: 2026-01-08 10:30:00
+# 🆘 Guia de Solução de Problemas (Troubleshooting)
+
+## 1. Dados não aparecem (RLS)
+**Sintoma:** A API retorna lista vazia `[]` ou 404 para recursos que você sabe que existem no banco.
+**Causa:** O Row-Level Security (RLS) está bloqueando o acesso porque o contexto do tenant não foi definido corretamente.
+**Solução:**
+1.  Verifique se o Token JWT contém o `company_id` correto.
+2.  Se estiver rodando scripts manuais ou testes, certifique-se de chamar `set_tenant(db, company_id)` antes da query.
+3.  Verifique se o usuário do banco não é `superuser` (Superusers ignoram RLS, o que pode mascarar o problema em dev).
+
+## 2. Erro "column company_id does not exist"
+**Sintoma:** Erro 500 ao tentar rodar migrations ou acessar dados.
+**Causa:** Uma migration de RLS tentou rodar em uma tabela que ainda não tinha a coluna `company_id`.
+**Solução:**
+- Rode `alembic upgrade head`. A migration `20260108_0005_add_company_id.py` foi criada especificamente para garantir essa coluna em todas as tabelas antes de aplicar o RLS.
+
+## 3. Webhook iFood retornando 403
+**Sintoma:** O iFood tenta enviar o pedido mas recebe erro.
+**Causa:** Assinatura HMAC inválida.
+**Solução:**
+- Verifique se a variável de ambiente `IFOOD_WEBHOOK_SECRET` no servidor corresponde exatamente ao segredo configurado no Portal do Desenvolvedor do iFood.
+
+## 4. Valores Monetários Incorretos (x100)
+**Sintoma:** Um produto de R$ 10,00 aparece como R$ 1.000,00 ou R$ 0,10.
+**Causa:** Confusão entre Decimal e Centavos.
+**Solução:**
+- O Backend (API) agora fala **Centavos** (Inteiros).
+- O Frontend deve dividir por 100 apenas para exibir (`formatCurrency`).
+- O Banco de Dados continua armazenando como `Numeric` (Decimal), a conversão é feita no Pydantic (Schema).
+
+## 5. WebSockets não conectam
+**Sintoma:** O KDS não atualiza sozinho. Erro no console: `WebSocket connection failed`.
+**Solução:**
+- Verifique se `python run.py` está ativo.
+- Em produção (Render/Vercel), garanta que `NEXT_PUBLIC_WS_URL` comece com `wss://`.

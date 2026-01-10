@@ -1,3 +1,5 @@
+# DOMAIN: BACKEND
+# LAST_MODIFIED: 2026-01-08 10:10:00
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -19,13 +21,28 @@ async def get_auth_url(
 ):
     """Gera o link para o usuário conectar sua conta (ex: MP)"""
     try:
-        enum_provider = PaymentProvider(provider)
-        service = PaymentFactory.get_provider(enum_provider)
+        # Normalização de slug para Enum (Case Insensitive)
+        provider_slug = provider.lower().replace("-", "").replace("_", "")
         
+        provider_map = {
+            "mercadopago": PaymentProvider.MERCADO_PAGO,
+            "stripe": PaymentProvider.STRIPE,
+            "efi": PaymentProvider.EFI,
+            "pagarme": PaymentProvider.PAGARME
+        }
+        
+        enum_provider = provider_map.get(provider_slug)
+        
+        if not enum_provider:
+            # Tenta fallback para o valor exato (ex: MERCADO_PAGO)
+            enum_provider = PaymentProvider(provider)
+
+        service = PaymentFactory.get_provider(enum_provider)
+
         # O 'state' carrega o ID da empresa para segurança no callback
         state = str(current_user.id)
         url = await service.get_auth_url(state)
-        
+
         return {"url": url}
     except ValueError:
         raise HTTPException(400, "Provedor inválido")
@@ -39,17 +56,27 @@ async def oauth_callback(
 ):
     """Recebe o código do provedor e salva as credenciais"""
     try:
-        enum_provider = PaymentProvider(provider)
-        service = PaymentFactory.get_provider(enum_provider)
+        # Normalização de slug para Enum
+        provider_slug = provider.lower().replace("-", "").replace("_", "")
+        provider_map = {
+            "mercadopago": PaymentProvider.MERCADO_PAGO,
+            "stripe": PaymentProvider.STRIPE
+        }
+        enum_provider = provider_map.get(provider_slug)
         
+        if not enum_provider:
+             enum_provider = PaymentProvider(provider)
+
+        service = PaymentFactory.get_provider(enum_provider)
+
         # Troca code por tokens
         credentials = await service.exchange_code_for_token(code)
-        
+
         # Salva no banco
         current_user.payment_provider = enum_provider
         current_user.payment_credentials = credentials
         db.commit()
-        
+
         return {"message": "Conectado com sucesso!", "provider": provider}
     except Exception as e:
         raise HTTPException(400, f"Erro na conexão: {str(e)}")

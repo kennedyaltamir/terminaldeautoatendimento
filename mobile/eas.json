@@ -1,36 +1,52 @@
 {
   "cli": {
-    "version": ">= 12.0.0",
-    "appVersionSource": "remote"
+    "version": ">= 7.0.0"
   },
   "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "android": {
-        "gradleCommand": ":app:assembleDebug"
+      "channel": "development",
+      "env": {
+        "APP_ENV": "development",
+        "API_URL": "http://localhost:8000/api"
       }
     },
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
       "env": {
-        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
-      },
-      "android": {
-        "buildType": "apk"
+        "APP_ENV": "staging",
+        "API_URL": "https://staging-api.mesaflow.com.br/api"
       }
     },
     "production": {
-      "distribution": "store",
-      "env": {
-        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
-      },
+      "channel": "production",
+      "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
+      },
+      "ios": {
+        "distribution": "store",
+        "resourceClass": "m1-medium"
+      },
+      "env": {
+        "APP_ENV": "production",
+        "API_URL": "https://api.mesaflow.com.br/api"
       }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "../google-service-account.json",
+        "track": "internal"
+      },
+      "ios": {
+        "appleId": "deploy@mesaflow.com.br",
+        "ascAppId": "6445891234",
+        "appleTeamId": "TEAM123456"
+      }
+    }
   }
 }

@@ -1,3 +1,6 @@
+
+# DOMAIN: BACKEND
+# LAST_MODIFIED: 2026-01-09 18:15:00
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.orm import Session, selectinload
 from typing import List, Optional
@@ -55,6 +58,8 @@ def get_kitchen_orders(
         .order_by(Order.created_at.asc())
         .all()
     )
+    
+    # FIX: Retorna lista vazia [] em vez de 404 quando não há pedidos
     return orders
 
 @router.get("/{company_slug}/orders/recent-completed", response_model=List[OrderResponse])
@@ -65,7 +70,6 @@ def get_recent_completed_orders(
 ):
     """
     Retorna os últimos 10 pedidos finalizados para a função de Recall.
-    Necessário para o teste test_kds_recall.py.
     """
     user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
     if user_slug != company_slug:
@@ -88,6 +92,8 @@ def get_recent_completed_orders(
         .limit(10)
         .all()
     )
+    
+    # FIX: Retorna lista vazia [] em vez de 404
     return orders
 
 @router.get("/{company_slug}/history", response_model=OrderPagination)
@@ -225,3 +231,58 @@ async def update_order_payment(
     user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
     await manager.broadcast({"type": "order_update", "order_id": str(order.id), "status": order.status, "payment_status": order.payment_status}, user_slug)
     return {"message": "Pagamento atualizado"}
+
+# --- SERVICE REQUESTS (CHAMADOS DE GARÇOM) ---
+
+@router.get("/{company_slug}/service-requests", response_model=List[ServiceRequestResponse])
+def get_service_requests(
+    company_slug: str,
+    db: Session = Depends(get_db),
+    current_user: any = Depends(get_current_user)
+):
+    """Retorna chamados de garçom pendentes."""
+    user_slug = current_user.slug if isinstance(current_user, Company) else current_user.company.slug
+    if user_slug != company_slug:
+        raise HTTPException(status_code=403, detail="Sem permissão")
+
+    company_id = get_company_id(current_user)
+
+    requests = db.query(ServiceRequest).join(Table).filter(
+        ServiceRequest.company_id == company_id,
+        ServiceRequest.status == "pending"
+    ).order_by(ServiceRequest.created_at.asc()).all()
+
+    # FIX: Retorna lista vazia [] em vez de 404 para não quebrar Promise.all no frontend
+    return [
+        {
+            "id": r.id,
+            "table_number": r.table.table_number,
+            "service_type": r.service_type,
+            "notes": r.notes,
+            "status": r.status,
+            "created_at": r.created_at
+        }
+        for r in requests
+    ]
+
+@router.patch("/service-requests/{request_id}/resolve", status_code=200)
+def resolve_service_request(
+    request_id: int,
+    db: Session = Depends(get_db),
+    current_user: any = Depends(get_current_user)
+):
+    """Marca um chamado como resolvido."""
+    company_id = get_company_id(current_user)
+
+    req = db.query(ServiceRequest).filter(
+        ServiceRequest.id == request_id,
+        ServiceRequest.company_id == company_id
+    ).first()
+
+    if not req:
+        raise HTTPException(status_code=404, detail="Chamado não encontrado")
+
+    req.status = "resolved"
+    db.commit()
+
+    return {"message": "Chamado resolvido"}

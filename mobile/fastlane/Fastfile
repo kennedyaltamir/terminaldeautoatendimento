@@ -1,0 +1,22 @@
+# DOMAIN: MOBILE
+# LAST_MODIFIED: 2026-01-08 07:20:00
+
+default_platform(:android)
+
+platform :android do
+  desc "Gera screenshots para a Google Play Store"
+  lane :screenshots do
+    # Nota: Como o projeto usa Expo, o Fastlane atua como orquestrador
+    # O comando real de captura é delegado ao script Python via ADB
+    sh "python ../scripts/automation/capture_mobile_screens.py"
+  end
+
+  desc "Envia metadados para a Google Play"
+  lane :upload_metadata do
+    supply(
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      metadata_path: "./metadata"
+    )
+  end
+end

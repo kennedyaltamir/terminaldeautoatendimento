@@ -1,3 +1,5 @@
+# DOMAIN: ROOT_CONFIG
+# LAST_MODIFIED: 2026-01-08 23:10:00
 name: MesaFlow CI/CD Pipeline
 
 on:
@@ -8,12 +10,45 @@ on:
 
 jobs:
   # ------------------------------------------------------------------
-  # JOB 1: BACKEND INTEGRITY (Python + Postgres)
+  # JOB 1: GOVERNANCE & COMPLIANCE GATES (Policy-as-Code)
+  # ------------------------------------------------------------------
+  governance-audit:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        cache: 'pip'
+
+    - name: Install Dependencies (Minimal)
+      run: |
+        pip install requests
+
+    - name: 🛡️ Verify ADR Integrity
+      run: python scripts/production/verify_adr_integrity.py
+
+    - name: 🛡️ Verify Compliance Mapping
+      run: python scripts/production/verify_compliance_mapping.py
+
+    - name: 🛡️ Verify Vendor Risk Management
+      run: python scripts/production/verify_vendor_risk.py
+
+    - name: 🛡️ Verify Trust Center Structure
+      run: python scripts/production/verify_trust_center.py
+
+    - name: 🛡️ Verify Legal Compliance Docs
+      run: python scripts/production/verify_legal_compliance.py
+
+  # ------------------------------------------------------------------
+  # JOB 2: BACKEND INTEGRITY (Python + Postgres)
   # ------------------------------------------------------------------
   backend-test:
+    needs: governance-audit # Só roda se a governança passar
     runs-on: ubuntu-latest
     services:
-      # Sobe um Postgres isolado para os testes
       postgres:
         image: postgres:15-alpine
         env:
@@ -41,7 +76,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install httpx pytest pytest-asyncio
 
     - name: Run Database Migrations (Test DB)
       env:
@@ -58,9 +92,10 @@ jobs:
         python -m pytest
 
   # ------------------------------------------------------------------
-  # JOB 2: FRONTEND INTEGRITY (Next.js Build)
+  # JOB 3: FRONTEND INTEGRITY (Next.js Build)
   # ------------------------------------------------------------------
   frontend-check:
+    needs: governance-audit
     runs-on: ubuntu-latest
     defaults:
       run:

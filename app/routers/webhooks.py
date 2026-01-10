@@ -1,19 +1,23 @@
+# DOMAIN: BACKEND
+# LAST_MODIFIED: 2026-01-09 00:20:00
 from fastapi import APIRouter, Request, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from uuid import UUID
 from app.database import get_db
-from app.models import Order, PaymentStatus, OrderStatus, Company, PlanTier, FiscalStatus
+from app.models import Order, PaymentStatus, OrderStatus, Company, PlanTier, FiscalStatus, PaymentProvider
 from app.websockets import manager
 from app.services.stripe_service import StripeService
 from app.services.loyalty_service import LoyaltyService
+from app.services.payment_service import PaymentService
 import logging
 
 router = APIRouter()
 logger = logging.getLogger("Webhooks")
+payment_service = PaymentService()
 
 @router.post("/mercadopago")
 async def mercadopago_webhook(request: Request, db: Session = Depends(get_db)):
-    """Webhook para baixa automática de Pix via Mercado Pago + Fidelidade"""
+    """Webhook Hardened para baixa automática via Mercado Pago com Idempotência"""
     try:
         params = request.query_params
         topic = params.get("topic") or params.get("type")
@@ -25,17 +29,30 @@ async def mercadopago_webhook(request: Request, db: Session = Depends(get_db)):
             order = db.query(Order).filter(Order.mp_payment_id == resource_id).first()
 
             if order and order.payment_status != PaymentStatus.PAID:
+                # 🛡️ TRAVA DE IDEMPOTÊNCIA (FINTECH)
+                is_new = payment_service.register_transaction_idempotent(
+                    db, 
+                    str(order.company_id), 
+                    str(order.id), 
+                    PaymentProvider.MERCADO_PAGO, 
+                    str(resource_id), 
+                    order.total_amount
+                )
+
+                if not is_new:
+                    return {"status": "already_processed"}
+
                 # 1. Atualizar Status
                 order.payment_status = PaymentStatus.PAID
                 if order.status == OrderStatus.PENDING:
                     order.status = OrderStatus.ACCEPTED
 
-                db.commit() # Commit parcial para garantir status
+                db.commit() 
 
                 # 2. Processar Fidelidade (Cashback)
                 LoyaltyService.process_cashback(db, order)
 
-                # 3. Notificar KDS e Painel
+                # 3. Notificar Real-time
                 if order.company:
                     await manager.broadcast({
                         "type": "order_update",
@@ -58,13 +75,14 @@ async def stripe_webhook(
     stripe_signature: str = Header(None), 
     db: Session = Depends(get_db)
 ):
+    """Webhook para Stripe com validação de assinatura"""
     payload = await request.body()
 
     try:
-        # Valida assinatura
         event = StripeService.construct_event(payload, stripe_signature)
-
-        # Processa lógica de negócio
+        
+        # Idempotência do Stripe é tratada internamente pelo StripeService 
+        # ou pode ser adicionada aqui similar ao MP para eventos de PaymentIntent.
         StripeService.process_webhook_event(event, db)
 
         return {"status": "success"}
@@ -77,18 +95,15 @@ async def stripe_webhook(
 
 @router.post("/fiscal/focus")
 async def focus_nfe_webhook(request: Request, db: Session = Depends(get_db)):
-    """
-    Webhook para receber atualizações de status da Focus NFe.
-    """
+    """Webhook para atualizações de status fiscal"""
     try:
         data = await request.json()
-        ref = data.get("ref") # ID do nosso pedido
+        ref = data.get("ref") 
         status = data.get("status")
 
         if not ref:
             return {"status": "ignored", "reason": "no_ref"}
 
-        # Conversão segura para UUID
         try:
             order_uuid = UUID(ref)
         except ValueError:

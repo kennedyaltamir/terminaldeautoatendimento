@@ -9,7 +9,7 @@ interface CartContextType {
   updateCartItem: (index: number, item: CartItem) => void;
   removeFromCart: (index: number) => void;
   clearCart: () => void;
-  total: number;
+  total: number; // Em centavos
 }
 
 const CartContext = createContext<CartContextType>({} as CartContextType);
@@ -56,9 +56,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => setItems([]);
 
+  // Cálculo do total em centavos (Inteiros)
   const total = items.reduce((acc, item) => {
+    // Preços já vêm em centavos da API (graças ao Monetary type no backend)
+    // Mas o frontend pode ter recebido dados antigos ou mockados.
+    // Assumindo que a API agora retorna centavos (int).
+    
+    const productPrice = Number(item.product.price);
     const optionsTotal = item.selectedOptions.reduce((sum, opt) => sum + Number(opt.price), 0);
-    return acc + (Number(item.product.price) + optionsTotal) * item.quantity;
+    
+    return acc + (productPrice + optionsTotal) * item.quantity;
   }, 0);
 
   return (

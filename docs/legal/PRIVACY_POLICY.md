@@ -1,68 +1,64 @@
-🔒 Política de Privacidade (LGPD)
+# Política de Privacidade - MesaFlow
 
-Vigência: Janeiro de 2026
+**Vigência:** Janeiro de 2026
 
-O MesaFlow leva a sério a privacidade de dados. Esta política descreve como tratamos informações de Lojistas e Consumidores Finais.
+O MesaFlow está comprometido com a proteção de dados e a conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).
 
-1. Quais dados coletamos?
-1.1. Do Lojista (Controlador)
+## 1. Agentes de Tratamento
+- **Controlador:** O Estabelecimento (Restaurante) que utiliza o MesaFlow para vender seus produtos.
+- **Operador:** O MesaFlow, que fornece a plataforma tecnológica para processar os dados em nome do Controlador.
 
-Dados cadastrais (CNPJ, Razão Social, Endereço).
+## 2. Dados Coletados
+### 2.1 Do Lojista
+- Dados cadastrais (CNPJ, Razão Social, Endereço).
+- Dados financeiros para repasse de pagamentos.
+- Logs de acesso e auditoria de uso do sistema.
 
-Dados do Representante Legal (Nome, CPF, E-mail, Telefone).
+### 2.2 Do Consumidor Final
+- **Essenciais:** Nome (para identificação do pedido) e Telefone (para notificações e fidelidade).
+- **Opcionais:** Endereço (para Delivery) e CPF (para Nota Fiscal).
+- **Navegação:** Endereço IP, User-Agent e Cookies técnicos.
 
-Dados Financeiros (Chaves Pix, Tokens de Gateway) para processamento de repasses.
+## 3. Finalidade do Tratamento
+Utilizamos os dados para:
+- Processar e entregar pedidos.
+- Realizar transações financeiras e prevenir fraudes.
+- Enviar notificações transacionais (ex: "Seu pedido está pronto").
+- Gerir o programa de fidelidade (Cashback).
+- Cumprir obrigações legais e fiscais.
 
-1.2. Do Consumidor Final (Titular)
+## 4. Compartilhamento de Dados
+Os dados podem ser compartilhados com:
+- **Processadores de Pagamento:** (Mercado Pago, Stripe) para efetivar cobranças.
+- **Emissores Fiscais:** (Focus NFe) para geração de documentos fiscais.
+- **Infraestrutura:** (AWS, Render, Neon) para hospedagem segura.
 
-Essenciais: Nome (para identificação do pedido) e Telefone (para notificações e fidelidade).
+## 5. Segurança
+Adotamos medidas técnicas (criptografia, HTTPS, RLS) e administrativas para proteger os dados contra acessos não autorizados e vazamentos.
 
-Opcionais: Endereço (apenas para Delivery) e CPF (apenas para emissão de Nota Fiscal, se solicitado).
+## 6. Direitos do Titular
+Conforme a LGPD, você tem direito a:
+- Confirmar a existência de tratamento.
+- Acessar seus dados.
+- Corrigir dados incompletos ou desatualizados.
+- Solicitar a exclusão de dados (respeitando os prazos legais de guarda).
 
-Navegação: Logs de acesso, IP e User-Agent para segurança e auditoria.
+## 7. Contato e Requisições
+Para exercer seus direitos ou tirar dúvidas sobre privacidade, entre em contato com nosso Encarregado de Dados (DPO).
 
-2. Como usamos os dados?
+- **E-mail:** privacy@mesaflow.com.br
+- **Prazo de Resposta:** Até 15 dias, conforme art. 19 da LGPD.
+- **Processo:** Envie um e-mail com o assunto "Requisição LGPD - [Seu Nome]" detalhando sua solicitação (Exclusão, Portabilidade, Correção).
 
-Processamento de Pedidos: Enviar o pedido da mesa para a cozinha.
+## 8. Política de Retenção e Descarte
+Mantemos seus dados apenas pelo tempo necessário para cumprir as finalidades para as quais foram coletados, inclusive para fins de cumprimento de obrigações legais, contratuais, de prestação de contas ou requisição de autoridades competentes.
 
-Transações Financeiras: Processar pagamentos e splits.
+| Tipo de Dado | Prazo de Retenção | Justificativa |
+| :--- | :--- | :--- |
+| **Logs de Acesso (IP)** | 6 Meses | Marco Civil da Internet (Art. 15). |
+| **Dados Fiscais (Notas)** | 5 Anos | Código Tributário Nacional (Prescrição). |
+| **Dados de Pedidos** | 5 Anos | Código de Defesa do Consumidor (Histórico). |
+| **Dados de Conta** | Até exclusão | Manutenção do serviço ativo. |
+| **Dados de Marketing** | Até revogação | Consentimento do titular (Opt-out). |
 
-Comunicação: Enviar status do pedido via WhatsApp (via Evolution API).
-
-Fidelidade: Calcular cashback baseado no histórico de compras.
-
-Segurança: Prevenir fraudes e ataques (Rate Limiting).
-
-3. Compartilhamento de Dados
-
-Não vendemos dados. Compartilhamos apenas com parceiros essenciais para a operação:
-
-Gateways de Pagamento: Mercado Pago / Stripe (para processar cobranças).
-
-Emissores Fiscais: Focus NFe (para gerar notas fiscais).
-
-Infraestrutura: AWS/Render/Neon (para hospedagem segura).
-
-4. Cookies e Rastreamento
-
-Utilizamos cookies técnicos essenciais para:
-
-Manter a sessão do usuário ativa (JWT).
-
-Lembrar o carrinho de compras (LocalStorage).
-
-Analisar performance anônima (Vercel Analytics).
-
-5. Seus Direitos (LGPD)
-
-Você pode solicitar a qualquer momento:
-
-A confirmação da existência de tratamento.
-
-O acesso aos dados.
-
-A correção de dados incompletos.
-
-A anonimização ou exclusão de dados desnecessários.
-
-Canal de Privacidade: dpo@mesaflow.com.br
+Após o término do prazo de retenção ou mediante solicitação válida de exclusão, os dados serão eliminados de forma segura ou anonimizados para fins estatísticos.

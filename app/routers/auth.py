@@ -1,17 +1,22 @@
+# DOMAIN: BACKEND
+# LAST_MODIFIED: 2026-01-09
 from fastapi import APIRouter, Depends, HTTPException, status, Header, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
-from app.database import get_db
-from app.models import Company, Employee, UserDevice, AuditAction
+from app.database import get_db, set_tenant
+from app.models import Company, Employee, UserDevice, AuditAction, Table
 from app.core.security import (
     verify_password, get_password_hash, create_access_token, 
     create_refresh_token, SECRET_KEY, ALGORITHM
 )
+from app.services.token_service import token_service
 from app.schemas import Token, SignUpRequest, DeviceRegister
 from app.services.audit_service import AuditService
 from pydantic import BaseModel
+from datetime import datetime, timezone
 import os
+import uuid
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 
@@ -21,6 +26,70 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 class ImpersonateRequest(BaseModel):
     target_email: str
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+def logout(token: str = Depends(oauth2_scheme)):
+    """
+    Revoga o token atual, adicionando seu JTI à blacklist no Redis.
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        jti = payload.get("jti")
+        exp = payload.get("exp")
+
+        if jti and exp:
+            now = datetime.now(timezone.utc).timestamp()
+            remaining = int(exp - now)
+            if remaining > 0:
+                token_service.revoke_token(jti, remaining)
+
+        return None
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Token inválido")
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        user_type: str = payload.get("account_type")
+        is_impersonator: bool = payload.get("impersonator", False) 
+        company_id: str = payload.get("company_id")
+        jti: str = payload.get("jti")
+
+        if email is None: raise HTTPException(401, "Token inválido")
+
+        # SECURITY HARDENING: Verificação de Blacklist
+        if token_service.is_revoked(jti):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Sessão encerrada. Por favor, faça login novamente.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        # RLS: Configura o contexto do banco de dados
+        if company_id:
+            set_tenant(db, company_id)
+
+    except JWTError:
+        raise HTTPException(401, "Token inválido")
+
+    if user_type == "company":
+        user = db.query(Company).filter(Company.owner_email == email).first()
+        if user: 
+            user.role = "owner"
+            user.is_impersonator = is_impersonator 
+            return user
+
+    elif user_type == "employee":
+        user = db.query(Employee).filter(Employee.email == email).first()
+        if user:
+            company = db.query(Company).filter(Company.id == user.company_id).first()
+            user.company = company
+            user.slug = company.slug
+            user.is_impersonator = is_impersonator 
+            return user
+
+    raise HTTPException(401, "Usuário não encontrado")
 
 @router.post("/impersonate", response_model=Token)
 async def impersonate_user(
@@ -44,7 +113,7 @@ async def impersonate_user(
         "company_id": str(company.id),
         "impersonator": True 
     }
-    
+
     access_token = create_access_token(data=token_data)
     refresh_token = create_refresh_token(data=token_data)
 
@@ -68,7 +137,6 @@ async def impersonate_user(
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     company = db.query(Company).filter(Company.owner_email == form_data.username).first()
     if company and verify_password(form_data.password, company.password_hash):
-        # INCLUSÃO DO COMPANY_ID (Obrigatório para o Mobile)
         token_data = {
             "sub": company.owner_email, 
             "role": "owner", 
@@ -169,6 +237,12 @@ async def google_auth(request: Request, db: Session = Depends(get_db)):
             db.add(company)
             db.commit()
             db.refresh(company)
+            
+            # Auto-create first table for Zero-Touch Onboarding
+            set_tenant(db, str(company.id))
+            table = Table(company_id=company.id, table_number=1, qr_token=str(uuid.uuid4()))
+            db.add(table)
+            db.commit()
 
         token_data = {
             "sub": company.owner_email, 
@@ -181,7 +255,7 @@ async def google_auth(request: Request, db: Session = Depends(get_db)):
             "refresh_token": create_refresh_token(data=token_data),
             "token_type": "bearer",
             "company_slug": company.slug,
-            "company_name": company.name,
+            "company_name": company.name, 
             "user_role": "owner",
             "user_name": name
         }
@@ -200,6 +274,13 @@ def register_company(data: SignUpRequest, db: Session = Depends(get_db)):
     db.add(new_company)
     db.commit()
     db.refresh(new_company)
+    
+    # Auto-create first table for Zero-Touch Onboarding
+    # Precisamos setar o tenant context para o RLS permitir a inserção
+    set_tenant(db, str(new_company.id))
+    table = Table(company_id=new_company.id, table_number=1, qr_token=str(uuid.uuid4()))
+    db.add(table)
+    db.commit()
 
     token_data = {
         "sub": new_company.owner_email, 
@@ -216,35 +297,6 @@ def register_company(data: SignUpRequest, db: Session = Depends(get_db)):
         "user_role": "owner", 
         "user_name": "Admin"
     }
-
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        user_type: str = payload.get("account_type")
-        is_impersonator: bool = payload.get("impersonator", False) 
-        
-        if email is None: raise HTTPException(401, "Token inválido")
-    except JWTError:
-        raise HTTPException(401, "Token inválido")
-
-    if user_type == "company":
-        user = db.query(Company).filter(Company.owner_email == email).first()
-        if user: 
-            user.role = "owner"
-            user.is_impersonator = is_impersonator 
-            return user
-
-    elif user_type == "employee":
-        user = db.query(Employee).filter(Employee.email == email).first()
-        if user:
-            company = db.query(Company).filter(Company.id == user.company_id).first()
-            user.company = company
-            user.slug = company.slug
-            user.is_impersonator = is_impersonator 
-            return user
-
-    raise HTTPException(401, "Usuário não encontrado")
 
 @router.post("/device", status_code=200)
 def register_device(

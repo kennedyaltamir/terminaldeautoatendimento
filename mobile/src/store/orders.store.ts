@@ -35,7 +35,7 @@ interface OrdersState {
   isSocketConnected: boolean;
   isHydrated: boolean;
   error: string | null;
-  
+
   setOrders: (orders: Order[]) => void;
   setSyncing: (status: boolean) => void;
   setSocketStatus: (connected: boolean) => void;
@@ -132,7 +132,7 @@ export const useOrdersStore = create<OrdersState>()(
           .map(order => {
             const metrics = OrdersSLAService.calculateMetrics(order, currentTimestamp);
             const remainingMinutes = Math.ceil(metrics.remainingSeconds / 60);
-            
+
             return {
               ...order,
               elapsedTime: `${Math.floor(metrics.elapsedSeconds / 60)}m`,

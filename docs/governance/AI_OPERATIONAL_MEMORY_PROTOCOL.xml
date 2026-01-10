@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AI_Operational_Memory_Protocol version="1.1">
+
+    <!-- ===================================================== -->
+    <!-- PURPOSE -->
+    <!-- ===================================================== -->
+    <Purpose>
+        Este protocolo define a Camada de Memória Operacional Obrigatória.
+        Nenhuma task pode ser considerada válida sem a geração explícita
+        de artefatos de memória persistente.
+    </Purpose>
+
+    <!-- ===================================================== -->
+    <!-- STATES -->
+    <!-- ===================================================== -->
+    <Operational_States>
+
+        <State id="BOOT">
+            <Description>
+                Estado exclusivo para inicialização do sistema cognitivo.
+            </Description>
+            <Allowed_Outputs>
+                <Output>Schema_Boot</Output>
+            </Allowed_Outputs>
+        </State>
+
+        <State id="HANDOFF_READY">
+            <Description>
+                Estado de repouso após carregamento de contexto.
+                Nenhuma execução é permitida.
+            </Description>
+            <Allowed_Outputs>
+                <Output>HANDOFF_ACK</Output>
+            </Allowed_Outputs>
+            <Forbidden_Actions>
+                <Action>Task_Classification</Action>
+                <Action>Domain_Selection</Action>
+                <Action>Schema_Execution</Action>
+            </Forbidden_Actions>
+        </State>
+
+        <State id="EXECUTION">
+            <Description>
+                Estado exclusivo para execução de uma task formalmente definida.
+            </Description>
+        </State>
+
+    </Operational_States>
+
+    <!-- ===================================================== -->
+    <!-- META COMMAND MODE -->
+    <!-- ===================================================== -->
+    <Meta_Command_Mode>
+        <Description>
+            Comandos de entendimento, leitura ou confirmação
+            NÃO constituem autorização de execução.
+        </Description>
+
+        <Rule id="MC-001">
+            <Condition>
+                Prompt contém instruções de verificação, entendimento ou ACK
+            </Condition>
+            <Enforcement>
+                Responder apenas com HANDOFF_ACK
+            </Enforcement>
+        </Rule>
+    </Meta_Command_Mode>
+
+    <!-- ===================================================== -->
+    <!-- TASK VALIDITY -->
+    <!-- ===================================================== -->
+    <Task_Validity_Rules>
+
+        <Rule id="TVR-001">
+            <Condition>
+                Toda task executada DEVE gerar memória operacional persistente.
+            </Condition>
+            <Violation>
+                Task inválida.
+            </Violation>
+        </Rule>
+
+        <Rule id="TVR-002">
+            <Condition>
+                Execução sem registro documental explícito.
+            </Condition>
+            <Violation>
+                Fail-Fast imediato.
+            </Violation>
+        </Rule>
+
+    </Task_Validity_Rules>
+
+    <!-- ===================================================== -->
+    <!-- REQUIRED MEMORY ARTIFACTS -->
+    <!-- ===================================================== -->
+    <Required_Memory_Artifacts>
+
+        <Artifact type="TASK">
+            <Path>docs/tasks/TASK_&lt;ID&gt;.md</Path>
+            <Description>Descrição completa da task executada.</Description>
+        </Artifact>
+
+        <Artifact type="TASK_MASTER">
+            <Path>docs/TASKS.md</Path>
+            <Description>Registro central de todas as tasks.</Description>
+        </Artifact>
+
+        <Artifact type="TROUBLESHOOT_MASTER">
+            <Path>docs/troubleshooting/TROUBLESHOOTING_MASTER.md</Path>
+            <Description>
+                Memória Imunológica do Sistema.
+                Obrigatório consultar antes de reportar erro.
+                Obrigatório atualizar após resolver erro novo.
+            </Description>
+        </Artifact>
+
+        <Artifact type="DECISION_LOG">
+            <Path>docs/decisions/ADR_&lt;ID&gt;.md</Path>
+            <Description>Registro de decisões arquiteturais.</Description>
+        </Artifact>
+
+    </Required_Memory_Artifacts>
+
+    <!-- ===================================================== -->
+    <!-- EXECUTION CLOSURE -->
+    <!-- ===================================================== -->
+    <Execution_Closure>
+
+        <Closure_Rule>
+            Uma execução só é considerada concluída se:
+            - Todos os artefatos obrigatórios existirem
+            - A documentação for atualizada
+            - Um script de verificação for fornecido
+        </Closure_Rule>
+
+    </Execution_Closure>
+
+    <!-- ===================================================== -->
+    <!-- FAIL FAST INTEGRATION -->
+    <!-- ===================================================== -->
+    <Fail_Fast_Extension>
+
+        <Failure id="FF-OM-001">
+            <Trigger>Execução sem memória operacional</Trigger>
+            <Action>Abortar resposta</Action>
+        </Failure>
+
+        <Failure id="FF-OM-002">
+            <Trigger>Resposta fora do estado operacional permitido</Trigger>
+            <Action>Invalidar output</Action>
+        </Failure>
+
+    </Fail_Fast_Extension>
+
+</AI_Operational_Memory_Protocol>

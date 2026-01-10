@@ -1,9 +1,35 @@
-from pydantic import BaseModel, ConfigDict, Field, EmailStr, field_validator
-from typing import List, Optional, Any
+# DOMAIN: BACKEND
+# LAST_MODIFIED: 2026-01-08 10:15:00
+from pydantic import BaseModel, ConfigDict, Field, EmailStr, field_validator, PlainSerializer, BeforeValidator
+from typing import List, Optional, Any, Annotated
 from decimal import Decimal
 from uuid import UUID
 from datetime import time, datetime, date
 import re
+
+# --- CUSTOM TYPES (FINTECH PRECISION) ---
+
+def decimal_to_cents(v: Decimal | None) -> int | None:
+    if v is None: return None
+    return int(round(v * 100))
+
+def cents_to_decimal(v: int | float | Decimal | None) -> Decimal | None:
+    if v is None: return None
+    if isinstance(v, Decimal): return v
+    return Decimal(str(v)) / 100
+
+# Tipo Monetário: Entrada/Saída como Inteiro (Centavos), Interno como Decimal
+Monetary = Annotated[
+    Decimal,
+    PlainSerializer(decimal_to_cents, return_type=int, when_used='json'),
+    BeforeValidator(cents_to_decimal)
+]
+
+OptionalMonetary = Annotated[
+    Optional[Decimal],
+    PlainSerializer(decimal_to_cents, return_type=Optional[int], when_used='json'),
+    BeforeValidator(cents_to_decimal)
+]
 
 # --- VALIDATORS REUTILIZÁVEIS ---
 
@@ -79,8 +105,8 @@ class CompanyPublic(BaseModel):
 class CompanyAdminSettings(CompanyPublic):
     mp_access_token: Optional[str] = None
     payment_provider: str = "NONE"
-    marketplace_fee_percentage: Decimal = Decimal(0)
-    loyalty_percentage: Decimal = Decimal(0)
+    marketplace_fee_percentage: OptionalMonetary = Decimal(0)
+    loyalty_percentage: OptionalMonetary = Decimal(0)
     plan_tier: str = "free"
     trial_ends_at: Optional[datetime] = None
     stripe_subscription_id: Optional[str] = None
@@ -90,8 +116,8 @@ class CompanyAdminSettings(CompanyPublic):
     fiscal_token: Optional[str] = None
     csc_token: Optional[str] = None
     csc_id: Optional[str] = None
-    service_fee_percentage: Decimal = Decimal(10.0)
-    fixed_delivery_fee: Decimal = Decimal(0.0)
+    service_fee_percentage: OptionalMonetary = Decimal(10.0)
+    fixed_delivery_fee: OptionalMonetary = Decimal(0.0)
     whatsapp_api_url: Optional[str] = None
     whatsapp_instance: Optional[str] = None
     whatsapp_token: Optional[str] = None
@@ -110,7 +136,7 @@ class CompanyUpdate(BaseModel):
     closes_at: Optional[time] = None
     pix_key: Optional[str] = None
     mp_access_token: Optional[str] = None
-    loyalty_percentage: Optional[Decimal] = None
+    loyalty_percentage: OptionalMonetary = None
     instagram_url: Optional[str] = None
     whatsapp_number: Optional[str] = None
     whatsapp_api_url: Optional[str] = None
@@ -123,8 +149,8 @@ class CompanyUpdate(BaseModel):
     fiscal_token: Optional[str] = None
     csc_token: Optional[str] = None
     csc_id: Optional[str] = None
-    service_fee_percentage: Optional[Decimal] = None
-    fixed_delivery_fee: Optional[Decimal] = None
+    service_fee_percentage: OptionalMonetary = None
+    fixed_delivery_fee: OptionalMonetary = None
     ifood_merchant_id: Optional[str] = None
     ifood_token: Optional[str] = None
 
@@ -133,7 +159,7 @@ class CompanyUpdate(BaseModel):
 class OptionResponse(BaseModel):
     id: int
     name: str
-    price: Decimal
+    price: Monetary
     is_available: bool
     model_config = ConfigDict(from_attributes=True)
 
@@ -148,7 +174,7 @@ class OptionGroupResponse(BaseModel):
 class ProductSimpleResponse(BaseModel):
     id: int
     name: str
-    price: Decimal
+    price: Monetary
     image_url: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
@@ -156,7 +182,7 @@ class ProductResponse(BaseModel):
     id: int
     name: str
     description: Optional[str] = None
-    price: Decimal
+    price: Monetary
     image_url: Optional[str] = None
     is_available: bool
     track_stock: bool
@@ -202,7 +228,7 @@ class ProductCreate(BaseModel):
     category_id: int = Field(..., example=1)
     name: str = Field(..., example="X-Bacon")
     description: Optional[str] = Field(None, example="Pão, carne, queijo e bacon crocante")
-    price: Decimal = Field(..., example=25.90)
+    price: Monetary = Field(..., example=2590) # Centavos
     image_url: Optional[str] = None
     is_available: bool = True
     track_stock: bool = False
@@ -218,7 +244,7 @@ class ProductCreate(BaseModel):
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
-    price: Optional[Decimal] = None
+    price: OptionalMonetary = None
     image_url: Optional[str] = None
     is_available: Optional[bool] = None
     track_stock: Optional[bool] = None
@@ -238,13 +264,13 @@ class OptionGroupCreate(BaseModel):
 
 class OptionCreate(BaseModel):
     name: str = Field(..., example="Bem Passado")
-    price: Decimal = Decimal(0)
+    price: Monetary = Decimal(0)
 
 # --- ORDERS ---
 
 class OrderItemOptionResponse(BaseModel):
     name: str
-    price: Decimal
+    price: Monetary
     model_config = ConfigDict(from_attributes=True)
 
 class OrderItemResponse(BaseModel):
@@ -273,12 +299,12 @@ class OrderResponse(BaseModel):
     external_order_id: Optional[str] = None
     delivery_address: Optional[str] = None
     customer_phone: Optional[str] = None
-    subtotal: Optional[Decimal] = None
-    discount_amount: Decimal = Decimal(0)
-    cashback_earned: Decimal = Decimal(0)
+    subtotal: OptionalMonetary = None
+    discount_amount: Monetary = Decimal(0)
+    cashback_earned: Monetary = Decimal(0)
     payment_method: str = Field(..., example="pix")
     payment_status: str = Field(..., example="paid")
-    total_amount: Decimal = Field(..., example=45.90)
+    total_amount: Monetary = Field(..., example=4590)
     customer_name: Optional[str] = Field(None, example="João Silva")
     created_at: datetime
     finished_at: Optional[datetime] = None
@@ -290,8 +316,8 @@ class OrderResponse(BaseModel):
     fiscal_status: str = "pending"
     nfe_url_pdf: Optional[str] = None
     nfe_url_xml: Optional[str] = None
-    service_fee: Decimal = Decimal(0)
-    delivery_fee: Decimal = Decimal(0)
+    service_fee: Monetary = Decimal(0)
+    delivery_fee: Monetary = Decimal(0)
     feedback: Optional[FeedbackResponse] = None
 
     model_config = ConfigDict(
@@ -302,7 +328,7 @@ class OrderResponse(BaseModel):
                 "status": "accepted",
                 "order_type": "delivery",
                 "origin": "ifood",
-                "total_amount": 59.90,
+                "total_amount": 5990,
                 "customer_name": "Maria Oliveira",
                 "created_at": "2026-01-05T19:00:00Z",
                 "items": [
@@ -380,8 +406,8 @@ class ServiceRequestResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class WalletResponse(BaseModel):
-    balance: Decimal
-    loyalty_percentage: Decimal
+    balance: Monetary
+    loyalty_percentage: Monetary
 
 class TableSessionResponse(BaseModel):
     id: int
@@ -389,7 +415,7 @@ class TableSessionResponse(BaseModel):
     is_active: bool
     created_at: datetime
     orders: List[OrderResponse] = []
-    total_spent: Decimal = Decimal(0)
+    total_spent: Monetary = Decimal(0)
     access_pin: str
     model_config = ConfigDict(from_attributes=True)
 
@@ -414,7 +440,7 @@ class JoinTableRequest(BaseModel):
 class TableSessionSummary(BaseModel):
     id: int
     customer_name: str
-    total_spent: Decimal
+    total_spent: Monetary
     start_time: datetime
     access_pin: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
@@ -435,7 +461,7 @@ class OpenTableRequest(BaseModel):
 
 class CloseTableRequest(BaseModel):
     payment_method: str
-    custom_service_fee: Optional[Decimal] = None
+    custom_service_fee: OptionalMonetary = None
 
 class TablePositionUpdate(BaseModel):
     id: int
@@ -448,7 +474,7 @@ class SessionUpdate(BaseModel):
 class TableSessionDetail(BaseModel):
     id: int
     customer_name: str
-    total_spent: Decimal
+    total_spent: Monetary
     start_time: datetime
     orders: List[OrderResponse]
     model_config = ConfigDict(from_attributes=True)
@@ -465,7 +491,7 @@ class IngredientCreate(BaseModel):
     unit: str = "un"
     current_stock: Decimal = Decimal(0)
     min_stock_alert: Decimal = Decimal(0)
-    cost_per_unit: Decimal = Decimal(0)
+    cost_per_unit: Monetary = Decimal(0)
     supplier_id: Optional[int] = None
 
 class IngredientResponse(BaseModel):
@@ -474,7 +500,7 @@ class IngredientResponse(BaseModel):
     unit: str
     current_stock: Decimal
     min_stock_alert: Decimal
-    cost_per_unit: Decimal
+    cost_per_unit: Monetary
     supplier_id: Optional[int] = None
     model_config = ConfigDict(from_attributes=True)
 
@@ -607,7 +633,7 @@ class TipReportItem(BaseModel):
 class DriverLedgerResponse(BaseModel):
     id: int
     type: str
-    amount: Decimal
+    amount: Monetary
     description: Optional[str] = None
     created_at: datetime
     order_id: Optional[UUID] = None
@@ -616,12 +642,12 @@ class DriverLedgerResponse(BaseModel):
 class DriverBalanceResponse(BaseModel):
     driver_id: int
     driver_name: str
-    current_debt: Decimal
+    current_debt: Monetary
     transactions: List[DriverLedgerResponse]
     model_config = ConfigDict(from_attributes=True)
 
 class SettleDebtRequest(BaseModel):
-    amount: Decimal = Field(..., example=50.00)
+    amount: Monetary = Field(..., example=5000)
     description: Optional[str] = "Acerto de contas"
 
 class DriverRecommendation(BaseModel):
@@ -680,9 +706,9 @@ class PromotionCreate(BaseModel):
     name: str = Field(..., example="Desconto de Verão")
     code: Optional[str] = Field(None, example="VERAO10")
     discount_type: str = Field("percentage", example="percentage")
-    discount_value: Decimal = Field(..., example=10.00)
-    min_order_value: Decimal = Field(Decimal(0), example=50.00)
-    max_discount_value: Optional[Decimal] = None
+    discount_value: Monetary = Field(..., example=1000)
+    min_order_value: Monetary = Field(Decimal(0), example=5000)
+    max_discount_value: OptionalMonetary = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     usage_limit: Optional[int] = None
@@ -693,8 +719,8 @@ class PromotionCreate(BaseModel):
                 "name": "Cupom Primeira Compra",
                 "code": "BEMVINDO",
                 "discount_type": "fixed",
-                "discount_value": 15.00,
-                "min_order_value": 60.00
+                "discount_value": 1500,
+                "min_order_value": 6000
             }
         }
     )
@@ -703,9 +729,9 @@ class PromotionUpdate(BaseModel):
     name: Optional[str] = None
     code: Optional[str] = None
     discount_type: Optional[str] = None
-    discount_value: Optional[Decimal] = None
-    min_order_value: Optional[Decimal] = None
-    max_discount_value: Optional[Decimal] = None
+    discount_value: OptionalMonetary = None
+    min_order_value: OptionalMonetary = None
+    max_discount_value: OptionalMonetary = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     usage_limit: Optional[int] = None
@@ -716,9 +742,9 @@ class PromotionResponse(BaseModel):
     name: str
     code: Optional[str] = None
     discount_type: str
-    discount_value: Decimal
-    min_order_value: Decimal
-    max_discount_value: Optional[Decimal] = None
+    discount_value: Monetary
+    min_order_value: Monetary
+    max_discount_value: OptionalMonetary = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     usage_limit: Optional[int] = None
@@ -728,12 +754,12 @@ class PromotionResponse(BaseModel):
 
 class CouponValidationRequest(BaseModel):
     code: str = Field(..., example="VERAO10")
-    total_amount: Decimal = Field(..., example=100.00)
+    total_amount: Monetary = Field(..., example=10000)
 
 class CouponValidationResponse(BaseModel):
     valid: bool
-    discount_amount: Decimal
-    final_total: Decimal
+    discount_amount: Monetary
+    final_total: Monetary
     message: str
     promotion_id: Optional[UUID] = None
 

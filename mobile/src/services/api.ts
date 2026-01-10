@@ -1,15 +1,19 @@
+// DOMAIN: MOBILE
+// LAST_MODIFIED: 2026-01-10 01:55:00
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { ENV } from '../config/env';
 import { SecureAuthStorage } from './auth/storage';
 import { AuthClient } from './auth/client';
+import { useAuthStore } from '../store/auth.store';
 
 /**
- * @file api.ts
- * @description Instância central do Axios com gerenciamento determinístico de sessão.
+ * Instância central do Axios com gerenciamento determinístico de sessão.
+ * Implementa Fila de Espera para Refresh Token e Retries Automáticos.
  */
 
 export const api = axios.create({
   baseURL: ENV.API_URL,
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -42,14 +46,15 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // 1. Quando o token NÃO será renovado:
-    // - Se o erro não for 401.
-    // - Se a requisição já for uma tentativa de retry.
-    // - Se o backend estiver offline (error.response é undefined).
+    // 1. Condições para NÃO tentar o retry:
+    // - Erro não é 401 (Unauthorized)
+    // - A requisição já é uma tentativa de retry (_retry: true)
+    // - O backend está inacessível (sem response)
     if (error.response?.status !== 401 || originalRequest._retry) {
       return Promise.reject(error);
     }
 
+    // 2. Se já houver um processo de refresh em andamento, enfileira esta requisição
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
@@ -63,42 +68,50 @@ api.interceptors.response.use(
         .catch((err) => Promise.reject(err));
     }
 
+    // 3. Inicia o processo de Refresh Token
     originalRequest._retry = true;
     isRefreshing = true;
 
     try {
       const refreshToken = await SecureAuthStorage.getRefreshToken();
       
-      // 2. Quando a sessão deve morrer sem retry:
-      // - Ausência de Refresh Token no storage.
       if (!refreshToken) {
-        throw new Error('Sessão inválida: Refresh Token ausente.');
+        throw new Error('Sessão expirada: Refresh Token ausente.');
       }
 
+      // Chama o cliente de autenticação para renovar os tokens
       const { access_token, refresh_token } = await AuthClient.refresh(refreshToken);
       
+      // Persiste os novos tokens
       await SecureAuthStorage.saveTokens({
         accessToken: access_token,
         refreshToken: refresh_token,
       });
 
+      // Libera a fila de espera com o novo token
       processQueue(null, access_token);
       
       if (originalRequest.headers) {
         originalRequest.headers.Authorization = `Bearer ${access_token}`;
       }
+      
+      // Executa a requisição original novamente
       return api(originalRequest);
 
     } catch (refreshError: any) {
-      // 3. Comportamento diante de Refresh Token inválido ou expirado:
-      // - Limpeza total e rejeição da fila.
+      // 4. Falha Crítica no Refresh:
+      // - Limpa a fila com erro
+      // - Limpa o storage local
+      // - Força o logout na Store global para redirecionar a UI
       processQueue(refreshError, null);
       await SecureAuthStorage.clear();
+      await useAuthStore.getState().logout();
       
-      // O erro é propagado para a Store, que transitará para 'unauthenticated'
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
     }
   }
 );
+
+export default api;

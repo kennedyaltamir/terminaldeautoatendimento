@@ -1,57 +1,59 @@
-/**
- * GlobalClockService: O "Metrônomo" do sistema MesaFlow.
- * Garante que todo o aplicativo opere sob o mesmo carimbo de tempo,
- * evitando discrepâncias entre componentes e economizando recursos de CPU.
- */
-type ClockSubscriber = (timestamp: number) => void;
+import { AppState, AppStateStatus } from 'react-native';
+import { useOrdersStore } from '../store/orders.store';
 
 class GlobalClockService {
-  private static instance: GlobalClockService;
   private intervalId: NodeJS.Timeout | null = null;
-  private subscribers: Set<ClockSubscriber> = new Set();
-  private TICK_RATE = 5000; // 5 segundos para equilíbrio entre precisão e bateria
+  private readonly TICK_RATE = 5000; // 5 segundos
+  private appStateSubscription: any = null;
 
-  private constructor() {}
-
-  public static getInstance(): GlobalClockService {
-    if (!GlobalClockService.instance) {
-      GlobalClockService.instance = new GlobalClockService();
-    }
-    return GlobalClockService.instance;
-  }
-
-  /**
-   * Inicia o pulso global.
-   */
-  public start() {
+  init() {
     if (this.intervalId) return;
-    console.log('[Clock] Iniciando pulso global...');
-    this.intervalId = setInterval(() => {
-      const now = Date.now();
-      this.subscribers.forEach(sub => sub(now));
-    }, this.TICK_RATE);
+
+    console.log('[GlobalClock] Inicializando serviço de tempo...');
+    this.startTimer();
+
+    // Monitora o estado do App (Foreground/Background)
+    this.appStateSubscription = AppState.addEventListener('change', this.handleAppStateChange);
   }
 
-  /**
-   * Encerra o pulso (ex: em logout).
-   */
-  public stop() {
+  private startTimer() {
+    if (this.intervalId) return;
+    
+    console.log('[GlobalClock] Timer iniciado.');
+    // Executa imediatamente
+    this.tick();
+    // Agenda o intervalo
+    this.intervalId = setInterval(() => this.tick(), this.TICK_RATE);
+  }
+
+  private stopTimer() {
     if (this.intervalId) {
+      console.log('[GlobalClock] Timer pausado (Economia de Energia).');
       clearInterval(this.intervalId);
       this.intervalId = null;
-      console.log('[Clock] Pulso global encerrado.');
     }
   }
 
-  /**
-   * Assina o evento de tempo.
-   */
-  public subscribe(callback: ClockSubscriber) {
-    this.subscribers.add(callback);
-    // Emite o valor atual imediatamente para o novo assinante
-    callback(Date.now());
-    return () => this.subscribers.delete(callback);
+  private handleAppStateChange = (nextAppState: AppStateStatus) => {
+    if (nextAppState === 'active') {
+      console.log('[GlobalClock] App voltou para o primeiro plano. Sincronizando...');
+      this.startTimer();
+    } else if (nextAppState === 'background' || nextAppState === 'inactive') {
+      this.stopTimer();
+    }
+  };
+
+  private tick() {
+    // Dispara a atualização de SLAs na Store
+    useOrdersStore.getState().updateSLAs();
+  }
+
+  dispose() {
+    this.stopTimer();
+    if (this.appStateSubscription) {
+      this.appStateSubscription.remove();
+    }
   }
 }
 
-export const clockService = GlobalClockService.getInstance();
+export default new GlobalClockService();

@@ -1,9 +1,11 @@
+# DOMAIN: BACKEND
+# LAST_MODIFIED: 2026-01-09
 import uuid
 from enum import Enum
 
 from sqlalchemy import (
     Column, String, Integer, Boolean, DateTime, ForeignKey,
-    Enum as SQLEnum, Numeric, Text, Index, Time, Table as SQLTable, JSON
+    Enum as SQLEnum, Numeric, Text, Index, Time, Table as SQLTable, JSON, UniqueConstraint
 )
 from sqlalchemy.types import TypeDecorator, CHAR
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
@@ -39,7 +41,7 @@ class GUID(TypeDecorator):
             return uuid.UUID(value)
         return value
 
-# --- ENUMS (Todos com valores em lowercase) ---
+# --- ENUMS ---
 
 class PlanTier(str, Enum):
     FREE = "free"
@@ -163,10 +165,9 @@ class Company(Base):
     owner_role = Column(String(50), nullable=True)
     password_hash = Column(String(255), nullable=True)
 
-    # Blindagem de Enums
     plan_tier = Column(SQLEnum(PlanTier, values_callable=lambda x: [e.value for e in x]), default=PlanTier.FREE, nullable=False)
     segment = Column(SQLEnum(CompanySegment, values_callable=lambda x: [e.value for e in x]), default=CompanySegment.GASTRO, nullable=False)
-    
+
     trial_ends_at = Column(DateTime(timezone=True), nullable=True)
     is_active = Column(Boolean, default=True)
     is_email_verified = Column(Boolean, default=False)
@@ -611,3 +612,46 @@ class OrderFeedback(Base):
 
     order = relationship("Order", back_populates="feedback")
     company = relationship("Company", back_populates="feedbacks")
+
+# --- FINTECH IDEMPOTENCY ---
+
+class PaymentTransaction(Base):
+    """
+    Tabela de Controle de Idempotência Financeira.
+    Evita processamento duplicado de Webhooks e Transações.
+    """
+    __tablename__ = "payment_transactions"
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    company_id = Column(GUID(), ForeignKey("companies.id"), nullable=False)
+    order_id = Column(GUID(), ForeignKey("orders.id"), nullable=False)
+    provider = Column(SQLEnum(PaymentProvider, values_callable=lambda x: [e.value for e in x]), nullable=False)
+    external_id = Column(String(255), nullable=False) # ID do MP ou Stripe
+    status = Column(String(50))
+    amount = Column(Numeric(10, 2))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint('provider', 'external_id', name='uq_payment_provider_id'),
+    )
+
+# --- GLOBAL IDENTITY (PASSPORT) ---
+
+class GlobalUser(Base):
+    __tablename__ = "global_users"
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    phone = Column(String(20), nullable=False, unique=True, index=True)
+    name = Column(String(100), nullable=True)
+    email = Column(String(255), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    wallets = relationship("GlobalWallet", back_populates="user", cascade="all, delete-orphan")
+
+class GlobalWallet(Base):
+    __tablename__ = "global_wallets"
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    global_user_id = Column(GUID(), ForeignKey("global_users.id"), nullable=False)
+    balance = Column(Numeric(10, 2), default=0.00)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    user = relationship("GlobalUser", back_populates="wallets")

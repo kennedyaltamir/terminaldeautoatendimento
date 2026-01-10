@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getKitchenOrders, updateOrderStatus, updateOrderPayment, getServiceRequests, resolveServiceRequest, getRecentCompletedOrders } from "@/lib/api";
 import { Order, ServiceRequest, OrderItemResponse } from "@/types";
-import { ChefHat, RefreshCw, LogOut, ArrowRightCircle, CheckCircle2, Volume2, VolumeX, DollarSign, Printer, Bike, BellRing, XCircle, Utensils, Wine, Layers, History, Undo2, Box, AlertTriangle, IceCream, Smartphone, ListChecks, Maximize2, Minimize2, Tag, Keyboard, ShoppingBag } from "lucide-react";
+import { ChefHat, RefreshCw, LogOut, ArrowRightCircle, CheckCircle2, Volume2, VolumeX, DollarSign, Printer, Bike, BellRing, XCircle, Utensils, Wine, Layers, History, Undo2, Box, AlertTriangle, IceCream, Smartphone, ListChecks, Maximize2, Minimize2, Tag, Keyboard, ShoppingBag, Mic, MicOff } from "lucide-react";
 import { removeToken } from "@/lib/auth";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import OrderTimer from "@/components/admin/OrderTimer";
@@ -13,6 +13,7 @@ import StockModal from "@/components/admin/StockModal";
 import ItemAggregator from "@/components/admin/KDS/ItemAggregator";
 import { printOrder, printSticker } from "@/lib/printer/driver";
 import { toast, Toaster } from "sonner";
+import { useVoiceControl } from "@/hooks/useVoiceControl";
 
 type StationFilter = 'all' | 'kitchen' | 'bar' | 'dessert';
 
@@ -68,6 +69,32 @@ export default function KitchenPage({ params }: { params: { slug: string } }) {
     }
   };
 
+  // --- VOICE CONTROL ---
+  const voiceCommands = [
+    {
+      // Ex: "Pedido 1234 pronto" ou "Mesa 10 pronto"
+      // Regex simplificado para capturar números
+      command: /(?:pedido|mesa)\s+(\w+)\s+(?:pronto|entregue|finalizar)/i,
+      action: (match: RegExpMatchArray) => {
+        const identifier = match[1].toLowerCase();
+        // Tenta achar por ID (sufixo) ou Mesa
+        const target = orders.find(o => 
+          o.id.toLowerCase().startsWith(identifier) || 
+          o.id.toLowerCase().endsWith(identifier) ||
+          (o.table?.table_number.toString() === identifier)
+        );
+
+        if (target) {
+          handleAdvanceStatus(target.id, target.status);
+        } else {
+          toast.warning(`Pedido/Mesa ${identifier} não encontrado.`);
+        }
+      }
+    }
+  ];
+
+  const { isListening, isSupported, toggleListening } = useVoiceControl(voiceCommands);
+
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen();
@@ -97,10 +124,11 @@ export default function KitchenPage({ params }: { params: { slug: string } }) {
       if (key.toLowerCase() === 'f') toggleFullscreen();
       if (key.toLowerCase() === 's') setIsStockOpen(true);
       if (key.toLowerCase() === 'a') setIsAggregatorOpen(true);
+      if (key.toLowerCase() === 'v') toggleListening(); // Atalho para Voz
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [orders, activeTab, fetchOrders, toggleFullscreen]);
+  }, [orders, activeTab, fetchOrders, toggleFullscreen, toggleListening]);
 
   useEffect(() => {
     const savedStation = localStorage.getItem("mesaflow_kds_station") as StationFilter;
@@ -126,6 +154,8 @@ export default function KitchenPage({ params }: { params: { slug: string } }) {
 
   const filteredOrders = orders.filter(order => {
     if (activeTab === 'all') return true;
+    // Se o pedido não tiver itens (erro de dados), mostra mesmo assim para não sumir
+    if (!order.items || order.items.length === 0) return true;
     return order.items.some(item => item.product.station === activeTab);
   });
 
@@ -154,6 +184,15 @@ export default function KitchenPage({ params }: { params: { slug: string } }) {
             </div>
 
             <div className="flex gap-2">
+                {isSupported && (
+                  <button 
+                    onClick={toggleListening} 
+                    className={`p-4 rounded-xl transition-all border ${isListening ? 'bg-red-600 text-white border-red-500 animate-pulse' : 'bg-gray-800 text-gray-300 border-gray-700'}`} 
+                    title="Comando de Voz (V)"
+                  >
+                    {isListening ? <Mic size={24} /> : <MicOff size={24} />}
+                  </button>
+                )}
                 <button onClick={toggleFullscreen} className={`p-4 rounded-xl transition-all border ${isFullscreen ? 'bg-blue-600 text-white border-blue-500' : 'bg-gray-800 text-gray-300 border-gray-700'}`} title="Tela Cheia (F)">
                   {isFullscreen ? <Minimize2 size={24} /> : <Maximize2 size={24} />}
                 </button>
@@ -173,7 +212,7 @@ export default function KitchenPage({ params }: { params: { slug: string } }) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredOrders.map((order, index) => (
                 <div key={order.id} className={`rounded-2xl border-t-8 shadow-xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-2xl relative ${order.origin === 'ifood' ? 'bg-red-950/20 border-red-600' : order.status === 'pending' ? 'bg-gray-800 border-green-500' : 'bg-gray-800 border-amber-500'}`}>
-                
+
                 {/* Indicador de Atalho de Teclado */}
                 {index < 9 && (
                     <div className="absolute top-2 right-2 w-6 h-6 bg-white/10 rounded flex items-center justify-center text-[10px] font-bold text-gray-400 border border-white/10 z-10">

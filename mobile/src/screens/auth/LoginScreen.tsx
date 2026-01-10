@@ -1,148 +1,105 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { ChefHat, Lock, Mail, ChevronRight } from 'lucide-react-native';
 import { useAuthStore } from '../../store/auth.store';
-import { Button } from '../../ui/components/Button';
-import { Input } from '../../ui/components/Input';
-import { Card } from '../../ui/components/Card';
-import { colors } from '../../ui/tokens/colors';
-import { spacing } from '../../ui/tokens/spacing';
-import { typography } from '../../ui/tokens/typography';
 
-export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  
+export function LoginScreen() {
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
   const login = useAuthStore((state) => state.login);
-  const status = useAuthStore((state) => state.status);
-  const error = useAuthStore((state) => state.error);
 
-  /**
-   * DÍVIDA TÉCNICA: O status 'hydrating' está sendo reutilizado para login.
-   * Em missões futuras, deve-se introduzir 'authenticating'.
-   */
-  const isSubmitting = status === 'hydrating';
-
-  const handleLogin = async () => {
-    if (!email || !password) return;
-    try {
-      await login({ email, password });
-    } catch (e) {
-      // Falha capturada pela Store
-    }
+  const handleLogin = (role: 'waiter' | 'kitchen' | 'driver' = 'waiter') => {
+    // Simulação de login com seleção de cargo para facilitar seus testes
+    login('fake-token', { 
+      name: 'Kennedy', 
+      role: role,
+      company_slug: 'hamburgueria-ze'
+    });
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={styles.brand}>MesaFlow</Text>
-          <Text style={styles.tagline}>Mobile Operations</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.logoContainer}>
+          <ChefHat color="#fff" size={48} />
         </View>
+        <Text style={styles.title}>MesaFlow Mobile</Text>
+        <Text style={styles.subtitle}>Acesse sua conta operacional</Text>
+      </View>
 
-        <Card style={styles.card}>
-          <Text style={styles.title}>Acesso ao Sistema</Text>
-          
-          {/* Feedback de Erro Global */}
-          {error && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error.message}</Text>
-            </View>
-          )}
-          
-          <Input
-            label="E-mail"
-            placeholder="seu@email.com"
+      <View style={styles.form}>
+        <View style={styles.inputContainer}>
+          <Mail color="#64748b" size={20} style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="E-mail"
+            placeholderTextColor="#64748b"
             value={email}
             onChangeText={setEmail}
-            keyboardType="email-address"
             autoCapitalize="none"
-            editable={!isSubmitting}
           />
+        </View>
 
-          <Input
-            label="Senha"
-            placeholder="••••••••"
+        <View style={styles.inputContainer}>
+          <Lock color="#64748b" size={20} style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Senha"
+            placeholderTextColor="#64748b"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            editable={!isSubmitting}
           />
+        </View>
 
-          <Button
-            title="Entrar"
-            onPress={handleLogin}
-            isLoading={isSubmitting}
-            style={styles.button}
-          />
-        </Card>
+        <Text style={styles.devNote}>Selecione um perfil para testar:</Text>
         
-        <Text style={styles.footer}>v1.0.0 • 2026</Text>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        <TouchableOpacity 
+          style={[styles.button, { backgroundColor: '#ea580c' }]} 
+          onPress={() => handleLogin('waiter')}
+        >
+          <Text style={styles.buttonText}>Entrar como Garçom</Text>
+          <ChevronRight color="#fff" size={20} />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.button, { backgroundColor: '#3b82f6' }]} 
+          onPress={() => handleLogin('kitchen')}
+        >
+          <Text style={styles.buttonText}>Entrar como Cozinha</Text>
+          <ChevronRight color="#fff" size={20} />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.button, { backgroundColor: '#22c55e' }]} 
+          onPress={() => handleLogin('driver')}
+        >
+          <Text style={styles.buttonText}>Entrar como Entregador</Text>
+          <ChevronRight color="#fff" size={20} />
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
+  container: { flexGrow: 1, backgroundColor: '#0f172a', padding: 24, justifyContent: 'center' },
+  header: { alignItems: 'center', marginBottom: 40 },
+  logoContainer: { backgroundColor: '#ea580c', padding: 16, borderRadius: 24, marginBottom: 16 },
+  title: { color: '#fff', fontSize: 32, fontWeight: '900' },
+  subtitle: { color: '#94a3b8', fontSize: 16, marginTop: 8 },
+  form: { gap: 12 },
+  inputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1e293b', borderRadius: 12, paddingHorizontal: 16 },
+  inputIcon: { marginRight: 12 },
+  input: { flex: 1, color: '#fff', paddingVertical: 16, fontSize: 16 },
+  devNote: { color: '#64748b', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase', marginTop: 10, textAlign: 'center' },
+  button: { 
+    flexDirection: 'row',
+    paddingVertical: 16, 
+    paddingHorizontal: 20,
+    borderRadius: 12, 
+    alignItems: 'center', 
+    justifyContent: 'space-between'
   },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: spacing.xl,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: spacing.xxxl,
-  },
-  brand: {
-    fontSize: typography.size.xxl,
-    fontWeight: typography.weight.black,
-    color: colors.primary,
-    letterSpacing: -1,
-  },
-  tagline: {
-    fontSize: typography.size.sm,
-    color: colors.text.secondary,
-    fontWeight: typography.weight.medium,
-    textTransform: 'uppercase',
-  },
-  card: {
-    width: '100%',
-  },
-  title: {
-    fontSize: typography.size.lg,
-    fontWeight: typography.weight.bold,
-    color: colors.text.primary,
-    marginBottom: spacing.xl,
-    textAlign: 'center',
-  },
-  errorContainer: {
-    backgroundColor: colors.status.danger + '20', // Opacity 12%
-    padding: spacing.md,
-    borderRadius: spacing.sm,
-    marginBottom: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.status.danger + '40',
-  },
-  errorText: {
-    color: colors.status.danger,
-    fontSize: typography.size.xs,
-    fontWeight: typography.weight.semibold,
-    textAlign: 'center',
-  },
-  button: {
-    marginTop: spacing.md,
-  },
-  footer: {
-    textAlign: 'center',
-    marginTop: spacing.xxxl,
-    color: colors.text.muted,
-    fontSize: typography.size.xs,
-    fontWeight: typography.weight.medium,
-  }
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
 });

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView, ActivityIndicator, TouchableOpacity, Pressable } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ActivityIndicator, Pressable } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useOrdersStore, Order } from '../../store/orders.store';
 import { useSessionStore } from '../../store/session.store';
 import { useSettingsStore } from '../../store/settings.store';
@@ -8,7 +9,7 @@ import { Button } from '../../ui/components/Button';
 import { colors } from '../../ui/tokens/colors';
 import { spacing } from '../../ui/tokens/spacing';
 import { typography } from '../../ui/tokens/typography';
-import { Bell, BellOff, RefreshCw, WifiOff, AlertCircle, ChefHat } from 'lucide-react-native';
+import { RefreshCw, WifiOff, AlertCircle, ChefHat, Bell, BellOff } from 'lucide-react-native';
 import LoadingScreen from '../common/LoadingScreen';
 
 export default function OrdersScreen() {
@@ -22,7 +23,7 @@ export default function OrdersScreen() {
     fetchOrders, 
     advanceStatus 
   } = useOrdersStore();
-  
+
   const { isSilentMode, toggleSilentMode } = useSettingsStore();
   const slug = useSessionStore(state => state.slug);
 
@@ -101,10 +102,10 @@ export default function OrdersScreen() {
             )}
           </View>
         </View>
-        
+
         <View style={styles.headerActions}>
           {isLoading && <ActivityIndicator size="small" color={colors.primary} style={{ marginRight: spacing.md }} />}
-          
+
           <Pressable 
             onPress={toggleSilentMode}
             style={({ pressed }) => [
@@ -135,21 +136,24 @@ export default function OrdersScreen() {
           />
         </View>
       ) : (
-        <FlatList
-          data={orders}
-          renderItem={renderOrder}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            !isLoading ? (
-              <View style={styles.centerContent}>
-                <ChefHat size={64} color={colors.text.muted} style={{ opacity: 0.1, marginBottom: spacing.md }} />
-                <Text style={styles.emptyText}>Fila de produção vazia.</Text>
-              </View>
-            ) : null
-          }
-        />
+        <View style={styles.listContainer}>
+          <FlashList
+            data={orders}
+            renderItem={renderOrder}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            estimatedItemSize={180}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              !isLoading ? (
+                <View style={styles.centerContent}>
+                  <ChefHat size={64} color={colors.text.muted} style={{ opacity: 0.1, marginBottom: spacing.md }} />
+                  <Text style={styles.emptyText}>Fila de produção vazia.</Text>
+                </View>
+              ) : null
+            }
+          />
+        </View>
       )}
     </SafeAreaView>
   );
@@ -157,6 +161,7 @@ export default function OrdersScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  listContainer: { flex: 1, minHeight: 2 }, // Fix para FlashList em Android
   offlineBanner: {
     backgroundColor: colors.status.danger,
     paddingVertical: 4,

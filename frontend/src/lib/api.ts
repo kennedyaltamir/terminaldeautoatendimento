@@ -1,3 +1,5 @@
+// DOMAIN: FRONTEND
+// LAST_MODIFIED: 2026-01-10 02:20:00
 import { getToken, getRefreshToken, setTokens, removeTokens } from "./auth";
 import { Company, Ingredient, RecipeItem, Promotion, CouponValidationResponse } from "@/types";
 
@@ -11,20 +13,32 @@ class ApiError extends Error {
   }
 }
 
+/**
+ * Wrapper para fetch com tratamento de autenticação e headers.
+ */
 async function fetchClient(endpoint: string, options: RequestInit = {}) {
   const token = getToken();
-  const headers: any = {
+  
+  // Extração segura de headers para evitar conflitos de tipo no RequestInit
+  const { headers: customHeaders, restOptions } = options;
+
+  const finalHeaders: any = {
     "Content-Type": "application/json",
-    ...options.headers,
+    customHeaders,
   };
 
   if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+    finalHeaders["Authorization"] = `Bearer ${token}`;
   }
+
+  const url = `${API_BASE_URL}${endpoint}`;
 
   let response;
   try {
-    response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+    response = await fetch(url, { 
+      restOptions, 
+      headers: finalHeaders 
+    });
   } catch (error) {
     console.error("Erro de conexão com API:", error);
     throw new ApiError("Servidor indisponível. Verifique sua conexão.", 0);
@@ -49,8 +63,13 @@ async function fetchClient(endpoint: string, options: RequestInit = {}) {
       if (refreshRes.ok) {
         const data = await refreshRes.json();
         setTokens(data.access_token, data.refresh_token);
-        headers["Authorization"] = `Bearer ${data.access_token}`;
-        response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+        
+        // Tenta a requisição original novamente com o novo token
+        finalHeaders["Authorization"] = `Bearer ${data.access_token}`;
+        response = await fetch(url, { 
+          restOptions, 
+          headers: finalHeaders 
+        });
       } else {
         throw new Error("Refresh falhou");
       }
@@ -145,7 +164,6 @@ export async function processOnlinePayment(data: any) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
   if (!res.ok) {
     const errorData = await res.json();
     throw new Error(errorData.detail || "Falha no pagamento");
@@ -170,8 +188,16 @@ export async function requestService(slug: string, data: { table_id: number, qr_
 }
 
 export async function getServiceRequests(slug: string) {
-  const res = await fetchClient(`/admin/${slug}/service-requests`);
-  return res.json();
+  try {
+    const res = await fetchClient(`/admin/${slug}/service-requests`);
+    return res.json();
+  } catch (e: any) {
+    if (e.status === 404) {
+        console.warn("Rota de chamados não encontrada (404). Retornando lista vazia.");
+        return [];
+    }
+    throw e;
+  }
 }
 
 export async function resolveServiceRequest(requestId: number) {
@@ -183,19 +209,16 @@ export async function login(username: string, password: string) {
   const formData = new URLSearchParams();
   formData.append("username", username);
   formData.append("password", password);
-
   try {
     const res = await fetch(`${API_BASE_URL}/auth/token`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: formData,
     });
-
     if (!res.ok) {
         const err = await res.json();
         throw new Error(err.detail || "Login falhou.");
     }
-
     const data = await res.json();
     setTokens(data.access_token, data.refresh_token);
     return data;
@@ -225,7 +248,6 @@ export async function getDashboardMetrics(startDate?: string, endDate?: string) 
   if (startDate) params.append("start_date", startDate);
   if (endDate) params.append("end_date", endDate);
   if (params.toString()) query = `?${params.toString()}`;
-
   const res = await fetchClient(`/admin/metrics${query}`);
   return res.json();
 }
@@ -573,12 +595,10 @@ export async function validateCoupon(slug: string, code: string, totalAmount: nu
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code, total_amount: totalAmount })
   });
-
   if (!res.ok) {
     const err = await res.json();
     throw new Error(err.detail || "Cupom inválido");
   }
-
   return res.json();
 }
 
@@ -607,8 +627,6 @@ export async function getWhatsappStatus() {
   return res.json();
 }
 
-// --- FEATURE FLAGS ---
-
 export async function getFeatureFlags() {
   const res = await fetchClient(`/admin/features`);
   return res.json();
@@ -618,6 +636,19 @@ export async function updateFeatureFlag(key: string, isEnabled: boolean) {
   const res = await fetchClient(`/admin/features`, {
     method: "POST",
     body: JSON.stringify({ key, is_enabled: isEnabled })
+  });
+  return res.json();
+}
+
+export async function getSalesForecast(days: number = 7) {
+  const res = await fetchClient(`/admin/ai/forecast?days=${days}`);
+  return res.json();
+}
+
+export async function importIfoodMenu(url: string) {
+  const res = await fetchClient(`/admin/menu/import/ifood`, {
+    method: "POST",
+    body: JSON.stringify({ url })
   });
   return res.json();
 }

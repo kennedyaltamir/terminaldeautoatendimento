@@ -1,6 +1,9 @@
+# DOMAIN: BACKEND
+# LAST_MODIFIED: 2026-01-09
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from typing import List
+from pydantic import BaseModel
 from app.database import get_db
 from app.models import Company, Category, Product, OptionGroup, Option, AuditAction
 from app.schemas import (
@@ -11,8 +14,12 @@ from app.routers.auth import get_current_user
 from app.core.saas_limits import SaasLimits
 from app.services.audit_service import AuditService
 from app.core.cache import CacheService
+from app.services.importer_service import ImporterService
 
 router = APIRouter()
+
+class ImportRequest(BaseModel):
+    url: str
 
 def get_slug(user: any) -> str:
     if isinstance(user, Company):
@@ -246,3 +253,23 @@ def delete_option(option_id: int, db: Session = Depends(get_db), current_user: a
     db.commit()
     CacheService.invalidate_menu(get_slug(current_user))
     return None
+
+@router.post("/import/ifood", status_code=200)
+async def import_ifood_menu(
+    data: ImportRequest,
+    db: Session = Depends(get_db),
+    current_user: any = Depends(get_current_user)
+):
+    """
+    Importa cardápio de uma URL pública do iFood.
+    """
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    
+    try:
+        result = await ImporterService.import_from_ifood(db, str(company_id), data.url)
+        CacheService.invalidate_menu(get_slug(current_user))
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Erro interno na importação")

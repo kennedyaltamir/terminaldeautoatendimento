@@ -1,118 +1,144 @@
+# DOMAIN: DEVOPS_SCRIPTS
+# LAST_MODIFIED: 2026-01-10 00:55:00
 import os
-import shutil
 import re
+import sys
 from pathlib import Path
-import hashlib
 from datetime import datetime, timezone
 
-# ==============================================================================
-# CONFIGURAÇÃO DE GOVERNANÇA DE CONTEXTO (v9.4 - Test Compatible)
-# ==============================================================================
-
 OUTPUT_FILE = "todososarquivos.txt"
-TRASH_FOLDER = "ignorar"
 
-IGNORE_DIRS = {
-    "node_modules", ".next", ".git", "__pycache__", "venv", ".venv", 
-    "dist", "build", "Copy", ".temp_diff", ".expo", "test-results", 
-    "playwright-report", "ignorar", "screenshots", "debug_screenshots",
-    "output_sounds"
-}
-
-IGNORE_FILES = {
-    "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "todososarquivos.txt", 
-    "resposta.txt", ".DS_Store", "Thumbs.db", "icon.png", "splash.png",
-    "adaptive-icon.png", "favicon.png", ".env"
-}
-
-IGNORE_EXTENSIONS = {
-    ".pyc", ".pyo", ".pyd", ".db", ".sqlite", ".sqlite3", ".png", ".jpg", 
-    ".jpeg", ".gif", ".ico", ".svg", ".woff", ".woff2", ".ttf", ".eot", 
-    ".mp3", ".wav", ".mp4", ".pdf", ".zip", ".tar", ".gz", ".rar", ".7z", 
-    ".exe", ".dll", ".bin"
-}
-
+# ====================================================================================================
+# 1. LISTA DE PRIORIDADE ABSOLUTA (TOP 9)
+# ====================================================================================================
 PRIORITY_ORDER = [
-    "docs/Prompts/System_Instructions.xml",
-    "docs/Prompts/Master_Handover_Executor.xml",
-    "docs/MASTER_CONTEXT.md",
-    "docs/ROADMAP.md",
+    "docs/governance/AI_STARTUP_SEQUENCE.xml",
+    "docs/governance/CONTEXT_PRIORITY_PROTOCOL.md",
+    "docs/Prompts/System_Persona.xml",
+    "docs/governance/AI_ROLE_PROTOCOL.md",
+    "docs/governance/FAIL_FAST_PROTOCOL.md",
+    "docs/governance/UPDATE_EXECUTION_PROTOCOL.md",
+    "docs/governance/ERROR_RESPONSE_MAPPING_PROTOCOL.md",
     "docs/TASKS.md",
-    "app/models.py",
-    "app/schemas.py"
+    "docs/ROADMAP.md"
 ]
 
-# --- FUNÇÕES UTILITÁRIAS (Expostas para Testes) ---
+# ====================================================================================================
+# 2. FILTROS DE RUÍDO (BLOCKLIST)
+# ====================================================================================================
+IGNORE_PATTERNS = {
+    ".git", ".vscode", ".idea", ".ds_store",
+    "node_modules", "venv", ".venv", "__pycache__", ".pytest_cache",
+    ".next", "dist", "build", "coverage", "test-results", "playwright-report",
+    "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "poetry.lock",
+    "todososarquivos.txt", "documentacao_completa.txt", "resposta.txt",
+    "atualizar.log", "copy", ".temp_diff", "ignorar",
+    ".png", ".jpg", ".jpeg", ".gif", ".ico", ".svg", ".webp",
+    ".mp3", ".wav", ".mp4", ".mov", ".jar",
+    ".pdf", ".zip", ".tar", ".gz", ".rar", ".7z", ".exe", ".dll", ".so",
+    ".apk", ".aab", ".keystore", ".jks", ".ttf", ".otf", ".woff", ".woff2",
+    "cpp.o", ".dir", ".mako", ".template", ".keep", ".ps1", ".sh"
+}
 
-def is_ignored(path_str, patterns=None):
-    """Verifica se um arquivo deve ser ignorado."""
-    path = Path(path_str)
-    if any(part in IGNORE_DIRS for part in path.parts): return True
-    if path.name in IGNORE_FILES: return True
-    if path.suffix.lower() in IGNORE_EXTENSIONS: return True
+IGNORE_PATHS = {
+    "mobile/android/app/build",
+    "mobile/android/.gradle",
+    "mobile/ios",
+    "frontend/.next",
+    "ignorar"
+}
+
+SENSITIVE_FILES = {
+    ".env", ".env.local", ".env.production", ".env.development",
+    "env.prod", "frontend.env.local", "credentials.json",
+    "service_account.json", "google-services.json", ".env.example"
+}
+
+def get_file_metadata(path_obj: Path) -> str:
+    try:
+        mtime = path_obj.stat().st_mtime
+        return datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M:%S')
+    except Exception:
+        return "UNKNOWN"
+
+def is_ignored(path_obj: Path) -> bool:
+    rel_path = str(path_obj).replace("\\", "/")
+    for ignore_path in IGNORE_PATHS:
+        if rel_path.startswith(ignore_path):
+            return True
+    if path_obj.name in SENSITIVE_FILES:
+        return True
+    if path_obj.name.lower() in IGNORE_PATTERNS:
+        return True
+    if path_obj.suffix.lower() in IGNORE_PATTERNS:
+        return True
+    for part in path_obj.parts:
+        if part.lower() in IGNORE_PATTERNS:
+            return True
     return False
 
-def is_test_file(path_str):
-    """Detecta se o arquivo é de teste."""
-    path = path_str.lower()
-    return "test_" in path or "spec.ts" in path or "tests/" in path
-
-def check_secrets(content, filename):
-    """Detecta possíveis segredos no código."""
-    patterns = [r"sk_live_[a-zA-Z0-9]+", r"APP_USR-[a-zA-Z0-9-]+"]
-    warnings = []
-    for p in patterns:
-        if re.search(p, content):
-            warnings.append(f"⚠️ POSSÍVEL SEGREDO DETECTADO em {filename}")
-    return warnings
-
-def minify_content(content):
-    """Remove ruído excessivo do código."""
-    return re.sub(r'\n\s*\n', '\n\n', content)
-
-def get_dependencies():
-    """Resumo de dependências do projeto."""
-    return "FastAPI, SQLAlchemy, Next.js, React Native, Redis"
-
-# --- CORE ---
-
-def get_domain(filepath):
-    parts = filepath.replace("\\", "/").split("/")
+def get_domain(filepath: str) -> str:
+    parts = filepath.split("/")
     if "mobile" in parts: return "MOBILE"
     if "frontend" in parts: return "FRONTEND"
     if "app" in parts: return "BACKEND"
     if "docs" in parts: return "DOCUMENTATION"
-    if "scripts" in parts: return "SHARED_INFRA"
-    return "SHARED"
+    if "scripts" in parts: return "DEVOPS_SCRIPTS"
+    return "ROOT_CONFIG"
+
+def estimate_tokens(text: str) -> int:
+    # Heurística simples: 1 token ~= 4 caracteres
+    return len(text) // 4
 
 def generate_context():
-    print(f"🚀 Gerando Contexto MesaFlow...")
+    print("Gerador de Contexto v2.4 (Mobile Enabled)")
+    print(f"{'ARQUIVO':<60} | {'TOKENS':>10} | {'STATUS':<10}")
+    print("-" * 85)
     root = Path(".")
-    all_files = []
+    files_to_process = []
+    total_tokens = 0
     for p in root.rglob("*"):
-        if p.is_file():
-            rel_path = str(p.relative_to(root)).replace("\\", "/")
-            if not is_ignored(rel_path):
-                all_files.append(rel_path)
+        if p.is_file() and not is_ignored(p):
+            files_to_process.append(p)
 
-    def sort_key(f):
-        if f in PRIORITY_ORDER: return (0, PRIORITY_ORDER.index(f))
-        return (1, f)
-    all_files.sort(key=sort_key)
+    def sort_key(p):
+        path_str = str(p).replace("\\", "/")
+        if path_str in PRIORITY_ORDER:
+            return (0, PRIORITY_ORDER.index(path_str))
+        if path_str.startswith("mobile/"): return (1, path_str)
+        if path_str.startswith("frontend/"): return (2, path_str)
+        if path_str.startswith("app/"): return (3, path_str)
+        return (4, path_str)
 
+    files_to_process.sort(key=sort_key)
+    
     with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
-        out.write(f"# MESAFLOW ARCHITECT CONTEXT | {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC\n\n")
-        for filepath in all_files:
-            p = Path(filepath)
+        out.write(f"<!-- MESAFLOW CONTEXT BUNDLE -->\n")
+        out.write(f"<!-- GENERATED_AT: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC -->\n")
+        for p in files_to_process:
+            rel = str(p).replace("\\", "/")
+            mod = get_file_metadata(p)
             try:
                 content = p.read_text(encoding="utf-8", errors="ignore")
-                out.write(f"# FILE: {filepath} | DOMAIN: {get_domain(filepath)}\n")
-                out.write("```\n" + content + "\n```\n\n")
+                content = re.sub(r'\n\s*\n', '\n', content) # Remove linhas vazias consecutivas
+                tokens = estimate_tokens(content)
+                total_tokens += tokens
+                tag_start = "[[" + "MESAFLOW_BEGIN:"
+                tag_end = "[[" + "MESAFLOW_END]]"
+                # Cabeçalho Otimizado
+                out.write(f"{tag_start}{rel}]]\n")
+                out.write(f"# DOMAIN: {get_domain(rel)}\n")
+                out.write(f"# LAST_MODIFIED: {mod}\n")
+                out.write(content)
+                if not content.endswith("\n"):
+                    out.write("\n")
+                out.write(f"{tag_end}\n") # Apenas uma quebra de linha entre arquivos
+                print(f"[OK] {rel:<60} | {tokens:>10}")
             except Exception as e:
-                print(f"⚠️ Erro em {filepath}: {e}")
-
-def main():
-    generate_context()
+                print(f"[ERRO] {rel:<60} | {str(e)}")
+    print("-" * 85)
+    print(f"Contexto gerado em: {OUTPUT_FILE}")
+    print(f"Total Estimado de Tokens: {total_tokens}")
 
 if __name__ == "__main__":
-    main()
+    generate_context()

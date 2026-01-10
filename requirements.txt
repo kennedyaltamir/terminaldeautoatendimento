@@ -1,22 +1,73 @@
+# DOMAIN: ROOT_CONFIG
+# LAST_MODIFIED: 2026-01-09
+# ================================================
+# PROJECT DEPENDENCIES — ROOT_CONFIG
+# LAST_MODIFIED: 2026-01-09
+# ================================================
+
+# FASTAPI + SERVER
 fastapi>=0.109.0
 uvicorn[standard]>=0.27.0
+
+# DATABASE
 sqlalchemy>=2.0.25
 psycopg2-binary>=2.9.9
 alembic>=1.13.1
+
+# AUTH / SECURITY
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
-python-multipart>=0.0.6
-python-dotenv>=1.0.1
-httpx>=0.26.0
-pydantic>=2.6.1
-pydantic-settings>=2.1.0
 bcrypt>=4.1.2
 email-validator>=2.1.0.post1
+
+# REQUEST / UPLOAD
+python-multipart>=0.0.6
+httpx>=0.26.0
+beautifulsoup4>=4.12.0
+
+# CONFIG
+python-dotenv>=1.0.1
+pydantic>=2.6.1
+pydantic-settings>=2.1.0
+
+# RATE LIMITING
 slowapi>=0.1.9
+
+# STRIPE
 stripe>=7.12.0
+
+# REDIS
 redis>=5.0.1
+
+# MONITORING
 sentry-sdk[fastapi]>=1.40.0
+
+# DATA SCIENCE & AI (NEW)
+pandas>=2.2.0
+scikit-learn>=1.4.0
+numpy>=1.26.0
+
+# TESTS
 pytest>=8.0.0
 pytest-asyncio>=0.23.0
 pytest-playwright>=0.4.4
+
+# CLOUD
 google-auth>=2.26.1
+boto3>=1.34.0
+
+# LOAD TEST
+locust>=2.20.0
+
+# AUDIT
+pip-audit>=2.7.0
+
+# SECURITY PATCHES — UPDATED VERSIONS
+aiohttp==3.13.3
+requests==2.32.4
+urllib3==2.6.3
+tornado==6.5
+protobuf==5.29.5
+idna==3.7
+marshmallow==3.26.2
+h2==4.3.0

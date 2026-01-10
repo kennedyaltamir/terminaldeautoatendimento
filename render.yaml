@@ -1,3 +1,5 @@
+# DOMAIN: ROOT_CONFIG
+# LAST_MODIFIED: 2026-01-08 23:55:00
 services:
   # --------------------------------------------------------------------------------
   # BACKEND (FastAPI)
@@ -5,16 +7,10 @@ services:
   - type: web
     name: mesaflow-api
     env: python
-    region: oregon # Escolha a região mais próxima do seu banco Neon
-    plan: starter # Recomendado para evitar cold starts (Free tier dorme após 15min)
-    
-    # Configuração de Build
+    region: oregon
+    plan: starter
     buildCommand: pip install -r requirements.txt
-    
-    # Configuração de Runtime (Gunicorn com Uvicorn Workers para performance)
     startCommand: gunicorn app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
-    
-    # Variáveis de Ambiente (Secrets devem ser inseridos no Dashboard do Render)
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
@@ -23,9 +19,9 @@ services:
       - key: ALLOWED_ORIGINS
         value: "https://mesaflow.vercel.app,https://app.mesaflow.com.br"
       - key: DOCS_URL
-        value: "/docs" # Deixe vazio para desativar Swagger em prod
-      
-      # Placeholder para forçar o usuário a configurar no painel
+        value: "/docs"
+      - key: WEB_CONCURRENCY
+        value: "4"
       - key: DATABASE_URL
         sync: false
       - key: REDIS_URL
@@ -38,12 +34,24 @@ services:
         sync: false
 
   # --------------------------------------------------------------------------------
-  # WORKER (Opcional - Para tarefas pesadas de background se escalar muito)
-  # Por enquanto, usamos BackgroundTasks do FastAPI no mesmo serviço web.
+  # WORKER (Celery) - Processamento Assíncrono Persistente
   # --------------------------------------------------------------------------------
-
-# Redis gerenciado pelo Render (Opcional - Pode usar Upstash externo)
-# databases:
-#   - name: mesaflow-cache
-#     plan: free
-#     ipAllowList: [] # Apenas interno
+  - type: worker
+    name: mesaflow-worker
+    env: python
+    region: oregon
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    # Inicia o Celery Worker com nível de log INFO
+    startCommand: celery -A app.core.celery_app worker --loglevel=info --concurrency=2
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
