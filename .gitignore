@@ -142,3 +142,10 @@ mobile/node_modules/
 mobile/android/build/
 mobile/android/app/build/
 mobile/dist/
+backups/
+*.zip
+*.exe
+testesvisuais/
+todososarquivos.txt
+contexto_part_*.txt
+ignorar/
