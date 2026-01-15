@@ -1,151 +1,84 @@
 # =======================================================
-# 🔐 SEGURANÇA & AMBIENTE (NUNCA COMMITE ISSO)
+# 🔐 SEGURANÇA & VARIÁVEIS DE AMBIENTE
 # =======================================================
 .env
-.env.local
-.env.*.local
-frontend/.env.local
-frontend/.env.production.local
-frontend/.env.development.local
+.env.*
+!.env.example
 
 # =======================================================
-# 🐍 PYTHON / BACKEND
+# 🐍 PYTHON
 # =======================================================
 __pycache__/
 *.py[cod]
-*$py.class
 *.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
 *.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual Environments
-venv/
-.venv/
-env/
-.env/
-
-# Testes & Qualidade (Python)
+.eggs/
+dist/
+build/
+wheels/
 .pytest_cache/
+.mypy_cache/
 .coverage
 htmlcov/
-.mypy_cache/
+
+# Virtual Envs
+.venv/
+venv/
+env/
 
 # =======================================================
-# ⚛️ NODE.JS / NEXT.JS / FRONTEND
+# ⚛️ NODE / FRONTEND / NEXT
 # =======================================================
 node_modules/
-frontend/node_modules/
 .next/
-frontend/.next/
 out/
-frontend/out/
-build/
 dist/
+build/
 
-# Logs de gerenciadores de pacote
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
 
 # =======================================================
-# 📱 MOBILE (EXPO / REACT NATIVE)
+# 📱 MOBILE
 # =======================================================
 mobile/node_modules/
 mobile/.expo/
 mobile/dist/
-mobile/npm-debug.log*
+mobile/android/**/build/
 
 # =======================================================
-# 🎭 PLAYWRIGHT (TESTES E2E)
+# 🎭 TESTES (PLAYWRIGHT / E2E)
 # =======================================================
 test-results/
-frontend/test-results/
 playwright-report/
-frontend/playwright-report/
 blob-report/
-frontend/blob-report/
+testesvisuais/
 
 # =======================================================
-# 🛠️ ARQUIVOS ESPECÍFICOS DO PROJETO (MESAFLOW)
+# 📦 ARQUIVOS GRANDES / TEMPORÁRIOS
 # =======================================================
-# Pasta de backup criada pelo script atualizar.py
+backups/
+ignorar/
 Copy/
 
-# Arquivos de contexto para IA (Pesados/Temporários)
-todososarquivos.txt
-resposta.txt
-docs/Prompts/
-
-# Binários e Executáveis locais
+*.zip
 *.exe
-ngrok.exe
-ngrok
-
-# Assets gerados localmente
-output_sounds/
-*.wav
 *.mp3
 *.mp4
+*.wav
+*.webm
+
+# Contexto IA / Dumps
+todososarquivos.txt
+resposta.txt
+contexto_part_*.txt
+docs/Prompts/
 
 # =======================================================
-# 💻 IDE & SISTEMA OPERACIONAL
+# 💻 IDE & SISTEMA
 # =======================================================
 .idea/
 .vscode/
-*.swp
-*.swo
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
-# Pasta de descarte / arquivos temporários
-ignorar/
-# Backups e snapshots
-backups/
-*.zip
-# Backups
-backups/
-*.zip
-
-# Ambientes Python
-.venv/
-venv/
-
-# Node / Frontend
-node_modules/
-frontend/node_modules/
-frontend/.next/
-frontend/dist/
-frontend/build/
-
-# Mobile
-mobile/node_modules/
-mobile/android/build/
-mobile/android/app/build/
-mobile/dist/
-backups/
-*.zip
-*.exe
-testesvisuais/
-todososarquivos.txt
-contexto_part_*.txt
-ignorar/
