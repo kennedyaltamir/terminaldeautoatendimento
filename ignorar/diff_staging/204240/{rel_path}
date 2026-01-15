@@ -1,3 +1,0 @@
-\n")
-                out.write(path.read_text(encoding="utf-8"))
-                out.write(f"\n

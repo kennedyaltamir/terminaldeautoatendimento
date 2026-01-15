@@ -1,7 +1,0 @@
-[2026-01-10 21:39:34.881955] UPDATE: scripts/maintenance/audit_structure.py
-[2026-01-10 21:40:18.679794] WARN [FFP-02]: Possível omissão de código em scripts/maintenance/cleanup_scripts_noise.py.
-[2026-01-10 21:40:35.033779] UPDATE: scripts/maintenance/cleanup_scripts_noise.py
-[2026-01-10 21:52:04.187371] WARN [FFP-02]: Possível omissão de código em scripts/maintenance/consolidate_reports.py.
-[2026-01-10 21:52:06.609406] UPDATE: scripts/maintenance/consolidate_reports.py
-[2026-01-10 22:06:36.521083] WARN [FFP-02]: Possível omissão de código em gerartxt.py.
-[2026-01-10 22:06:36.521649] BLOCK [FFP-06]: Tentativa de alteração em arquivo protegido sem Override: gerartxt.py

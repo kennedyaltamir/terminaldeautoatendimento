@@ -1,5 +1,0 @@
-\n")
-                    out.write(f"# DOMAIN: {domain}{critical_tag}\n")
-                    out.write(f"# LAST_MODIFIED: {mod}\n")
-                    out.write(content + "\n")
-                    out.write(f"
