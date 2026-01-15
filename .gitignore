@@ -122,3 +122,23 @@ ignorar/
 # Backups e snapshots
 backups/
 *.zip
+# Backups
+backups/
+*.zip
+
+# Ambientes Python
+.venv/
+venv/
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+frontend/build/
+
+# Mobile
+mobile/node_modules/
+mobile/android/build/
+mobile/android/app/build/
+mobile/dist/
