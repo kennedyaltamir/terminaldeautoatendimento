@@ -119,3 +119,6 @@ ehthumbs.db
 Thumbs.db
 # Pasta de descarte / arquivos temporários
 ignorar/
+# Backups e snapshots
+backups/
+*.zip
