@@ -1,17 +1,19 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { 
-  ChefHat, Menu, LogOut, LayoutDashboard, Settings, QrCode, 
+  Menu, LogOut, LayoutDashboard, Settings, QrCode, 
   BarChart3, User, History, Package, Smartphone, Users, 
-  Bike, Building2, Activity, ChevronDown, Megaphone, ShieldCheck, Store, ClipboardList, ShieldAlert
+  Bike, Building2, Activity, ChevronDown, Megaphone, ShieldCheck, Store, ClipboardList, ShieldAlert, ChefHat
 } from "lucide-react";
 import { removeToken, isAuthenticated, getUserRole, getToken } from "@/lib/auth";
 import OnboardingTour from "@/components/admin/OnboardingTour";
 import { WebSocketProvider } from "@/context/WebSocketContext";
 import { useTerminology } from "@/hooks/useTerminology";
+import { motion, AnimatePresence } from "framer-motion";
+import Logo from "@/components/ui/Logo";
+import { toast, Toaster } from "sonner"; // Importação do Toaster
 
 export default function AdminLayout({
   children,
@@ -26,7 +28,6 @@ export default function AdminLayout({
   const [isAuth, setIsAuth] = useState(false);
   const [role, setRole] = useState<string | null>(null);
   const [isImpersonating, setIsImpersonating] = useState(false);
-  const [isOpsMenuOpen, setIsOpsMenuOpen] = useState(false);
   const terms = useTerminology();
 
   useEffect(() => {
@@ -36,8 +37,7 @@ export default function AdminLayout({
       const userRole = getUserRole();
       setRole(userRole);
       setIsAuth(true);
-
-      // Verifica se é modo suporte (Impersonation)
+      
       const token = getToken();
       if (token) {
         try {
@@ -87,14 +87,20 @@ export default function AdminLayout({
   ];
 
   const filterItems = (items: any[]) => items.filter(item => role && item.roles.includes(role));
+
   const isOperationalMode = ['/waiter', '/kitchen', '/driver', '/expeditor'].some(path => pathname.includes(path)) && role !== 'owner' && role !== 'manager';
 
   return (
     <WebSocketProvider slug={slug}>
-      <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
+      {/* 
+         ARCHITECTURAL FIX: Toaster movido para o Layout Admin.
+         Isso garante que notificações persistam mesmo se a página filha desmontar ou navegar.
+      */}
+      <Toaster position="top-center" richColors closeButton />
+      
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
         {role === 'owner' && <OnboardingTour />}
-
-        {/* BANNER DE MODO SUPORTE */}
+        
         {isImpersonating && (
           <div className="bg-red-600 text-white py-1.5 px-4 text-center text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 z-[60]">
             <ShieldAlert size={14} /> Modo Suporte Ativo - Acesso Auditado
@@ -102,14 +108,11 @@ export default function AdminLayout({
         )}
 
         {!isOperationalMode && (
-          <nav className="bg-gray-800 border-b border-gray-700 px-4 md:px-6 py-3 flex justify-between items-center sticky top-0 z-50 shadow-md">
-            <div className="flex items-center gap-3">
-              <div className="bg-orange-600 p-2 rounded-lg shadow-lg shadow-orange-500/20">
-                <LayoutDashboard size={20} className="text-white" />
-              </div>
-              <span className="font-bold text-lg tracking-tight hidden md:block">MesaFlow</span>
-            </div>
-
+          <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm transition-all">
+            <Link href={`/admin/${slug}/dashboard`}>
+              <Logo size="sm" animated={true} />
+            </Link>
+            
             <div className="flex items-center gap-4 overflow-x-auto no-scrollbar">
               <div className="flex gap-1">
                 {filterItems(managementItems).map((item) => {
@@ -119,9 +122,9 @@ export default function AdminLayout({
                       key={item.href} 
                       id={item.id}
                       href={item.href} 
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${isActive ? "bg-gray-700 text-white shadow-sm ring-1 ring-gray-600" : "text-gray-400 hover:text-white hover:bg-gray-700/50"}`}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold transition-all whitespace-nowrap ${isActive ? "bg-orange-600 text-white shadow-lg shadow-orange-600/20 scale-105" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900"}`}
                     >
-                      <item.icon size={16} />
+                      <item.icon size={18} />
                       <span className="hidden lg:inline">{item.name}</span>
                     </Link>
                   );
@@ -130,40 +133,57 @@ export default function AdminLayout({
 
               <div className="relative group">
                 <button 
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${pathname.includes('/kitchen') || pathname.includes('/delivery') || pathname.includes('/waiter') || pathname.includes('/expeditor') ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                  type="button"
+                  onClick={() => {}} 
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold transition-all ${pathname.includes('/kitchen') || pathname.includes('/delivery') || pathname.includes('/waiter') || pathname.includes('/expeditor') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                 >
-                  <Activity size={16} />
+                  <Activity size={18} />
                   <span className="hidden md:inline">Operação</span>
                   <ChevronDown size={14} />
                 </button>
-
-                <div className="absolute right-0 top-full mt-2 w-56 bg-gray-800 border border-gray-700 rounded-xl shadow-xl overflow-hidden hidden group-hover:block hover:block z-50">
+                
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden hidden group-hover:block hover:block z-50 animate-in fade-in slide-in-from-top-2">
                   {filterItems(operationItems).map((item) => (
                     <Link 
                       key={item.href}
                       href={item.href}
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors border-b border-gray-700/50 last:border-0"
+                      className="flex items-center gap-4 px-5 py-4 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-orange-600 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-0"
                     >
-                      <div className="bg-gray-900 p-2 rounded-lg text-blue-400"><item.icon size={16} /></div>
+                      <div className="bg-slate-100 dark:bg-slate-900 p-2 rounded-xl"><item.icon size={18} /></div>
                       {item.name}
                     </Link>
                   ))}
                 </div>
               </div>
 
-              <div className="h-6 w-px bg-gray-700 mx-2"></div>
-
-              <button onClick={handleLogout} className="text-red-400 hover:text-red-300 hover:bg-red-900/20 p-2 rounded-full transition-colors" title="Sair">
-                <LogOut size={20} />
+              <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-2"></div>
+              
+              <button 
+                type="button"
+                onClick={handleLogout} 
+                className="text-slate-400 hover:text-red-500 p-2 transition-colors hover:bg-red-50 rounded-xl" 
+                title="Sair"
+              >
+                <LogOut size={22} />
               </button>
             </div>
           </nav>
         )}
 
-        <main className={`flex-1 ${!isOperationalMode ? 'p-4 md:p-6 max-w-[1600px] mx-auto w-full' : ''}`}>
-          {children}
-        </main>
+        <AnimatePresence mode="wait">
+          <motion.main 
+            key={pathname}
+            initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="flex-1 p-6 max-w-[1600px] mx-auto w-full"
+          >
+            {children}
+          </motion.main>
+        </AnimatePresence>
       </div>
     </WebSocketProvider>
   );
 }
+

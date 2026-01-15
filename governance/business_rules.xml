@@ -1,0 +1,19 @@
+
+<BusinessRules version="1.0">
+    <Rule id="BR-01" name="Regra 86">
+        <Description>Bloqueio automático de venda quando o estoque de ingrediente atinge zero.</Description>
+        <Enforcement>Backend Service + WebSocket Broadcast</Enforcement>
+    </Rule>
+    <Rule id="BR-02" name="Split de Pagamento">
+        <Description>Retenção de comissão na fonte via Gateway (Mercado Pago).</Description>
+        <Default_Rate>2.5%</Default_Rate>
+    </Rule>
+    <Rule id="BR-03" name="Integridade Financeira">
+        <Description>Uso obrigatório de Inteiros (Centavos) para trânsito de valores.</Description>
+        <Precision>Decimal(10,2) no DB / Integer no JSON</Precision>
+    </Rule>
+    <Rule id="BR-04" name="Imutabilidade de Eventos">
+        <Description>Fatos financeiros (Ledger) são append-only. Proibido UPDATE/DELETE.</Description>
+    </Rule>
+</BusinessRules>
+

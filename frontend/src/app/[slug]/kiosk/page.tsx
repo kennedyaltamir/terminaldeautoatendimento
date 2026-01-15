@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -6,18 +7,17 @@ import { motion } from "framer-motion";
 
 export default function KioskAttractScreen({ params }: { params: { slug: string } }) {
   const router = useRouter();
-
   const handleStart = () => {
-    // Redireciona para o menu com flag de kiosk para esconder elementos desnecessários
     router.push(`/${params.slug}/menu?kiosk=true`);
   };
 
   return (
     <div 
       onClick={handleStart}
+      role="button"
+      aria-label="Toque para começar o autoatendimento"
       className="relative min-h-screen flex flex-col items-center justify-center cursor-pointer overflow-hidden bg-black"
     >
-      {/* Background Video/Image */}
       <div className="absolute inset-0 opacity-40">
         <img 
           src="https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
@@ -25,19 +25,17 @@ export default function KioskAttractScreen({ params }: { params: { slug: string 
           alt="Background"
         />
       </div>
-      
       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/50"></div>
-
+      
       <div className="relative z-10 text-center space-y-8 p-6">
         <motion.div 
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8 }}
           className="bg-orange-600 w-32 h-32 rounded-full flex items-center justify-center mx-auto shadow-[0_0_60px_rgba(234,88,12,0.6)]"
         >
           <ChefHat size={64} className="text-white" />
         </motion.div>
-
+        
         <div className="space-y-2">
           <h1 className="text-6xl md:text-8xl font-black text-white tracking-tight drop-shadow-2xl">
             Fome de quê?
@@ -58,10 +56,7 @@ export default function KioskAttractScreen({ params }: { params: { slug: string 
           </div>
         </motion.div>
       </div>
-
-      <div className="absolute bottom-8 text-gray-500 text-sm font-mono">
-        MesaFlow Kiosk v2.0 • {params.slug}
-      </div>
     </div>
   );
 }
+

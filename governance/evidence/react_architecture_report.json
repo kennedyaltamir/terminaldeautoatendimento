@@ -1,0 +1,57 @@
+{
+  "stats": {
+    "files_scanned": 135,
+    "critical": 5,
+    "warnings": 3
+  },
+  "issues": [
+    {
+      "file": "frontend\\src\\app\\admin\\[slug]\\driver\\page.tsx",
+      "severity": "WARNING",
+      "type": "STATE_AUTHORITY_CONFLICT",
+      "message": "Polling e WebSocket detectados no mesmo componente. Risco de Race Condition na atualiza\u00e7\u00e3o de estado."
+    },
+    {
+      "file": "frontend\\src\\components\\landing\\FloatingWidget.tsx",
+      "severity": "CRITICAL",
+      "type": "REACT_EFFECT_LOOP",
+      "message": "Loop potencial: 'setHasShownExit' chamado em useEffect que depende de 'hasShownExit'."
+    },
+    {
+      "file": "frontend\\src\\components\\menu\\PublicMonitorView.tsx",
+      "severity": "WARNING",
+      "type": "STATE_AUTHORITY_CONFLICT",
+      "message": "Polling e WebSocket detectados no mesmo componente. Risco de Race Condition na atualiza\u00e7\u00e3o de estado."
+    },
+    {
+      "file": "frontend\\src\\components\\ui\\Typewriter.tsx",
+      "severity": "CRITICAL",
+      "type": "REACT_EFFECT_LOOP",
+      "message": "Loop potencial: 'setReverse' chamado em useEffect que depende de 'reverse'."
+    },
+    {
+      "file": "frontend\\src\\components\\ui\\Typewriter.tsx",
+      "severity": "CRITICAL",
+      "type": "REACT_EFFECT_LOOP",
+      "message": "Loop potencial: 'setReverse' chamado em useEffect que depende de 'reverse'."
+    },
+    {
+      "file": "frontend\\src\\components\\ui\\Typewriter.tsx",
+      "severity": "CRITICAL",
+      "type": "REACT_EFFECT_LOOP",
+      "message": "Loop potencial: 'setIndex' chamado em useEffect que depende de 'index'."
+    },
+    {
+      "file": "frontend\\src\\components\\ui\\Typewriter.tsx",
+      "severity": "CRITICAL",
+      "type": "REACT_EFFECT_LOOP",
+      "message": "Loop potencial: 'setSubIndex' chamado em useEffect que depende de 'subIndex'."
+    },
+    {
+      "file": "frontend\\tests\\delivery_e2e.spec.ts",
+      "severity": "WARNING",
+      "type": "FLAKY_TEST_PATTERN",
+      "message": "Uso de 'page.reload()' detectado. Isso limpa o estado da aplica\u00e7\u00e3o e pode causar falhas em testes de SPA."
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "human_ui_tests": "FAIL",
+  "assert_coverage": "REAL_UIAUTOMATOR",
+  "engine": "ADB_NATIVE_L5_5",
+  "screens_tested": 20,
+  "confidence": "L5.5",
+  "timestamp": "2026-01-11T07:28:51.007360",
+  "results": {
+    "01_boot.yaml": "FAIL",
+    "02_auth.yaml": "FAIL",
+    "03_navigation.yaml": "FAIL",
+    "04_critical.yaml": "FAIL",
+    "05_visual.yaml": "FAIL"
+  }
+}

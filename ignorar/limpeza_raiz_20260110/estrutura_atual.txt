@@ -1,0 +1,235 @@
+=== 1. ESTRUTURA DA RAIZ ===
+📄 .env
+📄 .env.example
+📄 .env.production.template
+📁 .github/
+📄 .gitignore
+📁 Copy/
+📄 SECURITY.md
+📁 alembic/
+📄 alembic.ini
+📁 app/
+📄 app.json
+📄 atualizar.log
+📄 atualizar.py
+📄 auth_state.json
+📄 cd
+📄 docker-compose.yml
+📁 docs/
+📄 eas.json
+📄 env.prod
+📁 frontend/
+📄 frontend.env.local
+📄 gerar_kernel.py
+📄 gerardoc.py
+📄 gerartxt.py
+📄 governance_bundle.txt
+📁 ignorar/
+📁 mobile/
+📄 ngrok.exe
+📄 package-lock.json
+📄 package.json
+📄 pytest.ini
+📄 readme.md
+📄 render.yaml
+📄 requirements.txt
+📄 resposta.txt
+📄 run.py
+📁 scripts/
+📁 testesvisuais/
+📄 todososarquivos.txt
+📄 ver_arvore.py
+📄 vercel.json
+
+=== 2. CONTEÚDO DAS SUBPASTAS (NÍVEL 1) ===
+
+📂 DENTRO DE: .github/
+   📁 workflows/
+
+📂 DENTRO DE: Copy/
+   📁 docs/
+   📁 frontend/
+   📄 requirements.txt
+   📁 scripts/
+
+📂 DENTRO DE: alembic/
+   📄 env.py
+   📄 script.py.mako
+   📁 versions/
+
+📂 DENTRO DE: app/
+   📄 __init__.py
+   📁 core/
+   📄 database.py
+   📄 main.py
+   📄 models.py
+   📁 routers/
+   📄 schemas.py
+   📁 services/
+   📁 tasks/
+   📄 websockets.py
+
+📂 DENTRO DE: docs/
+   📄 API.md
+   📄 ARCHITECTURAL_DECISIONS.md
+   📄 ARCHITECTURE.md
+   📄 AUDIT_REPORT_2026-01.md
+   📄 BACKLOG.md
+   📄 CHANGELOG.md
+   📄 CONTRIBUTING.md
+   📄 DEEP_AUDIT_REPORT.md
+   📄 DELIVERY_IMPROVEMENTS.md
+   📄 DEPLOY.md
+   📄 DEVOPS.md
+   📄 FRONTEND_STRUCTURE.md
+   📄 GTM_CHECKLIST.md
+   📄 GUIA_HARDWARE.md
+   📄 GUIA_STRIPE_ASSINATURAS.md
+   📄 IMPLEMENTATION_HISTORY.md
+   📄 IMPLEMENTATION_LOG.md
+   📄 IMPLEMENTATION_LOG_PHASE_7.md
+   📄 INTEGRATION_HUB_GUIDE.md
+   📄 MANUAL_COZINHA.md
+   📄 MANUAL_DELIVERY.md
+   📄 MANUAL_FINANCEIRO.md
+   📄 MANUAL_GARCOM.md
+   📄 MANUAL_GESTOR.md
+   📄 MANUAL_PAGAMENTOS.md
+   📄 MASTER_CONTEXT.md
+   📄 MASTER_PROJECT_BIBLE.md
+   📄 MESAFLOW_CONCEPT.md
+   📄 OFFLINE_ARCHITECTURE_SPEC.md
+   📄 PITCH.md
+   📄 PLAYBOOK_SUPORTE.md
+   📄 PROJECT_OVERVIEW.md
+   📄 PRO_CHECKLIST.md
+   📄 Projeto MesaFlow Corporate.md
+   📁 Prompts/
+   📄 ROADMAP.md
+   📄 ROUTE_TEST_REPORT.md
+   📄 SECURITY_AUDIT_REPORT.md
+   📄 SRE_MAINTENANCE_RUNBOOK.md
+   📄 TASKS.md
+   📄 TECHNICAL_DEBT_REGISTER.md
+   📄 TECH_DEBT.md
+   📁 adr/
+   📁 architecture/
+   📁 archive/
+   📁 audit/
+   📁 audit_screenshots/
+   📁 commercial/
+   📁 cycles/
+   📁 enterprise/
+   📁 frontend/
+   📁 governance/
+   📁 implemented/
+   📁 improvements/
+   📁 integration/
+   📁 legal/
+   📁 management/
+   📁 manuals/
+   📁 mobile/
+   📁 performance/
+   📁 quality/
+   📁 releases/
+   📁 reports/
+   📁 screenshots/
+   📁 security/
+   📁 specs/
+   📁 sre/
+   📁 strategy/
+   📁 tasks/
+   📁 technical/
+   📁 troubleshooting/
+   📁 trust/
+
+📂 DENTRO DE: frontend/
+   📄 .env.local
+   📄 .gitignore
+   📄 README.md
+   📄 debug-feedback-fail.png
+   📄 debug-feedback-pre-click.png
+   📁 e2e/
+   📄 eslint.config.mjs
+   📄 next-env.d.ts
+   📄 next.config.mjs
+   📄 next.config.ts
+   📄 package-lock.json
+   📄 package.json
+   📁 playwright-report/
+   📄 playwright.config.ts
+   📄 postcss.config.js
+   📄 postcss.config.mjs
+   📁 public/
+   📄 sentry.client.config.ts
+   📄 sentry.edge.config.ts
+   📄 sentry.server.config.ts
+   📁 src/
+   📄 tailwind.config.ts
+   📁 test-results/
+   📄 tsconfig.json
+
+📂 DENTRO DE: ignorar/
+   📄 HANDOVER_INSTRUCTIONS.md
+   📁 HANDOVER_MESAFLOW/
+   📄 Pedir para transferir.txt
+   📄 Promptcorrigirsysteminstructions.txt
+   📄 Prompttransferencia1.txt
+   📄 atualizar.log
+   📄 communication.xml
+   📄 debug_db.py
+   📄 documentacao_completa.txt
+   📄 gerar_sons.py
+   📄 gerartxtmob.py
+   📄 limpar_cache.bat
+   📄 limpar_projeto.bat
+   📁 limpeza/
+   📁 limpeza_scripts/
+   📄 linksvideosuteirs.txt
+   📄 matar_tudo.bat
+   📁 obsoletos/
+   📁 output_sounds/
+   📄 path
+   📄 resposta.txt
+   📄 state.accessToken)
+   📄 state.handleRealtimeEvent)
+   📄 state.isReady)
+   📄 state.slug)
+   📄 state.status)
+   📄 test.db
+   📄 test_delivery_access.py
+   📄 validar.py
+   📄 {
+
+📂 DENTRO DE: mobile/
+   📄 .env
+   📁 .expo/
+   📄 App.tsx
+   📄 android.os.Handler
+   📄 android.os.Looper
+   📄 app.json
+   📁 assets/
+   📄 babel.config.js
+   📄 com.facebook.react.bridge.queue.MessageQueueThreadImpl
+   📄 eas.json
+   📁 fastlane/
+   📄 jest.config.js
+   📄 jest.setup.js
+   📄 metro.config.js
+   📄 package-lock.json
+   📄 package.json
+   📁 src/
+   📄 tsconfig.json
+
+📂 DENTRO DE: scripts/
+   📁 automation/
+   📁 maintenance/
+   📁 scripts/
+   📁 setup/
+   📁 tests/
+   📁 verification/
+
+📂 DENTRO DE: testesvisuais/
+   📁 _global/
+   📁 run_20260110_205838/
+   📁 run_20260110_210955/

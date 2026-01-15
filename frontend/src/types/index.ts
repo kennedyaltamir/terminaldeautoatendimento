@@ -1,3 +1,5 @@
+// DOMAIN: FRONTEND
+// LAST_MODIFIED: 2026-01-15 16:15:00
 export interface Company {
   name: string;
   is_active: boolean;
@@ -27,7 +29,7 @@ export interface Company {
   whatsapp_instance?: string | null;
   whatsapp_token?: string | null;
   ifood_merchant_id?: string | null;
-  payment_provider?: 'MERCADO_PAGO' | 'EFI' | 'STRIPE' | 'PAGARME' | 'NONE';
+  payment_provider?: 'mercadopago' | 'efi' | 'stripe' | 'pagarme' | 'none';
   payment_credentials?: any;
 }
 
@@ -74,7 +76,7 @@ export interface Product {
   station: 'kitchen' | 'bar' | 'dessert' | 'other';
   tags: string[];
   short_code?: string;
-  external_id?: string; // ID do iFood/Rappi
+  external_id?: string;
   option_groups: OptionGroup[];
   recommendations?: Product[];
   recipe_items?: RecipeItem[];
@@ -117,15 +119,23 @@ export interface OrderItemResponse {
   selected_options: OrderItemOptionResponse[];
 }
 
+export interface OrderFeedback {
+  score: number;
+  comment: string | null;
+  created_at: string;
+}
+
 export interface Order {
   id: string;
   table?: {
     table_number: number;
   };
   order_type: 'dine_in' | 'delivery' | 'takeout';
-  origin?: 'mesaflow' | 'ifood' | 'rappi'; // Origem do pedido
-  external_order_id?: string; // ID externo do marketplace
+  origin?: 'mesaflow' | 'ifood' | 'rappi';
+  external_order_id?: string;
   delivery_address?: string;
+  delivery_lat?: number;
+  delivery_lng?: number;
   customer_phone?: string;
   subtotal?: number;
   discount_amount?: number;
@@ -147,6 +157,7 @@ export interface Order {
   fiscal_status?: 'pending' | 'processing' | 'emitted' | 'error' | 'canceled';
   nfe_url_pdf?: string;
   nfe_url_xml?: string;
+  feedback?: OrderFeedback | null; 
 }
 
 export interface Table {
@@ -175,52 +186,3 @@ export interface TableSession {
   access_pin: string;
 }
 
-export interface CheckTableResponse {
-  status: 'free' | 'active' | 'blocked';
-  customer_name?: string;
-  session_token?: string;
-  requires_pin?: boolean;
-}
-
-export interface Employee {
-  id: number;
-  name: string;
-  email: string;
-  role: "kitchen" | "cashier" | "manager" | "driver";
-  is_active: boolean;
-}
-
-export interface AuditLog {
-  id: number;
-  user_name: string;
-  user_role: string;
-  action: 'create' | 'update' | 'delete' | 'login';
-  resource: string;
-  resource_id: string;
-  details: any;
-  ip_address?: string;
-  created_at: string;
-}
-
-export interface Promotion {
-  id: string;
-  name: string;
-  code?: string;
-  discount_type: 'percentage' | 'fixed' | 'shipping';
-  discount_value: number;
-  min_order_value: number;
-  max_discount_value?: number;
-  start_date?: string;
-  end_date?: string;
-  usage_limit?: number;
-  current_usage: number;
-  is_active: boolean;
-}
-
-export interface CouponValidationResponse {
-  valid: boolean;
-  discount_amount: number;
-  final_total: number;
-  message: string;
-  promotion_id?: string;
-}

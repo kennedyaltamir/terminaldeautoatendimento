@@ -1,7 +1,8 @@
 # DOMAIN: BACKEND
-# LAST_MODIFIED: 2026-01-09
+# LAST_MODIFIED: 2026-01-15 03:40:00
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from typing import List
 from pydantic import BaseModel
 from app.database import get_db
@@ -47,7 +48,6 @@ def create_category(
     current_user: any = Depends(get_current_user)
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-
     new_category = Category(
         company_id=company_id, 
         name=category_data.name, 
@@ -59,14 +59,12 @@ def create_category(
     db.add(new_category)
     db.commit()
     db.refresh(new_category)
-
+    
     AuditService.log(
         db, current_user, AuditAction.CREATE, "Category", str(new_category.id),
         details={"name": new_category.name}, request=request
     )
-
     CacheService.invalidate_menu(get_slug(current_user))
-
     return new_category
 
 @router.patch("/categories/{category_id}", response_model=CategoryResponse)
@@ -80,14 +78,13 @@ def update_category(
     category = db.query(Category).filter(Category.id == category_id, Category.company_id == company_id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
-
+    
     update_data = category_data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(category, key, value)
-
+    
     db.commit()
     db.refresh(category)
-
     CacheService.invalidate_menu(get_slug(current_user))
     return category
 
@@ -97,9 +94,15 @@ def delete_category(category_id: int, db: Session = Depends(get_db), current_use
     category = db.query(Category).filter(Category.id == category_id, Category.company_id == company_id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
-    db.delete(category)
-    db.commit()
-    CacheService.invalidate_menu(get_slug(current_user))
+    
+    try:
+        db.delete(category)
+        db.commit()
+        CacheService.invalidate_menu(get_slug(current_user))
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Não é possível excluir categoria com produtos vinculados.")
+    
     return None
 
 @router.post("/products", response_model=ProductResponse, status_code=201)
@@ -111,6 +114,7 @@ def create_product(
 ):
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
     company = current_user if isinstance(current_user, Company) else current_user.company
+    
     SaasLimits.check_product_limit(db, company)
 
     category = db.query(Category).filter(Category.id == product_data.category_id, Category.company_id == company_id).first()
@@ -130,7 +134,7 @@ def create_product(
         tags=product_data.tags,
         short_code=product_data.short_code
     )
-
+    
     if product_data.recommended_ids:
         recs = db.query(Product).filter(Product.id.in_(product_data.recommended_ids)).all()
         new_product.recommendations = recs
@@ -138,12 +142,11 @@ def create_product(
     db.add(new_product)
     db.commit()
     db.refresh(new_product)
-
+    
     AuditService.log(
         db, current_user, AuditAction.CREATE, "Product", str(new_product.id),
         details={"name": new_product.name, "price": float(new_product.price)}, request=request
     )
-
     CacheService.invalidate_menu(get_slug(current_user))
     return new_product
 
@@ -159,7 +162,7 @@ def update_product(
     product = db.query(Product).join(Category).filter(Product.id == product_id, Category.company_id == company_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
-
+    
     update_data = product_data.model_dump(exclude_unset=True)
     diff = AuditService.diff(product, update_data)
 
@@ -171,16 +174,15 @@ def update_product(
 
     for key, value in update_data.items():
         setattr(product, key, value)
-
+    
     db.commit()
     db.refresh(product)
-
+    
     if diff:
         AuditService.log(
             db, current_user, AuditAction.UPDATE, "Product", str(product.id),
             details=diff, request=request
         )
-
     CacheService.invalidate_menu(get_slug(current_user))
     return product
 
@@ -195,15 +197,23 @@ def delete_product(
     product = db.query(Product).join(Category).filter(Product.id == product_id, Category.company_id == company_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
-
-    AuditService.log(
-        db, current_user, AuditAction.DELETE, "Product", str(product.id),
-        details={"name": product.name}, request=request
-    )
-
-    db.delete(product)
-    db.commit()
-    CacheService.invalidate_menu(get_slug(current_user))
+    
+    try:
+        AuditService.log(
+            db, current_user, AuditAction.DELETE, "Product", str(product.id),
+            details={"name": product.name}, request=request
+        )
+        db.delete(product)
+        db.commit()
+        CacheService.invalidate_menu(get_slug(current_user))
+    except IntegrityError:
+        db.rollback()
+        # Retorna 409 Conflict se houver dependências (pedidos)
+        raise HTTPException(
+            status_code=409, 
+            detail="Não é possível excluir este produto pois ele já possui pedidos vinculados. Desative-o em vez de excluir."
+        )
+    
     return None
 
 @router.post("/products/{product_id}/groups", response_model=OptionGroupResponse, status_code=201)
@@ -212,6 +222,7 @@ def create_option_group(product_id: int, group_data: OptionGroupCreate, db: Sess
     product = db.query(Product).join(Category).filter(Product.id == product_id, Category.company_id == company_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
+    
     new_group = OptionGroup(product_id=product_id, name=group_data.name, min_selection=group_data.min_selection, max_selection=group_data.max_selection)
     db.add(new_group)
     db.commit()
@@ -225,6 +236,7 @@ def create_option(group_id: int, option_data: OptionCreate, db: Session = Depend
     group = db.query(OptionGroup).join(Product).join(Category).filter(OptionGroup.id == group_id, Category.company_id == company_id).first()
     if not group:
         raise HTTPException(status_code=404, detail="Grupo não encontrado")
+    
     new_option = Option(group_id=group_id, name=option_data.name, price=option_data.price)
     db.add(new_option)
     db.commit()
@@ -238,6 +250,7 @@ def delete_option_group(group_id: int, db: Session = Depends(get_db), current_us
     group = db.query(OptionGroup).join(Product).join(Category).filter(OptionGroup.id == group_id, Category.company_id == company_id).first()
     if not group:
         raise HTTPException(status_code=404, detail="Grupo não encontrado")
+    
     db.delete(group)
     db.commit()
     CacheService.invalidate_menu(get_slug(current_user))
@@ -249,6 +262,7 @@ def delete_option(option_id: int, db: Session = Depends(get_db), current_user: a
     option = db.query(Option).join(OptionGroup).join(Product).join(Category).filter(Option.id == option_id, Category.company_id == company_id).first()
     if not option:
         raise HTTPException(status_code=404, detail="Opção não encontrada")
+    
     db.delete(option)
     db.commit()
     CacheService.invalidate_menu(get_slug(current_user))
@@ -264,7 +278,6 @@ async def import_ifood_menu(
     Importa cardápio de uma URL pública do iFood.
     """
     company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
-    
     try:
         result = await ImporterService.import_from_ifood(db, str(company_id), data.url)
         CacheService.invalidate_menu(get_slug(current_user))
@@ -273,3 +286,4 @@ async def import_ifood_menu(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro interno na importação")
+

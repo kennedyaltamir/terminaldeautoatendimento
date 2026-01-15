@@ -3,17 +3,58 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 255, 255, 255;
+  --foreground-rgb: 15, 23, 42;
+  --background-start-rgb: 248, 250, 252;
   --background-end-rgb: 255, 255, 255;
+  --primary-orange: #ea580c;
+  --slate-900: #0f172a;
+  --emerald-500: #10b981;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 15, 23, 42;
+    --background-end-rgb: 2, 6, 23;
+  }
 }
 
 body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-start-rgb));
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Utilitário para esconder scrollbars mantendo a funcionalidade */
+/* --- COMPONENTES MODERNOS (GLASSMORPISM & SMOOTH UI) --- */
+@layer components {
+  .glass-card {
+    @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/20 dark:border-slate-800/50 shadow-xl rounded-3xl;
+  }
+  
+  .glass-panel {
+    @apply bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg border border-white/10 dark:border-slate-800/30 shadow-lg rounded-2xl;
+  }
+
+  .btn-primary {
+    @apply bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-2xl transition-all active:scale-95 shadow-lg shadow-orange-600/20 flex items-center justify-center gap-2;
+  }
+
+  .btn-secondary {
+    @apply bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold py-3 px-6 rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 flex items-center justify-center gap-2;
+  }
+
+  .input-modern {
+    @apply w-full bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-orange-500/50 transition-all backdrop-blur-sm;
+  }
+  
+  .heading-hero {
+    @apply text-5xl md:text-7xl font-black tracking-tighter text-slate-900 dark:text-white leading-[1.1];
+  }
+}
+
+/* --- UTILITÁRIOS DE INTERFACE --- */
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;
@@ -21,6 +62,10 @@ body {
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-orange-600 to-red-600;
   }
 }
 

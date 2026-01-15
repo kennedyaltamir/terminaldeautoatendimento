@@ -1,0 +1,54 @@
+
+# DOMAIN: DEVOPS
+# LAST_MODIFIED: 2026-01-13 07:00:00
+# --- BLOQUEIOS GERAIS ---
+.git
+.gitignore
+.vscode
+.idea
+*.md
+*.zip
+*.log
+
+# --- ARQUIVOS DE CONTEXTO (PESADOS) ---
+todososarquivos.txt
+resposta.txt
+structure_audit.txt
+# !requirements.txt garante que este arquivo NUNCA seja ignorado
+!requirements.txt
+
+# --- LINGUAGENS & CACHES ---
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+node_modules/
+
+# --- PASTAS PESADAS (NÃO NECESSÁRIAS NO BACKEND) ---
+frontend/
+mobile/
+docs/
+testesvisuais/
+ignorar/
+backups/
+comunication/
+
+# --- ARQUIVOS ESPECÍFICOS ---
+docker-compose.yml
+Dockerfile
+Dockerfile.debug
+render.yaml
+vercel.json
+package.json
+package-lock.json
+requirements.txt.bak
+
+# --- SEGURANÇA ---
+.env
+.env.local
+.env.production
+

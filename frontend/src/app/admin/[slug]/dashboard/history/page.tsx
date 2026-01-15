@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { getOrderHistory } from "@/lib/api";
 import { Order } from "@/types";
@@ -7,7 +6,7 @@ import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 
 export default function HistoryPage({ params }: { params: { slug: string } }) {
-  const { slug } = params; // Acesso direto
+  const { slug } = params;
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -33,6 +32,8 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
   }, [slug, page]);
 
   const totalPages = Math.ceil(total / limit);
+  const isPrevDisabled = page === 1;
+  const isNextDisabled = page >= totalPages;
 
   const statusColors: Record<string, string> = {
     pending: "bg-yellow-500/20 text-yellow-500",
@@ -96,7 +97,11 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
                       <span className="text-[10px] ml-1 text-gray-500">({order.payment_method})</span>
                     </td>
                     <td className="px-6 py-4">
-                      <button onClick={() => setSelectedOrder(order)} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition-colors">
+                      <button 
+                        type="button"
+                        onClick={() => setSelectedOrder(order)} 
+                        className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition-colors"
+                      >
                         <Eye size={16} />
                       </button>
                     </td>
@@ -106,10 +111,10 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
             </tbody>
           </table>
         </div>
-        
         <div className="bg-gray-900 px-6 py-4 border-t border-gray-700 flex justify-between items-center">
           <button 
-            disabled={page === 1} 
+            type="button"
+            disabled={isPrevDisabled} 
             onClick={() => setPage(p => p - 1)}
             className="flex items-center gap-1 text-sm font-medium text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -117,7 +122,8 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
           </button>
           <span className="text-sm text-gray-500">Página {page} de {totalPages || 1}</span>
           <button 
-            disabled={page >= totalPages} 
+            type="button"
+            disabled={isNextDisabled} 
             onClick={() => setPage(p => p + 1)}
             className="flex items-center gap-1 text-sm font-medium text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -147,7 +153,6 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
                 <p className="font-bold text-white uppercase">{selectedOrder.payment_method} ({selectedOrder.payment_status})</p>
               </div>
             </div>
-
             <div className="border-t border-gray-700 pt-4">
               <h4 className="font-bold text-white mb-2">Itens</h4>
               <ul className="space-y-2">
@@ -164,10 +169,18 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
                 ))}
               </ul>
             </div>
-
             <div className="border-t border-gray-700 pt-4 flex justify-between items-center">
               <span className="text-lg font-bold text-white">Total</span>
               <span className="text-xl font-black text-orange-500">R$ {Number(selectedOrder.total_amount).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-end pt-4">
+              <button 
+                type="button" 
+                onClick={() => setSelectedOrder(null)} 
+                className="bg-gray-700 text-white px-4 py-2 rounded-lg font-bold"
+              >
+                Fechar
+              </button>
             </div>
           </div>
         )}
@@ -175,3 +188,4 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
     </div>
   );
 }
+

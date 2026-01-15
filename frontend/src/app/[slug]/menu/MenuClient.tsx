@@ -9,7 +9,6 @@ import { Plus, X, AlertCircle, ShoppingBag, CreditCard, Banknote, QrCode, Phone,
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { getSegmentLabels } from "@/lib/segment-utils";
 import { generatePaymentIntent, detectSmartPOS, PaymentScheme } from "@/lib/smartpos";
-
 import ProductModal from "@/components/menu/ProductModal";
 import ServiceModal from "@/components/menu/ServiceModal";
 import UpsellModal from "@/components/menu/UpsellModal";
@@ -21,6 +20,8 @@ import CategoryNav from "@/components/menu/CategoryNav";
 import SearchBar from "@/components/menu/SearchBar";
 import WalletWidget from "@/components/menu/WalletWidget";
 import MenuSkeleton from "@/components/menu/MenuSkeleton";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 function MenuContent({ slug }: { slug: string }) {
   const [menu, setMenu] = useState<MenuResponse | null>(null);
@@ -28,14 +29,12 @@ function MenuContent({ slug }: { slug: string }) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isComandaOpen, setIsComandaOpen] = useState(false);
-
   const [sessionStatus, setSessionStatus] = useState<'loading' | 'free' | 'active' | 'blocked'>('loading');
   const [sessionData, setSessionData] = useState<TableSession | null>(null);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState("");
   const [tableOwnerName, setTableOwnerName] = useState("");
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
-
   const [customerPhone, setCustomerPhone] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"pix" | "card" | "cash" | "online">("online");
@@ -44,7 +43,7 @@ function MenuContent({ slug }: { slug: string }) {
   const [walletBalance, setWalletBalance] = useState(0);
   const [loyaltyPercent, setLoyaltyPercent] = useState(0);
   const [useBalance, setUseBalance] = useState(false);
-
+  
   // Cupom State
   const [couponCode, setCouponCode] = useState("");
   const [couponDiscount, setCouponDiscount] = useState(0);
@@ -55,32 +54,29 @@ function MenuContent({ slug }: { slug: string }) {
   const [isUpsellOpen, setIsUpsellOpen] = useState(false);
   const [pendingItem, setPendingItem] = useState<any>(null);
   const [currentRecommendations, setCurrentRecommendations] = useState<Product[]>([]);
-
   const [activeCategoryId, setActiveCategoryId] = useState<number>(0);
   const observerRef = useRef<IntersectionObserver | null>(null);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [editingCartIndex, setEditingCartIndex] = useState<number | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
-
+  
   // SmartPOS
   const [smartPosType, setSmartPosType] = useState<PaymentScheme | null>(null);
 
   const searchParams = useSearchParams();
   const { items, addToCart, updateCartItem, removeFromCart, total, clearCart } = useCart();
-
   const tableId = searchParams.get("mesa");
   const qrToken = searchParams.get("token");
   const isKiosk = searchParams.get("kiosk") === "true";
+  const orderIdParam = searchParams.get("order"); // Deep Link Support
 
   // Lógica de Tipo de Pedido
   const isDelivery = !tableId && !isKiosk;
   const isTakeout = isKiosk || (!tableId && !isDelivery);
-
   const labels = getSegmentLabels(menu?.company.segment);
 
-  // Resetar cupom se o carrinho mudar (para revalidar regras de mínimo)
+  // Resetar cupom se o carrinho mudar
   useEffect(() => {
     if (appliedCouponId) {
       setCouponDiscount(0);
@@ -91,13 +87,8 @@ function MenuContent({ slug }: { slug: string }) {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 400) {
-        setShowBackToTop(true);
-      } else {
-        setShowBackToTop(false);
-      }
+      setShowBackToTop(window.scrollY > 400);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -114,14 +105,24 @@ function MenuContent({ slug }: { slug: string }) {
         if (menuData.categories.length > 0) {
             setActiveCategoryId(menuData.categories[0].id);
         }
-
-        // Detecta SmartPOS
+        
         setSmartPosType(detectSmartPOS());
 
+        // 1. Deep Link Support: Se houver orderId na URL, carrega o status
+        if (orderIdParam) {
+          try {
+            const orderData = await getOrder(orderIdParam);
+            setActiveOrder(orderData);
+          } catch (e) {
+            console.error("Erro ao carregar pedido do link:", e);
+          }
+        }
+
+        // 2. Table Session Logic
         if (!isDelivery && !isTakeout && tableId && qrToken) {
           const storedToken = localStorage.getItem(`mesaflow_session_${tableId}`);
           const statusData = await checkTableStatus(slug, parseInt(tableId), qrToken, storedToken);
-
+          
           if (statusData.status === 'blocked') {
             setSessionStatus('blocked');
             setTableOwnerName(statusData.customer_name || "Alguém");
@@ -129,6 +130,7 @@ function MenuContent({ slug }: { slug: string }) {
             setSessionStatus('active');
             setSessionToken(statusData.session_token || null);
             setCustomerName(statusData.customer_name || "");
+            
             if (statusData.session_token) {
                 localStorage.setItem(`mesaflow_session_${tableId}`, statusData.session_token);
                 const session = await getTableSession(slug, statusData.session_token);
@@ -141,20 +143,22 @@ function MenuContent({ slug }: { slug: string }) {
           setSessionStatus('free');
         }
 
-        const savedOrderId = localStorage.getItem("mesaflow_active_order");
-        if (savedOrderId) {
-          try {
-            const orderData = await getOrder(savedOrderId);
-            if (orderData.status !== 'canceled') {
-              setActiveOrder(orderData);
-            } else {
+        // 3. LocalStorage Active Order Fallback
+        if (!orderIdParam) {
+          const savedOrderId = localStorage.getItem("mesaflow_active_order");
+          if (savedOrderId) {
+            try {
+              const orderData = await getOrder(savedOrderId);
+              if (orderData.status !== 'canceled') {
+                setActiveOrder(orderData);
+              } else {
+                localStorage.removeItem("mesaflow_active_order");
+              }
+            } catch (e) {
               localStorage.removeItem("mesaflow_active_order");
             }
-          } catch (e) {
-            localStorage.removeItem("mesaflow_active_order");
           }
         }
-
       } catch (e) {
         console.error(e);
       } finally {
@@ -162,7 +166,7 @@ function MenuContent({ slug }: { slug: string }) {
       }
     };
     init();
-  }, [slug, tableId, qrToken, isDelivery, isTakeout]);
+  }, [slug, tableId, qrToken, isDelivery, isTakeout, orderIdParam]);
 
   useEffect(() => {
     if (loading || !menu) return;
@@ -199,7 +203,6 @@ function MenuContent({ slug }: { slug: string }) {
       const headerOffset = 180;
       const elementPosition = el.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
       window.scrollTo({
         top: offsetPosition,
         behavior: "smooth"
@@ -273,7 +276,7 @@ function MenuContent({ slug }: { slug: string }) {
 
   const handleAddRecommendation = (rec: Product) => {
     addToCart(rec, 1);
-    alert(`${rec.name} adicionado!`);
+    toast.success(`${rec.name} adicionado!`);
   };
 
   const handleJoinTable = async (name: string, pin?: string) => {
@@ -286,7 +289,7 @@ function MenuContent({ slug }: { slug: string }) {
       setSessionStatus('active');
       localStorage.setItem(`mesaflow_session_${tableId}`, session.session_token);
     } catch (e: any) {
-      alert(e.message || "Erro ao entrar na mesa");
+      toast.error(e.message || "Erro ao entrar na mesa");
     }
   };
 
@@ -324,12 +327,11 @@ function MenuContent({ slug }: { slug: string }) {
   };
 
   const handleCheckout = async () => {
-    if (!isDelivery && !isTakeout && (!tableId || !qrToken)) return alert("Erro: QR Code inválido.");
-    if (sessionStatus === 'blocked') return alert("Mesa ocupada.");
-    if (!customerName && !isKiosk) return alert("Por favor, informe seu nome.");
+    if (!isDelivery && !isTakeout && (!tableId || !qrToken)) return toast.error("Erro: QR Code inválido.");
+    if (sessionStatus === 'blocked') return toast.error("Mesa ocupada.");
+    if (!customerName && !isKiosk) return toast.error("Por favor, informe seu nome.");
 
     setProcessing(true);
-
     try {
       const payload = {
         table_id: tableId ? parseInt(tableId) : null,
@@ -340,7 +342,7 @@ function MenuContent({ slug }: { slug: string }) {
         delivery_address: deliveryAddress,
         payment_method: paymentMethod,
         use_balance: useBalance,
-        coupon_code: appliedCouponId ? couponCode : null, // Envia o código se validado
+        coupon_code: appliedCouponId ? couponCode : null,
         items: items.map((item) => ({
           product_id: item.product.id,
           quantity: item.quantity,
@@ -351,12 +353,11 @@ function MenuContent({ slug }: { slug: string }) {
 
       const order = await createOrder(slug, payload);
 
-      // Se for SmartPOS, abre o app de pagamento
       if (smartPosType && paymentMethod === 'card') {
         const intentUrl = generatePaymentIntent({
           scheme: smartPosType,
-          amount: total - couponDiscount, // Valor final
-          type: 'credit', // Default, poderia ser selecionável
+          amount: total - couponDiscount,
+          type: 'credit',
           orderId: order.id
         });
         window.location.href = intentUrl;
@@ -378,16 +379,14 @@ function MenuContent({ slug }: { slug: string }) {
 
       localStorage.setItem("mesaflow_active_order", order.id);
       setActiveOrder(order);
-
       clearCart();
       setCouponCode("");
       setCouponDiscount(0);
       setAppliedCouponId(null);
       setIsCartOpen(false);
-      alert("Pedido enviado com sucesso!");
-
+      toast.success("Pedido enviado com sucesso!");
     } catch (error: any) {
-      alert("❌ Erro: " + error.message);
+      toast.error("Erro: " + error.message);
     } finally {
       setProcessing(false);
     }
@@ -402,10 +401,10 @@ function MenuContent({ slug }: { slug: string }) {
         service_type: type,
         notes: notes
       });
-      alert("✅ Solicitação enviada! Aguarde um instante.");
+      toast.success("Solicitação enviada! Aguarde um instante.");
       setIsServiceModalOpen(false);
     } catch (e) {
-      alert("Erro ao chamar garçom.");
+      toast.error("Erro ao chamar garçom.");
     }
   };
 
@@ -418,7 +417,6 @@ function MenuContent({ slug }: { slug: string }) {
 
   const getFilteredCategories = () => {
     if (!menu) return [];
-
     return menu.categories.map(cat => {
       const filteredProducts = cat.products.filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -426,7 +424,6 @@ function MenuContent({ slug }: { slug: string }) {
         const matchesTag = activeTag ? p.tags?.includes(activeTag) : true; 
         return matchesSearch && matchesTag;
       });
-
       return { ...cat, products: filteredProducts };
     }).filter(cat => cat.products.length > 0);
   };
@@ -434,15 +431,13 @@ function MenuContent({ slug }: { slug: string }) {
   const filteredCategories = getFilteredCategories();
   const allTags = Array.from(new Set(menu?.categories.flatMap(c => c.products.flatMap(p => p.tags || [])) || [])); 
 
-  // --- RENDERIZAÇÃO ---
-
   if (loading) return <MenuSkeleton />;
 
   if (sessionStatus === 'blocked') {
     return (
       <BlockedTableScreen 
         customerName={tableOwnerName} 
-        tableId={tableId!} 
+        tableId={tableId ? String(tableId) : "0"} 
         slug={slug} 
         qrToken={qrToken!} 
         onSuccess={handleRecoverSession} 
@@ -450,7 +445,8 @@ function MenuContent({ slug }: { slug: string }) {
     );
   }
 
-  if (!isDelivery && !isTakeout && sessionStatus === 'free') return <CheckInScreen tableId={tableId!} status="free" onJoin={handleJoinTable} segment={menu?.company.segment} />;
+  if (!isDelivery && !isTakeout && sessionStatus === 'free') return <CheckInScreen tableId={tableId ? String(tableId) : "0"} status="free" onJoin={handleJoinTable} segment={menu?.company.segment} />;
+
   if (!menu) return <div className="p-8 text-center">Restaurante não encontrado.</div>;
 
   const isClosed = (() => {
@@ -461,6 +457,7 @@ function MenuContent({ slug }: { slug: string }) {
     const [closeH, closeM] = menu.company.closes_at.split(":").map(Number);
     const openTime = openH * 60 + openM;
     const closeTime = closeH * 60 + closeM;
+    
     if (openTime < closeTime) return currentTime < openTime || currentTime > closeTime;
     return currentTime < openTime && currentTime > closeTime;
   })();
@@ -473,7 +470,6 @@ function MenuContent({ slug }: { slug: string }) {
     return <OrderStatusView order={activeOrder} onNewOrder={handleNewOrder} primaryColor={primaryColor} />;
   }
 
-  // Cálculo do Total Final (Visual)
   const finalTotalDisplay = Math.max(0, total - couponDiscount);
 
   return (
@@ -484,15 +480,15 @@ function MenuContent({ slug }: { slug: string }) {
                 {menu.company.logo_url && <img src={menu.company.logo_url} className="w-10 h-10 object-contain rounded-lg" alt="Logo" />}
                 <h1 className="font-bold text-lg truncate max-w-[150px]" style={{ color: textColor }}>{menu.company.name}</h1>
             </div>
-
             <div className="flex items-center gap-3">
                 {!isDelivery && !isTakeout && sessionStatus === 'active' && (
-                    <button onClick={() => setIsComandaOpen(true)} className="text-xs font-bold bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-gray-200 transition-colors text-gray-800">
+                    <button type="button" onClick={() => setIsComandaOpen(true)} className="text-xs font-bold bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-gray-200 transition-colors text-gray-800">
                     <FileText size={14} /> {labels.bill}
                     </button>
                 )}
                 {!isDelivery && !isTakeout && !isClosed && (
                     <button 
+                    type="button"
                     onClick={() => setIsServiceModalOpen(true)}
                     className="p-2 rounded-full border transition-colors"
                     style={{ borderColor: primaryColor, color: primaryColor, backgroundColor: `${primaryColor}10` }}
@@ -510,6 +506,7 @@ function MenuContent({ slug }: { slug: string }) {
         {allTags.length > 0 && (
             <div className="flex overflow-x-auto no-scrollbar px-4 pb-2 gap-2">
                 <button 
+                    type="button"
                     onClick={() => setActiveTag(null)}
                     className={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-bold border transition-all ${!activeTag ? 'text-white' : 'bg-white text-gray-500 border-gray-200'}`}
                     style={{ backgroundColor: !activeTag ? primaryColor : undefined, borderColor: !activeTag ? primaryColor : undefined }}
@@ -519,6 +516,7 @@ function MenuContent({ slug }: { slug: string }) {
                 {allTags.map((tag: string) => (
                     <button 
                         key={tag}
+                        type="button"
                         onClick={() => setActiveTag(activeTag === tag ? null : tag)}
                         className={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-bold border transition-all capitalize ${activeTag === tag ? 'text-white border-transparent' : 'bg-white text-gray-500 border-gray-200'}`}
                         style={{ backgroundColor: activeTag === tag ? primaryColor : undefined }}
@@ -603,7 +601,14 @@ function MenuContent({ slug }: { slug: string }) {
                                 <img src={product.image_url} className="w-20 h-20 object-cover rounded-lg mb-2" alt={product.name} />
                             )}
                             <button
+                            type="button"
                             disabled={isClosed || isOutOfStock}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (!isClosed && !isOutOfStock) {
+                                    product.option_groups.length > 0 ? setSelectedProduct(product) : handleAddToCart(product, 1);
+                                }
+                            }}
                             className={`text-white w-8 h-8 flex items-center justify-center rounded-full shadow-md ${isClosed || isOutOfStock ? 'bg-gray-300 cursor-not-allowed' : ''}`}
                             style={{ backgroundColor: (isClosed || isOutOfStock) ? undefined : primaryColor }}
                             >
@@ -626,7 +631,7 @@ function MenuContent({ slug }: { slug: string }) {
                 <span className="text-xs text-gray-500 font-medium">Total do Pedido</span>
                 <span className="font-black text-xl text-gray-900">R$ {total.toFixed(2)}</span>
             </div>
-            <button onClick={() => setIsCartOpen(true)} className="text-white px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2 active:scale-95 transition-transform" style={{ backgroundColor: primaryColor }}>
+            <button type="button" onClick={() => setIsCartOpen(true)} className="text-white px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2 active:scale-95 transition-transform" style={{ backgroundColor: primaryColor }}>
               <ShoppingBag size={18} /> Ver Carrinho ({items.length})
             </button>
           </div>
@@ -635,6 +640,7 @@ function MenuContent({ slug }: { slug: string }) {
 
       {showBackToTop && (
         <button 
+            type="button"
             onClick={scrollToTop}
             className="fixed bottom-24 right-4 bg-white p-3 rounded-full shadow-lg border border-gray-200 z-20 animate-in fade-in slide-in-from-bottom-4"
             style={{ color: primaryColor }}
@@ -671,9 +677,8 @@ function MenuContent({ slug }: { slug: string }) {
           <div className="bg-white w-full max-w-md p-6 rounded-xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
             <div className="flex justify-between items-center mb-4 border-b pb-2">
                 <h2 className="text-xl font-bold text-gray-900">Seu Pedido</h2>
-                <button onClick={() => setIsCartOpen(false)} className="text-gray-400"><X size={24}/></button>
+                <button type="button" onClick={() => setIsCartOpen(false)} className="text-gray-400"><X size={24}/></button>
             </div>
-
             <div className="flex-1 overflow-y-auto space-y-4">
                 {items.map((item, idx) => (
                 <div key={idx} className="flex justify-between py-3 border-b last:border-0 group">
@@ -687,7 +692,7 @@ function MenuContent({ slug }: { slug: string }) {
                     </div>
                     <div className="text-right">
                         <p className="text-sm font-bold text-gray-900">R$ {((Number(item.product.price) + item.selectedOptions.reduce((a,b)=>a+Number(b.price),0)) * item.quantity).toFixed(2)}</p>
-                        <button onClick={() => removeFromCart(idx)} className="text-red-500 text-xs mt-1 hover:underline">Remover</button>
+                        <button type="button" onClick={() => removeFromCart(idx)} className="text-red-500 text-xs mt-1 hover:underline">Remover</button>
                     </div>
                 </div>
                 ))}
@@ -731,7 +736,6 @@ function MenuContent({ slug }: { slug: string }) {
                 />
               )}
 
-              {/* CUPOM DE DESCONTO */}
               <div className="bg-white p-3 rounded-lg border border-gray-200">
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
                   <Tag size={12} /> Cupom de Desconto
@@ -747,6 +751,7 @@ function MenuContent({ slug }: { slug: string }) {
                   />
                   {appliedCouponId ? (
                     <button 
+                      type="button"
                       onClick={() => { setAppliedCouponId(null); setCouponDiscount(0); setCouponCode(""); setCouponMessage(""); }}
                       className="bg-red-100 text-red-600 px-3 py-2 rounded-lg hover:bg-red-200 transition-colors"
                     >
@@ -754,6 +759,7 @@ function MenuContent({ slug }: { slug: string }) {
                     </button>
                   ) : (
                     <button 
+                      type="button"
                       onClick={handleApplyCoupon}
                       disabled={!couponCode || isValidatingCoupon}
                       className="bg-gray-900 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-800 transition-colors disabled:opacity-50"
@@ -772,24 +778,22 @@ function MenuContent({ slug }: { slug: string }) {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Forma de Pagamento</label>
                 <div className="grid grid-cols-2 gap-2">
-                    <button onClick={() => setPaymentMethod("online")} className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === 'online' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 bg-white text-gray-400'}`}>
+                    <button type="button" onClick={() => setPaymentMethod("online")} className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === 'online' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 bg-white text-gray-400'}`}>
                         <QrCode size={20} /> <span className="text-[10px] font-bold">PIX AUTOMÁTICO</span>
                     </button>
-
                     {smartPosType ? (
-                      <button onClick={() => setPaymentMethod("card")} className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === 'card' ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-gray-200 bg-white text-gray-400'}`}>
+                      <button type="button" onClick={() => setPaymentMethod("card")} className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === 'card' ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-gray-200 bg-white text-gray-400'}`}>
                           <Smartphone size={20} /> <span className="text-[10px] font-bold">MAQUININHA</span>
                       </button>
                     ) : (
-                      <button onClick={() => setPaymentMethod("card")} className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === 'card' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 bg-white text-gray-400'}`}>
+                      <button type="button" onClick={() => setPaymentMethod("card")} className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === 'card' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 bg-white text-gray-400'}`}>
                           <CreditCard size={20} /> <span className="text-[10px] font-bold">CARTÃO</span>
                       </button>
                     )}
-
-                    <button onClick={() => setPaymentMethod("pix")} className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === 'pix' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 bg-white text-gray-400'}`}>
+                    <button type="button" onClick={() => setPaymentMethod("pix")} className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === 'pix' ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-200 bg-white text-gray-400'}`}>
                         <Banknote size={20} /> <span className="text-[10px] font-bold">PIX (BALCÃO)</span>
                     </button>
-                    <button onClick={() => setPaymentMethod("cash")} className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === 'cash' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 bg-white text-gray-400'}`}>
+                    <button type="button" onClick={() => setPaymentMethod("cash")} className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === 'cash' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 bg-white text-gray-400'}`}>
                         <Banknote size={20} /> <span className="text-[10px] font-bold">DINHEIRO</span>
                     </button>
                 </div>
@@ -814,8 +818,9 @@ function MenuContent({ slug }: { slug: string }) {
             </div>
 
             <div className="mt-6 flex gap-3">
-              <button onClick={() => setIsCartOpen(false)} className="flex-1 border border-gray-300 py-3 rounded-lg font-medium text-gray-700">Voltar</button>
+              <button type="button" onClick={() => setIsCartOpen(false)} className="flex-1 border border-gray-300 py-3 rounded-lg font-medium text-gray-700">Voltar</button>
               <button 
+                type="button"
                 onClick={handleCheckout} 
                 disabled={processing}
                 className="flex-1 text-white py-3 rounded-lg font-bold shadow-md flex items-center justify-center gap-2 disabled:opacity-70" 
@@ -838,3 +843,4 @@ export default function MenuClient({ slug }: { slug: string }) {
     </CartProvider>
   );
 }
+

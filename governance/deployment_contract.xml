@@ -1,0 +1,15 @@
+
+<DeploymentContract version="1.0">
+    <Environment name="production">
+        <API_Host>Render.com (Web Service)</API_Host>
+        <Frontend_Host>Vercel.com</Frontend_Host>
+        <Database_Host>Neon.tech (Pooled Endpoint)</Database_Host>
+        <CI_CD>GitHub Actions (Green Build Policy)</CI_CD>
+    </Environment>
+    <Hard_Gates>
+        <Gate id="G1">RLS Policy Inventory PASS</Gate>
+        <Gate id="G2">Zero-Touch Env Audit PASS</Gate>
+        <Gate id="G3">SCA Dependency Audit PASS</Gate>
+    </Hard_Gates>
+</DeploymentContract>
+

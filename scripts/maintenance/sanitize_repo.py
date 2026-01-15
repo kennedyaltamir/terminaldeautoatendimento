@@ -1,116 +1,89 @@
+
 # DOMAIN: DEVOPS_SCRIPTS
-# LAST_MODIFIED: 2026-01-09 23:50:00
+# LAST_MODIFIED: 2026-01-13 01:00:00
 import os
 import shutil
-import time
 from pathlib import Path
-
-# Lista de arquivos e pastas que devem permanecer na raiz
-SAFE_LIST = {
-    "app", 
-    "frontend", 
-    "mobile", 
-    "docs", 
-    "scripts", 
-    "alembic", 
-    ".git", 
-    ".github",
-    "atualizar.py", 
-    "gerartxt.py", 
-    "run.py", 
-    "gerardoc.py", 
-    "gerar_kernel.py",
-    "requirements.txt", 
-    "package.json", 
-    "alembic.ini", 
-    "docker-compose.yml", 
-    "Dockerfile", 
-    ".env", 
-    ".gitignore", 
-    "pytest.ini", 
-    "vercel.json", 
-    "app.json", 
-    "eas.json", 
-    "todososarquivos.txt", 
-    "resposta.txt", 
-    "atualizar.log", 
-    "governance_bundle.txt", 
-    "ver_arvore.py", 
-    "readme.md", 
-    "LICENSE"
+# Configuração de Preservação (O que NÃO mover)
+SAFE_DIRS = {'app', 'frontend', 'mobile', 'docs', 'scripts', 'alembic', '.git', '.github', 'backups'}
+SAFE_FILES = {
+    'atualizar.py', 'gerartxt.py', 'run.py', 'requirements.txt', 
+    'package.json', 'alembic.ini', 'docker-compose.yml', 'Dockerfile', 
+    '.env', '.env.example', '.gitignore', 'pytest.ini', 'vercel.json', 
+    'app.json', 'eas.json', 'kernel_journal.jsonl', 'todososarquivos.txt',
+    'resposta.txt', 'atualizar.log', 'README.md', 'SECURITY.md'
 }
-
-# Padrões de nomes de arquivos considerados lixo
-TRASH_PATTERNS = ["temp_", "old_", ".bak", ".tmp", "test_"]
-
-# Diretório de destino para o lixo digital
-IGNORE_DIR = Path("ignorar")
-
-def sanitize_repository():
-    """
-    Varre a raiz do projeto e move arquivos não essenciais para a pasta ignorar.
-    """
-    print("🧹 Iniciando sanitização cirúrgica do repositório..")
-    
-    # Garante a existência da pasta de destino
-    if not IGNORE_DIR.exists():
-        IGNORE_DIR.mkdir()
-        print(f"📁 Diretório '{IGNORE_DIR}' criado com sucesso.")
-
-    root_path = Path(".")
-    items_moved = 0
-
-    # Itera sobre todos os itens na raiz
-    for item in root_path.iterdir():
-        # Ignora a própria pasta de destino
-        if item.name == "ignorar":
-            continue
-            
-        # Verifica se o item está na lista de proteção (Safe List)
-        # Compara em minúsculo para evitar problemas de case no Windows
-        is_safe = False
-        for safe_item in SAFE_LIST:
-            if item.name.lower() == safe_item.lower():
-                is_safe = True
-                break
-        
-        if is_safe:
-            continue
-
-        should_move = False
-        
-        # Critério 1: O nome do arquivo contém padrões de lixo
-        for pattern in TRASH_PATTERNS:
-            if pattern in item.name.lower():
+# Padrões de Lixo (O que mover para ignorar/)
+TRASH_EXTENSIONS = {'.tmp', '.bak', '.log', '.old', '.temp', '.pyc'}
+TRASH_PREFIXES = {'temp_', 'old_', 'copy_', 'test_'}
+class ProjectSanitizer:
+    def __init__(self):
+        self.root = Path(".")
+        self.ignore_dir = self.root / "ignorar"
+        self.ignore_dir.mkdir(exist_ok=True)
+    def visualize(self):
+        print("\n📂 ESTRUTURA DO PROJETO (Raiz + Nível 1)")
+        print("=" * 60)
+        # Lista itens da raiz (ignorando ocultos exceto .env)
+        items = sorted([x for x in self.root.iterdir() if not x.name.startswith('.') or x.name == '.env'])
+        for item in items:
+            if item.is_dir():
+                print(f"📁 {item.name}/")
+                # Entra apenas no primeiro nível da subpasta
+                try:
+                    # Lista apenas as pastas do primeiro nível
+                    sub_dirs = sorted([x for x in item.iterdir() if x.is_dir()])
+                    # Lista apenas os arquivos do primeiro nível
+                    sub_files = sorted([x for x in item.iterdir() if x.is_file()])
+                    # Mostra a primeira pasta encontrada
+                    if sub_dirs:
+                        print(f"   ├── 📁 {sub_dirs[0].name}/")
+                    # Mostra o primeiro arquivo encontrado
+                    if sub_files:
+                        print(f"   └── 📄 {sub_files[0].name}")
+                    if len(sub_dirs) > 1 or len(sub_files) > 1:
+                        print(f"   ... (+ {len(sub_dirs) + len(sub_files) - 2} itens ocultos)")
+                except PermissionError:
+                    print("   └── 🔒 Acesso Negado")
+            else:
+                print(f"📄 {item.name}")
+        print("=" * 60)
+    def sanitize(self):
+        print("\n🧹 Iniciando limpeza de arquivos redundantes na raiz...")
+        moved_count = 0
+        for item in self.root.iterdir():
+            # Ignora diretórios protegidos e a própria pasta ignorar
+            if item.is_dir() or item.name in SAFE_FILES or item.name == "ignorar":
+                continue
+            should_move = False
+            # Regra 1: Extensões de lixo
+            if item.suffix.lower() in TRASH_EXTENSIONS:
                 should_move = True
-                break
-        
-        # Critério 2: Arquivos de texto (.txt) que não estão na Safe List
-        if not should_move and item.suffix == ".txt" and item.name not in SAFE_LIST:
-            should_move = True
-            
-        # Critério 3: Arquivos de log (.log) que não são o log oficial do kernel
-        if not should_move and item.suffix == ".log" and item.name != "atualizar.log":
-            should_move = True
-
-        # Executa a movimentação se o arquivo for identificado como lixo
-        if should_move:
-            destination_path = IGNORE_DIR / item.name
-            
-            # Se o arquivo já existir no destino, adiciona um timestamp para evitar colisão
-            if destination_path.exists():
-                timestamp = int(time.time())
-                destination_path = IGNORE_DIR / f"{timestamp}_{item.name}"
-            
-            try:
-                print(f"📦 Movendo item: {item.name} -> {destination_path}")
-                shutil.move(str(item), str(destination_path))
-                items_moved += 1
-            except Exception as error:
-                print(f"❌ Falha ao mover {item.name}: {error}")
-
-    print(f"\n✅ Processo de sanitização finalizado.")
-    print(f"📊 Total de itens movidos para '{IGNORE_DIR}': {items_moved}")
-
+            # Regra 2: Prefixos de rascunho
+            if any(item.name.startswith(pre) for pre in TRASH_PREFIXES):
+                should_move = True
+            # Regra 3: Arquivos .txt que não estão na safe list
+            if item.suffix.lower() == '.txt' and item.name not in SAFE_FILES:
+                should_move = True
+            if should_move:
+                dest = self.ignore_dir / item.name
+                # Se já existir, renomeia para não sobrescrever
+                if dest.exists():
+                    dest = self.ignore_dir / f"{item.stem}_{os.urandom(2).hex()}{item.suffix}"
+                try:
+                    shutil.move(str(item), str(dest))
+                    print(f"   📦 Movido: {item.name} -> ignorar/")
+                    moved_count += 1
+                except Exception as e:
+                    print(f"   ❌ Erro ao mover {item.name}: {e}")
+        print(f"\n✨ Sanitização concluída. {moved_count} arquivos movidos.")
 if __name__ == "__main__":
-    sanitize_repository()
+    sanitizer = ProjectSanitizer()
+    sanitizer.visualize()
+    # No terminal do VSCode, o usuário pode decidir se limpa agora
+    confirm = input("\nDeseja mover os arquivos redundantes da raiz para a pasta 'ignorar'? (s/n): ")
+    if confirm.lower() == 's':
+        sanitizer.sanitize()
+    else:
+        print("Operação de limpeza cancelada. Apenas visualização realizada.")
+

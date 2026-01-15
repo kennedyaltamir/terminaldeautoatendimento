@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useFeatureFlags } from "@/context/FeatureFlagContext";
 import { Zap, ShieldAlert, Loader2, Info, Lock } from "lucide-react";
 import { Toaster } from "sonner";
@@ -8,7 +8,6 @@ import FeatureToggleCard from "@/components/admin/FeatureToggleCard";
 
 /**
  * Mapeamento de metadados para exibição amigável das flags.
- * Flags não listadas aqui serão exibidas com a chave bruta.
  */
 const FLAG_METADATA: Record<string, { label: string; desc: string }> = {
   "fiscal_module_v2": {
@@ -27,8 +26,16 @@ const FLAG_METADATA: Record<string, { label: string; desc: string }> = {
 
 export default function FeaturesBetaPage() {
   const { flags, isImpersonator, toggleFlag, loading } = useFeatureFlags();
+  
+  // HYPEROPTIMUS FIX: Ensure state derived from context doesn't cause render loops.
+  // We use local state only for UI feedback if needed, but rely on Context for truth.
+  const [isReady, setIsReady] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    setIsReady(true);
+  }, []);
+
+  if (!isReady || loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-gray-500">
         <Loader2 className="animate-spin mb-4" size={32} />
@@ -55,7 +62,7 @@ export default function FeaturesBetaPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <Toaster position="top-right" richColors />
-
+      
       <div className="flex items-center gap-3">
         <div className="bg-orange-600 p-3 rounded-xl shadow-lg shadow-orange-900/20">
           <Zap size={24} className="text-white" />

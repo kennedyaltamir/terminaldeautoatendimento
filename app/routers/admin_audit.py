@@ -1,104 +1,82 @@
-# DOMAIN: BACKEND
-# LAST_MODIFIED: 2026-01-09 00:30:00
-from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
-from typing import List, Optional
-from datetime import date, datetime, time
-import csv
-import io
 
+# DOMAIN: BACKEND
+# LAST_MODIFIED: 2026-01-13 10:45:00
+from fastapi import APIRouter, Depends, HTTPException, Body
+from sqlalchemy.orm import Session
+from typing import List
 from app.database import get_db
-from app.models import Company, AuditLog
-from app.schemas import AuditLogResponse
 from app.routers.auth import get_current_user
+from app.services.reconciliation_service import ReconciliationService
+from app.services.ledger_service import LedgerService
+from app.models.company import Company
+from app.models.fintech import FinancialLedger
+from app.models.system import AuditLog
+from app.schemas.system import AuditLogResponse
 
 router = APIRouter()
 
-def require_owner(current_user: any = Depends(get_current_user)):
-    if isinstance(current_user, Company):
-        return current_user
-    # Em um cenário real, poderíamos permitir que gerentes de segurança vissem,
-    # mas por padrão Enterprise, apenas o Dono (Owner) tem acesso a auditoria completa.
-    raise HTTPException(status_code=403, detail="Acesso restrito ao proprietário")
+# --- GERAL ---
 
 @router.get("", response_model=List[AuditLogResponse])
 def get_audit_logs(
     limit: int = 50,
-    resource: Optional[str] = None,
-    user_role: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user: Company = Depends(require_owner)
+    current_user: any = Depends(get_current_user)
 ):
     """
-    Lista os logs de auditoria da empresa (Paginado/Visualização).
+    Retorna os logs de auditoria do sistema para a empresa atual.
     """
-    query = db.query(AuditLog).filter(AuditLog.company_id == current_user.id)
+    # Determina o ID da empresa baseado no tipo de usuário (Company ou Employee)
+    company_id = current_user.id if isinstance(current_user, Company) else current_user.company_id
+    
+    return db.query(AuditLog)\
+        .filter(AuditLog.company_id == company_id)\
+        .order_by(AuditLog.created_at.desc())\
+        .limit(limit)\
+        .all()
 
-    if resource:
-        query = query.filter(AuditLog.resource == resource)
+# --- FINANCEIRO ---
 
-    if user_role:
-        query = query.filter(AuditLog.user_role == user_role)
+@router.get("/financial/reconciliation")
+async def get_reconciliation_report(db: Session = Depends(get_db), current_user: Company = Depends(get_current_user)):
+    return await ReconciliationService.reconcile_company(db, str(current_user.id))
 
-    return query.order_by(AuditLog.created_at.desc()).limit(limit).all()
+@router.get("/financial/ledger")
+async def get_ledger_history(limit: int = 50, db: Session = Depends(get_db), current_user: Company = Depends(get_current_user)):
+    entries = db.query(FinancialLedger).filter(FinancialLedger.company_id == current_user.id).order_by(FinancialLedger.sequence_id.desc()).limit(limit).all()
+    return entries
 
-@router.get("/export", response_class=StreamingResponse)
-def export_audit_logs(
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
+@router.get("/financial/verify-integrity")
+async def verify_ledger_integrity(db: Session = Depends(get_db), current_user: Company = Depends(get_current_user)):
+    is_ok, message = LedgerService.verify_chain(db, str(current_user.id))
+    return {"is_integral": is_ok, "message": message}
+
+@router.post("/financial/fix-orphan")
+async def fix_orphan_transaction(
+    external_id: str = Body(..., embed=True),
     db: Session = Depends(get_db),
-    current_user: Company = Depends(require_owner)
+    current_user: Company = Depends(get_current_user)
 ):
     """
-    Exporta logs de auditoria em formato CSV para ingestão em SIEM ou arquivamento.
-    Utiliza StreamingResponse para eficiência de memória.
+    Cria uma entrada no Ledger para uma transação que existe no Gateway mas não no sistema.
     """
-    query = db.query(AuditLog).filter(AuditLog.company_id == current_user.id)
-
-    if start_date:
-        dt_start = datetime.combine(start_date, time.min)
-        query = query.filter(AuditLog.created_at >= dt_start)
+    # 1. Re-valida se a transação realmente existe no gateway e é órfã
+    report = await ReconciliationService.reconcile_company(db, str(current_user.id))
+    orphan = next((o for o in report["orphans"] if o["external_id"] == external_id), None)
     
-    if end_date:
-        dt_end = datetime.combine(end_date, time.max)
-        query = query.filter(AuditLog.created_at <= dt_end)
-
-    # Ordenação cronológica para exportação
-    query = query.order_by(AuditLog.created_at.asc())
-
-    def iter_csv():
-        # Buffer de memória para escrita CSV
-        output = io.StringIO()
-        writer = csv.writer(output)
-
-        # Escreve Header
-        writer.writerow(["Timestamp", "Actor", "Role", "Action", "Resource", "Resource ID", "IP Address", "Details"])
-        yield output.getvalue()
-        output.seek(0)
-        output.truncate(0)
-
-        # Itera sobre os resultados (Yield per row/batch)
-        # Em produção com muitos dados, idealmente usaríamos yield_per do SQLAlchemy
-        for log in query.yield_per(1000):
-            writer.writerow([
-                log.created_at.isoformat(),
-                log.user_name,
-                log.user_role,
-                log.action,
-                log.resource,
-                log.resource_id,
-                log.ip_address or "N/A",
-                str(log.details) if log.details else ""
-            ])
-            yield output.getvalue()
-            output.seek(0)
-            output.truncate(0)
-
-    filename = f"audit_logs_{current_user.slug}_{date.today()}.csv"
+    if not orphan:
+        raise HTTPException(status_code=404, detail="Transação órfã não encontrada ou já conciliada.")
     
-    return StreamingResponse(
-        iter_csv(),
-        media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    # 2. Cria a entrada corretiva no Ledger
+    entry = LedgerService.create_entry(
+        db, 
+        str(current_user.id), 
+        orphan["amount_cents"], 
+        "CREDIT", 
+        "payment", 
+        external_id, 
+        f"Conciliação Automática: {external_id}"
     )
+    db.commit()
+    return {"status": "fixed", "sequence_id": entry.sequence_id}
+

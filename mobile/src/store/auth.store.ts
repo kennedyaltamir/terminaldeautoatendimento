@@ -1,62 +1,69 @@
+
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
+import { AuthStatus } from '../types/auth.types';
 
 interface User {
   name: string;
-  role: 'owner' | 'manager' | 'cashier' | 'kitchen' | 'driver';
+  role: 'owner' | 'manager' | 'cashier' | 'kitchen' | 'driver' | 'waiter';
   company_slug: string;
 }
 
 interface AuthState {
-  token: string | null;
+  status: AuthStatus;
+  accessToken: string | null;
   user: User | null;
-  isAuthenticated: boolean;
+  isQaMode: boolean;
   isLoading: boolean;
+  setQaMode: (enabled: boolean) => void;
   login: (token: string, user: User) => Promise<void>;
   logout: () => Promise<void>;
   hydrate: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  token: null,
+  status: 'idle',
+  accessToken: null,
   user: null,
-  isAuthenticated: false,
+  isQaMode: false,
   isLoading: true,
 
+  setQaMode: (enabled) => set({ isQaMode: enabled }),
+
   login: async (token, user) => {
+    const isTest = user.name.includes('QA');
+    set({ accessToken: token, user, status: 'authenticated', isLoading: false, isQaMode: isTest });
+    
     try {
       await SecureStore.setItemAsync('mesaflow_token', token);
       await SecureStore.setItemAsync('mesaflow_user', JSON.stringify(user));
-      set({ token, user, isAuthenticated: true });
-    } catch (error) {
-      console.error("Erro ao salvar sessão", error);
-    }
+    } catch (e) {}
   },
 
   logout: async () => {
     try {
       await SecureStore.deleteItemAsync('mesaflow_token');
       await SecureStore.deleteItemAsync('mesaflow_user');
-      set({ token: null, user: null, isAuthenticated: false });
-    } catch (error) {
-      console.error("Erro ao encerrar sessão", error);
+    } finally {
+      set({ accessToken: null, user: null, status: 'unauthenticated', isQaMode: false });
     }
   },
 
   hydrate: async () => {
+    set({ status: 'hydrating' });
     try {
       const token = await SecureStore.getItemAsync('mesaflow_token');
       const userJson = await SecureStore.getItemAsync('mesaflow_user');
-      
       if (token && userJson) {
-        const user = JSON.parse(userJson);
-        // TODO: Implementar TASK-014A (Validação de expiração do JWT)
-        set({ token, user, isAuthenticated: true });
+        set({ accessToken: token, user: JSON.parse(userJson), status: 'authenticated' });
+      } else {
+        set({ status: 'unauthenticated' });
       }
     } catch (e) {
-      console.error("Erro ao hidratar auth", e);
+      set({ status: 'unauthenticated' });
     } finally {
       set({ isLoading: false });
     }
   },
 }));
+

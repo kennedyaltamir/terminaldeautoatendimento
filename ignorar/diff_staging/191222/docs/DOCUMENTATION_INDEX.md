@@ -1,0 +1,314 @@
+# DOMAIN: DOCUMENTATION
+# LAST_MODIFIED: 2026-01-14 19:15:00
+
+# 📚 Índice de Documentação MesaFlow
+> Guia rápido de referência para todos os arquivos Markdown do projeto.
+> **Nota:** Clique nos links para navegar diretamente para o arquivo.
+
+## 1. Raiz & Estratégia
+- [README.md](./README.md): Visão geral do projeto, propósito e guia de início rápido.
+- [MASTER_PROJECT_SPECIFICATION.md](./MASTER_PROJECT_SPECIFICATION.md): A "Bíblia" técnica do projeto, definindo arquitetura e regras imutáveis.
+- [SECURITY.md](./SECURITY.md): Política de segurança e canal de denúncia de vulnerabilidades.
+- [HANDOFF_MINIMAL.md](./HANDOFF_MINIMAL.md): Instruções mínimas para passar o projeto para outro desenvolvedor/IA.
+- [MIGRATION_PLAN_DRAFT.md](./MIGRATION_PLAN_DRAFT.md): Rascunho inicial de estratégia de migração de dados.
+
+## 2. Governança & Protocolos (`governance/`)
+- [governance/README.md](./governance/README.md): Explicação da estrutura de governança e status atual.
+- [governance/DEFINITION_OF_DONE.md](./governance/DEFINITION_OF_DONE.md): Checklist obrigatório para considerar uma tarefa concluída.
+- [governance/DOMAIN_VALUES.md](./governance/DOMAIN_VALUES.md): Lista de valores permitidos para Enums (Status, Roles, etc).
+- [governance/ERROR_TAXONOMY.md](./governance/ERROR_TAXONOMY.md): Classificação padrão de erros do sistema.
+- [governance/EXECUTION_ORDER_CYCLE_4.md](./governance/EXECUTION_ORDER_CYCLE_4.md): Cronograma de execução do ciclo atual.
+- [governance/HANDOVER_PACKAGE.md](./governance/HANDOVER_PACKAGE.md): Modelo de pacote de transferência entre IAs.
+- [governance/HOTFIX_L5_1.md](./governance/HOTFIX_L5_1.md): Procedimento de emergência para correções em produção.
+- [governance/HYPEROPTIMUS_MASTER_SPEC.md](./governance/HYPEROPTIMUS_MASTER_SPEC.md): Especificação do motor de otimização cognitiva.
+- [governance/IA_L5_TO_L6.md](./governance/IA_L5_TO_L6.md): Plano de evolução da maturidade da IA.
+- [governance/L6_AUTONOMOUS_EVOLUTION.md](./governance/L6_AUTONOMOUS_EVOLUTION.md): Manifesto da autonomia da IA nível 6.
+- [governance/MATURITY_MODELS.md](./governance/MATURITY_MODELS.md): Definição dos níveis de maturidade (L1 a L6).
+- [governance/OPTIMUS_v9_Architecture.md](./governance/OPTIMUS_v9_Architecture.md): Arquitetura técnica do agente de automação Optimus.
+- [governance/SOS_SYSTEM_STATE.md](./governance/SOS_SYSTEM_STATE.md): Protocolo de recuperação de desastres.
+- [governance/TASK_CHECKLIST_TEMPLATE.md](./governance/TASK_CHECKLIST_TEMPLATE.md): Modelo para criação de novas tarefas.
+
+### Protocolos (`governance/protocols/`)
+- [AI_ROLE_PROTOCOL.md](./governance/protocols/AI_ROLE_PROTOCOL.md): Definição dos papéis da IA (Architect, Executor, etc).
+- [AI_SCOPE_VIOLATION_PROTOCOL.md](./governance/protocols/AI_SCOPE_VIOLATION_PROTOCOL.md): Regras para punir desvios de função da IA.
+- [CODE_CHANGE_PROTOCOL.md](./governance/protocols/CODE_CHANGE_PROTOCOL.md): Regras para alteração segura de código.
+- [CONTEXT_GENERATION_PROTOCOL.md](./governance/protocols/CONTEXT_GENERATION_PROTOCOL.md): Como gerar o contexto para a IA.
+- [CONTEXT_PRIORITY_PROTOCOL.md](./governance/protocols/CONTEXT_PRIORITY_PROTOCOL.md): Hierarquia de documentos (TASKS.md > resto).
+- [DOCUMENTATION_STANDARD_PROTOCOL.md](./governance/protocols/DOCUMENTATION_STANDARD_PROTOCOL.md): Padrões de escrita e organização de docs.
+- [ERROR_RESPONSE_MAPPING_PROTOCOL.md](./governance/protocols/ERROR_RESPONSE_MAPPING_PROTOCOL.md): Como a IA deve reportar erros.
+- [FAIL_FAST_PROTOCOL.md](./governance/protocols/FAIL_FAST_PROTOCOL.md): Regra de abortar execução ao primeiro sinal de erro.
+- [FILE_OWNERSHIP_PROTOCOL.md](./governance/protocols/FILE_OWNERSHIP_PROTOCOL.md): Quem pode editar qual arquivo.
+- [GOVERNANCE_CHANGE_PROTOCOL.md](./governance/protocols/GOVERNANCE_CHANGE_PROTOCOL.md): Como alterar as próprias regras de governança.
+- [INDA_TASK_PROTOCOL.md](./governance/protocols/INDA_TASK_PROTOCOL.md): O ciclo Inspection-Normalization-Decision-Action.
+- [KERNEL_INDA_PROTOCOL.md](./governance/protocols/KERNEL_INDA_PROTOCOL.md): Definição do Kernel como autoridade máxima.
+- [MIHP_PROTOCOL.md](./governance/protocols/MIHP_PROTOCOL.md): Protocolo de transferência de contexto entre IAs.
+- [ROLLBACK_PROTOCOL.md](./governance/protocols/ROLLBACK_PROTOCOL.md): Procedimentos de reversão de mudanças.
+- [SECURITY_BOUNDARY_PROTOCOL.md](./governance/protocols/SECURITY_BOUNDARY_PROTOCOL.md): Limites de segurança que a IA não pode cruzar.
+- [TASK_LIFECYCLE_PROTOCOL.md](./governance/protocols/TASK_LIFECYCLE_PROTOCOL.md): Estados de uma tarefa (Open -> Done).
+- [UPDATE_EXECUTION_PROTOCOL.md](./governance/protocols/UPDATE_EXECUTION_PROTOCOL.md): Como o script `atualizar.py` deve funcionar.
+- [VERIFICATION_PROTOCOL.md](./governance/protocols/VERIFICATION_PROTOCOL.md): Regras para scripts de validação.
+
+### Políticas (`governance/policies/`)
+- [CHANGE_MANAGEMENT.md](./governance/policies/CHANGE_MANAGEMENT.md): Política geral de gestão de mudanças.
+- [DATA_PRIVACY.md](./governance/policies/DATA_PRIVACY.md): Política de privacidade e LGPD.
+- [deprecation_policy.md](./governance/policies/deprecation_policy.md): Como descontinuar funcionalidades.
+- [enum_lifecycle.md](./governance/policies/enum_lifecycle.md): Ciclo de vida de valores enumerados.
+- [SECURITY.md](./governance/policies/SECURITY.md): Política de segurança específica (cópia/link da raiz).
+
+### RFCs (`governance/rfc/`)
+- [RFC-001.md](./governance/rfc/RFC-001.md): Padrão do Context Bundle.
+- [RFC-002.md](./governance/rfc/RFC-002.md): Schema do Kernel Journal.
+- [RFC-003.md](./governance/rfc/RFC-003.md): Protocolo de Bootloader.
+- [RFC-004.md](./governance/rfc/RFC-004.md): Formato de Auto-Task.
+- [RFC-005.md](./governance/rfc/RFC-005.md): Protocolo de Snapshot do Kernel.
+- [RFC-006.md](./governance/rfc/RFC-006.md): Protocolo de Override de Governança.
+- [RFC-007.md](./governance/rfc/RFC-007.md): Definição de Fronteira de Segurança.
+- [RFC-008.md](./governance/rfc/RFC-008.md): Declaração de Baseline de Produção.
+- [RFC-009.md](./governance/rfc/RFC-009.md): Política de Hardening de Enums.
+- [RFC-010.md](./governance/rfc/RFC-010.md): Ciclo de Vida de Enums.
+- [RFC-011.md](./governance/rfc/RFC-011.md): Limites Operacionais de IA.
+- [RFC-SCRIPT-ORGANIZATION.md](./governance/rfc/RFC-SCRIPT-ORGANIZATION.md): Padrão de organização de scripts.
+
+## 3. Evidências & Relatórios (`governance/evidence/`)
+- [AUDIT_ENV_REPORT.md](./governance/evidence/AUDIT_ENV_REPORT.md): Resultado da auditoria de variáveis de ambiente.
+- [BOOTSTRAP_SYNC_REPORT.md](./governance/evidence/BOOTSTRAP_SYNC_REPORT.md): Log da sincronização inicial L6.
+- [FINAL_L6_RESTRUCTURING_REPORT.md](./governance/evidence/FINAL_L6_RESTRUCTURING_REPORT.md): Relatório final da reestruturação de governança.
+- [FIX_UNICODE_APPLIED.md](./governance/evidence/FIX_UNICODE_APPLIED.md): Registro da correção de erro de encoding no Windows.
+- [GAP_ANALYSIS_REPORT.md](./governance/evidence/GAP_ANALYSIS_REPORT.md): Análise de lacunas de scripts faltantes.
+- [GOVERNANCE_METRICS.md](./governance/evidence/GOVERNANCE_METRICS.md): Métricas atuais de qualidade e compliance.
+- [GOVERNANCE_MIGRATION_L6_REPORT.md](./governance/evidence/GOVERNANCE_MIGRATION_L6_REPORT.md): Log da migração para a estrutura L6.
+- [INCIDENT_MOCK_DNS_RESOLUTION.md](./governance/evidence/INCIDENT_MOCK_DNS_RESOLUTION.md): Registro de incidente de DNS em mock.
+- [INCIDENT_UNICODE_WINDOWS.md](./governance/evidence/INCIDENT_UNICODE_WINDOWS.md): Registro detalhado do erro de Unicode.
+- [INSPECTION_REPORT_L6.md](./governance/evidence/INSPECTION_REPORT_L6.md): Relatório de inspeção de estado intermediário.
+- [INSPECTION_REPORT_L6_FINAL.md](./governance/evidence/INSPECTION_REPORT_L6_FINAL.md): Relatório final de inspeção.
+- [MIGRATION_VERIFICATION_REPORT.md](./governance/evidence/MIGRATION_VERIFICATION_REPORT.md): Validação da aplicação de migrações de banco.
+- [PIPELINE_CANONICO.md](./governance/evidence/PIPELINE_CANONICO.md): Definição da ordem de execução dos scripts de validação.
+- [REPORT_APP_01.md](./governance/evidence/REPORT_APP_01.md): Validação de contexto ORM.
+- [REPORT_APP_02.md](./governance/evidence/REPORT_APP_02.md): Validação de idempotência.
+- [REPORT_AUDITOR_SIMULATION.md](./governance/evidence/REPORT_AUDITOR_SIMULATION.md): Simulação de auditoria externa.
+- [REPORT_BKP_01.md](./governance/evidence/REPORT_BKP_01.md): Diff estrutural de backups.
+- [REPORT_DIAG_01.md](./governance/evidence/REPORT_DIAG_01.md): Verificação de prontidão de dados.
+- [REPORT_E2E_SUCCESS.md](./governance/evidence/REPORT_E2E_SUCCESS.md): Confirmação de sucesso do teste ponta-a-ponta.
+- [REPORT_ENUM_DRIFT.md](./governance/evidence/REPORT_ENUM_DRIFT.md): Análise de divergência de Enums.
+- [REPORT_ENUM_MIGRATION.md](./governance/evidence/REPORT_ENUM_MIGRATION.md): Log da migração de Enums.
+- [REPORT_FINAL_STATUS.md](./governance/evidence/REPORT_FINAL_STATUS.md): Status final (parcial).
+- [REPORT_FINAL_STATUS_v2.md](./governance/evidence/REPORT_FINAL_STATUS_v2.md): Status final (aprovado).
+- [REPORT_FINAL_STATUS_v3.md](./governance/evidence/REPORT_FINAL_STATUS_v3.md): Status final (selado).
+- [REPORT_FULL_COVERAGE.md](./governance/evidence/REPORT_FULL_COVERAGE.md): Relatório de cobertura de rotas (Omniscience).
+- [REPORT_GOLD_MASTER_V1.md](./governance/evidence/REPORT_GOLD_MASTER_V1.md): Declaração de entrega Gold Master.
+- [REPORT_GOVERNANCE_CHANGELOG.md](./governance/evidence/REPORT_GOVERNANCE_CHANGELOG.md): Log de alterações nas regras de governança.
+- [REPORT_GOV_01.md](./governance/evidence/REPORT_GOV_01.md): Validação de integridade de governança.
+- [REPORT_GOV_01_XML_PRESENCE.md](./governance/evidence/REPORT_GOV_01_XML_PRESENCE.md): Auditoria de presença de XMLs.
+- [REPORT_GOV_02.md](./governance/evidence/REPORT_GOV_02.md): Auditoria de headers de arquivos.
+- [REPORT_GOV_03.md](./governance/evidence/REPORT_GOV_03.md): Validação de schema XML.
+- [REPORT_GOV_04.md](./governance/evidence/REPORT_GOV_04.md): Relatório de drift do Registry.
+- [REPORT_GOV_PROMPT_FIX.md](./governance/evidence/REPORT_GOV_PROMPT_FIX.md): Registro de correção de prompts.
+- [REPORT_INF_01.md](./governance/evidence/REPORT_INF_01.md): Healthcheck da API.
+- [REPORT_INF_02.md](./governance/evidence/REPORT_INF_02.md): Probe do Render.com.
+- [REPORT_INF_03.md](./governance/evidence/REPORT_INF_03.md): Check de latência Vercel.
+- [REPORT_INF_04.md](./governance/evidence/REPORT_INF_04.md): Probe do ambiente Expo.
+- [REPORT_OBS_01.md](./governance/evidence/REPORT_OBS_01.md): Teste de ingestão Sentry.
+- [REPORT_OBS_01_DIAG.md](./governance/evidence/REPORT_OBS_01_DIAG.md): Diagnóstico de falha do Sentry.
+- [REPORT_OMNISCIENCE.md](./governance/evidence/REPORT_OMNISCIENCE.md): Relatório geral de visibilidade do sistema.
+- [REPORT_PHASE_1_CONCLUSION.md](./governance/evidence/REPORT_PHASE_1_CONCLUSION.md): Conclusão da Fase 1.
+- [REPORT_PHASE_2_CLOSURE.md](./governance/evidence/REPORT_PHASE_2_CLOSURE.md): Encerramento da Fase 2.
+- [REPORT_PHASE_2_START.md](./governance/evidence/REPORT_PHASE_2_START.md): Início da Fase 2.
+- [REPORT_PHASE_3_READINESS.md](./governance/evidence/REPORT_PHASE_3_READINESS.md): Relatório de prontidão da Fase 3.
+- [REPORT_QA_VISUAL_INSPECTION.md](./governance/evidence/REPORT_QA_VISUAL_INSPECTION.md): Relatório de inspeção visual manual.
+- [REPORT_READINESS_SUMMARY.md](./governance/evidence/REPORT_READINESS_SUMMARY.md): Sumário executivo para investidores.
+- [REPORT_SEC_01.md](./governance/evidence/REPORT_SEC_01.md): Auditoria de RLS (geral).
+- [REPORT_SEC_01A.md](./governance/evidence/REPORT_SEC_01A.md): Inventário de políticas RLS.
+- [REPORT_SEC_01B.md](./governance/evidence/REPORT_SEC_01B.md): Matriz de roles de banco.
+- [REPORT_SEC_01C.md](./governance/evidence/REPORT_SEC_01C.md): Teste de contexto efetivo.
+- [REPORT_SEC_01D.md](./governance/evidence/REPORT_SEC_01D.md): Prova passiva de RLS.
+- [REPORT_SEC_01_FAILURE_ANALYSIS.md](./governance/evidence/REPORT_SEC_01_FAILURE_ANALYSIS.md): Análise de falha anterior do RLS.
+- [REPORT_SEC_04.md](./governance/evidence/REPORT_SEC_04.md): Auditoria de variáveis de ambiente.
+- [REPORT_SEC_05.md](./governance/evidence/REPORT_SEC_05.md): Auditoria de headers de segurança.
+- [REPORT_SENTRY_SETUP.md](./governance/evidence/REPORT_SENTRY_SETUP.md): Guia de configuração do Sentry.
+- [REPORT_STRATEGIC_ALIGNMENT.md](./governance/evidence/REPORT_STRATEGIC_ALIGNMENT.md): Alinhamento estratégico do projeto.
+- [REPORT_SYSTEM_INTEGRITY.md](./governance/evidence/REPORT_SYSTEM_INTEGRITY.md): Verificação de integridade de arquivos.
+- [REPORT_SYSTEM_STABLE.md](./governance/evidence/REPORT_SYSTEM_STABLE.md): Declaração de estabilidade do sistema.
+- [REPORT_UI_INTERACTIONS.md](./governance/evidence/REPORT_UI_INTERACTIONS.md): Auditoria de elementos interativos da UI.
+- [REPORT_ZERO_CONFIG_GAPS.md](./governance/evidence/REPORT_ZERO_CONFIG_GAPS.md): Análise de lacunas de configuração zero.
+- [RLS_CONTEXT_INSPECTION.md](./governance/evidence/RLS_CONTEXT_INSPECTION.md): Inspeção detalhada do contexto RLS.
+- [RLS_FAILURE_ANALYSIS.md](./governance/evidence/RLS_FAILURE_ANALYSIS.md): Análise de falha de RLS.
+- [RLS_FATAL_LEAK_REPORT.md](./governance/evidence/RLS_FATAL_LEAK_REPORT.md): Relatório de vazamento crítico de RLS.
+- [RLS_GUC_REMEDIATION_LOG.md](./governance/evidence/RLS_GUC_REMEDIATION_LOG.md): Log de remediação de configuração global do banco.
+- [RLS_HARDENING_DIAGNOSTIC.md](./governance/evidence/RLS_HARDENING_DIAGNOSTIC.md): Diagnóstico de endurecimento do RLS.
+- [RLS_MIGRATION_REPORT.md](./governance/evidence/RLS_MIGRATION_REPORT.md): Log da migração de RLS.
+- [RLS_POLICY_VERIFICATION.md](./governance/evidence/RLS_POLICY_VERIFICATION.md): Verificação de existência de políticas.
+- [RLS_SUPERUSER_BYPASS_WARNING.md](./governance/evidence/RLS_SUPERUSER_BYPASS_WARNING.md): Alerta sobre bypass de superusuário.
+- [RLS_VALIDATION_REPORT.md](./governance/evidence/RLS_VALIDATION_REPORT.md): Relatório final de validação RLS.
+- [SCHEMA_DISCOVERY_REPORT.md](./governance/evidence/SCHEMA_DISCOVERY_REPORT.md): Mapeamento do schema atual do banco.
+- [SECURITY_INCIDENT_RLS_LEAK.md](./governance/evidence/SECURITY_INCIDENT_RLS_LEAK.md): Registro de incidente de segurança.
+- [SECURITY_SEAL_L6.md](./governance/evidence/SECURITY_SEAL_L6.md): Selo de segurança L6.
+- [SQL_MIGRATION_REPORT.md](./governance/evidence/SQL_MIGRATION_REPORT.md): Log de execução de migrações SQL.
+
+## 4. Documentação Técnica (`docs/`)
+- [docs/API.md](./docs/API.md): Referência da API Backend.
+- [docs/ARCHITECTURAL_DECISIONS.md](./docs/ARCHITECTURAL_DECISIONS.md): Registro de decisões arquiteturais (ADRs).
+- [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md): Visão geral da arquitetura do sistema.
+- [docs/AUDIT_REPORT_2026-01.md](./docs/AUDIT_REPORT_2026-01.md): Relatório de auditoria geral de Janeiro.
+- [docs/BACKLOG.md](./docs/BACKLOG.md): Lista de funcionalidades pendentes.
+- [docs/CHANGELOG.md](./docs/CHANGELOG.md): Histórico de mudanças do projeto.
+- [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md): Guia para contribuidores.
+- [docs/DEEP_AUDIT_REPORT.md](./docs/DEEP_AUDIT_REPORT.md): Relatório de auditoria profunda de código.
+- [docs/DELIVERY_IMPROVEMENTS.md](./docs/DELIVERY_IMPROVEMENTS.md): Plano de melhorias para o módulo de delivery.
+- [docs/DEPLOY.md](./docs/DEPLOY.md): Guia de deploy.
+- [docs/DEVOPS.md](./docs/DEVOPS.md): Práticas e ferramentas de DevOps.
+- [docs/FRONTEND_STRUCTURE.md](./docs/FRONTEND_STRUCTURE.md): Estrutura de pastas do Frontend.
+- [docs/GTM_CHECKLIST.md](./docs/GTM_CHECKLIST.md): Checklist de Go-To-Market.
+- [docs/GUIA_HARDWARE.md](./docs/GUIA_HARDWARE.md): Guia de compatibilidade de impressoras e tablets.
+- [docs/GUIA_STRIPE_ASSINATURAS.md](./docs/GUIA_STRIPE_ASSINATURAS.md): Guia de integração com Stripe.
+- [docs/IMPLEMENTATION_HISTORY.md](./docs/IMPLEMENTATION_HISTORY.md): Histórico de implementação.
+- [docs/IMPLEMENTATION_LOG.md](./docs/IMPLEMENTATION_LOG.md): Log diário de implementação.
+- [docs/IMPLEMENTATION_LOG_PHASE_7.md](./docs/IMPLEMENTATION_LOG_PHASE_7.md): Log específico da Fase 7.
+- [docs/INTEGRATION_HUB_GUIDE.md](./docs/INTEGRATION_HUB_GUIDE.md): Guia de integrações externas.
+- [docs/MANUAL_COZINHA.md](./docs/MANUAL_COZINHA.md): Manual do usuário para a Cozinha (KDS).
+- [docs/MANUAL_DELIVERY.md](./docs/MANUAL_DELIVERY.md): Manual do usuário para Delivery.
+- [docs/MANUAL_FINANCEIRO.md](./docs/MANUAL_FINANCEIRO.md): Manual do usuário para Financeiro.
+- [docs/MANUAL_GARCOM.md](./docs/MANUAL_GARCOM.md): Manual do usuário para Garçons.
+- [docs/MANUAL_GESTOR.md](./docs/MANUAL_GESTOR.md): Manual do usuário para Gestores.
+- [docs/MANUAL_PAGAMENTOS.md](./docs/MANUAL_PAGAMENTOS.md): Manual de pagamentos.
+- [docs/MASTER_CONTEXT.md](./docs/MASTER_CONTEXT.md): Contexto mestre do projeto.
+- [docs/MASTER_PROJECT_BIBLE.md](./docs/MASTER_PROJECT_BIBLE.md): Bíblia do projeto (visão completa).
+- [docs/MESAFLOW_CONCEPT.md](./docs/MESAFLOW_CONCEPT.md): Conceito e visão do produto.
+- [docs/OFFLINE_ARCHITECTURE_SPEC.md](./docs/OFFLINE_ARCHITECTURE_SPEC.md): Especificação da arquitetura offline.
+- [docs/PITCH.md](./docs/PITCH.md): Pitch de vendas do produto.
+- [docs/PLAYBOOK_SUPORTE.md](./docs/PLAYBOOK_SUPORTE.md): Playbook para equipe de suporte.
+- [docs/PROJECT_OVERVIEW.md](./docs/PROJECT_OVERVIEW.md): Visão geral do projeto.
+- [docs/Projeto MesaFlow Corporate.md](./docs/Projeto%20MesaFlow%20Corporate.md): Especificação para versão corporativa.
+- [docs/PRO_CHECKLIST.md](./docs/PRO_CHECKLIST.md): Checklist para versão Pro.
+- [docs/ROADMAP.md](./docs/ROADMAP.md): Roteiro de desenvolvimento futuro.
+- [docs/ROUTE_TEST_REPORT.md](./docs/ROUTE_TEST_REPORT.md): Relatório de teste de rotas.
+- [docs/SECURITY_AUDIT_REPORT.md](./docs/SECURITY_AUDIT_REPORT.md): Relatório de auditoria de segurança.
+- [docs/SRE_MAINTENANCE_RUNBOOK.md](./docs/SRE_MAINTENANCE_RUNBOOK.md): Runbook de manutenção SRE.
+- [docs/TASKS.md](./docs/TASKS.md): Lista mestre de tarefas (SSOT de execução).
+- [docs/TECHNICAL_DEBT_REGISTER.md](./docs/TECHNICAL_DEBT_REGISTER.md): Registro de dívida técnica.
+- [docs/TECH_DEBT.md](./docs/TECH_DEBT.md): Resumo de dívida técnica.
+
+### ADRs (`docs/adr/`)
+- [docs/adr/ADR-000_INDEX.md](./docs/adr/ADR-000_INDEX.md): Índice de ADRs.
+- [docs/adr/ADR-001_FASTAPI_BACKEND.md](./docs/adr/ADR-001_FASTAPI_BACKEND.md): Decisão pelo FastAPI.
+- [docs/adr/ADR-002_NEON_POSTGRESQL.md](./docs/adr/ADR-002_NEON_POSTGRESQL.md): Decisão pelo Neon DB.
+- [docs/adr/ADR-003_RENDER_RUNTIME.md](./docs/adr/ADR-003_RENDER_RUNTIME.md): Decisão pelo Render.
+- [docs/adr/ADR-004_DUAL_HEALTH_ENDPOINT.md](./docs/adr/ADR-004_DUAL_HEALTH_ENDPOINT.md): Decisão por endpoint duplo de saúde.
+- [docs/adr/ADR-005_SECURITY_HARDENING_STRATEGY.md](./docs/adr/ADR-005_SECURITY_HARDENING_STRATEGY.md): Estratégia de hardening de segurança.
+
+### Mobile (`docs/mobile/`)
+- [docs/mobile/README.md](./docs/mobile/README.md): Visão geral do módulo Mobile.
+- [docs/mobile/ENTERPRISE_STORE_CHECKLIST.md](./docs/mobile/ENTERPRISE_STORE_CHECKLIST.md): Checklist para lojas de app.
+- [docs/mobile/PRINTER_HOMOLOGATION_GUIDE.md](./docs/mobile/PRINTER_HOMOLOGATION_GUIDE.md): Guia de homologação de impressoras.
+- [docs/mobile/TEST_PLAN_L6.md](./docs/mobile/TEST_PLAN_L6.md): Plano de testes L6 para mobile.
+- [docs/mobile/TEST_PLAN_MANUAL.md](./docs/mobile/TEST_PLAN_MANUAL.md): Roteiro de testes manuais mobile.
+- [docs/mobile/architecture/APP_ARCHITECTURE.md](./docs/mobile/architecture/APP_ARCHITECTURE.md): Arquitetura interna do app.
+- [docs/mobile/architecture/DESIGN_SYSTEM.md](./docs/mobile/architecture/DESIGN_SYSTEM.md): Design System Mobile.
+- [docs/mobile/architecture/INTEGRATION_STRATEGY.md](./docs/mobile/architecture/INTEGRATION_STRATEGY.md): Estratégia de integração.
+- [docs/mobile/architecture/MOBILE_ARCHITECTURE.md](./docs/mobile/architecture/MOBILE_ARCHITECTURE.md): Arquitetura geral mobile.
+- [docs/mobile/decisions/DATA_STRATEGY.md](./docs/mobile/decisions/DATA_STRATEGY.md): Estratégia de dados.
+- [docs/mobile/decisions/FUNCTIONAL_MAPPING.md](./docs/mobile/decisions/FUNCTIONAL_MAPPING.md): Mapeamento funcional.
+- [docs/mobile/decisions/JWT_BACKEND_AUDIT.md](./docs/mobile/decisions/JWT_BACKEND_AUDIT.md): Auditoria de JWT.
+- [docs/mobile/decisions/MISSION_GOVERNANCE.md](./docs/mobile/decisions/MISSION_GOVERNANCE.md): Governança de missões.
+- [docs/mobile/reports/CREDENTIALS_APPLE_GOOGLE.md](./docs/mobile/reports/CREDENTIALS_APPLE_GOOGLE.md): Relatório de credenciais.
+- [docs/mobile/reports/DIAGNOSTIC_REPORT.md](./docs/mobile/reports/DIAGNOSTIC_REPORT.md): Relatório de diagnóstico.
+- [docs/mobile/reports/FINAL_HANDOFF_L5.md](./docs/mobile/reports/FINAL_HANDOFF_L5.md): Handoff final L5.
+- [docs/mobile/reports/HUMAN_OBSERVATION_REPORT.md](./docs/mobile/reports/HUMAN_OBSERVATION_REPORT.md): Relatório de observação humana.
+- [docs/mobile/reports/HUMAN_UI_TEST_REPORT.md](./docs/mobile/reports/HUMAN_UI_TEST_REPORT.md): Relatório de teste de UI.
+- [docs/mobile/reports/MESAFLOW_AUTO_GOVERNANCE_AI.md](./docs/mobile/reports/MESAFLOW_AUTO_GOVERNANCE_AI.md): Governança automática por IA.
+- [docs/mobile/reports/MOBILE_LOCAL_RUN.md](./docs/mobile/reports/MOBILE_LOCAL_RUN.md): Relatório de execução local.
+- [docs/mobile/reports/PRODUCTION_LOCK_MOBILE.md](./docs/mobile/reports/PRODUCTION_LOCK_MOBILE.md): Lock de produção mobile.
+- [docs/mobile/reports/full_audit/FULL_L6_REPORT_093726.md](./docs/mobile/reports/full_audit/FULL_L6_REPORT_093726.md): Relatório de auditoria completa.
+- [docs/mobile/reports/login_audit/L6_FORENSIC_REPORT_093436.md](./docs/mobile/reports/login_audit/L6_FORENSIC_REPORT_093436.md): Relatório forense de login.
+- [docs/mobile/setup/CREDENTIALS_APPLE_ENTERPRISE.md](./docs/mobile/setup/CREDENTIALS_APPLE_ENTERPRISE.md): Credenciais Apple Enterprise.
+- [docs/mobile/setup/CREDENTIALS_GOOGLE_PLAY_ENTERPRISE.md](./docs/mobile/setup/CREDENTIALS_GOOGLE_PLAY_ENTERPRISE.md): Credenciais Google Play Enterprise.
+- [docs/mobile/setup/CREDENTIALS_REPORT.md](./docs/mobile/setup/CREDENTIALS_REPORT.md): Relatório geral de credenciais.
+- [docs/mobile/setup/ENVIRONMENT_SETUP.md](./docs/mobile/setup/ENVIRONMENT_SETUP.md): Setup de ambiente.
+- [docs/mobile/setup/LOCAL_BUILD_GUIDE.md](./docs/mobile/setup/LOCAL_BUILD_GUIDE.md): Guia de build local.
+- [docs/mobile/setup/SENTRY_GUIDE.md](./docs/mobile/setup/SENTRY_GUIDE.md): Guia do Sentry.
+- [docs/mobile/tasks/00_DOCS_PLAN.md](./docs/mobile/tasks/00_DOCS_PLAN.md): Plano de documentação mobile.
+- [docs/mobile/tasks/fix_web_blank_screen.md](./docs/mobile/tasks/fix_web_blank_screen.md): Fix de tela branca web.
+- [docs/mobile/tasks/fix_web_import_meta.md](./docs/mobile/tasks/fix_web_import_meta.md): Fix de import meta.
+- [docs/mobile/tasks/mobile_039_completion.md](./docs/mobile/tasks/mobile_039_completion.md): Conclusão task 039.
+- [docs/mobile/tasks/mobile_040_completion.md](./docs/mobile/tasks/mobile_040_completion.md): Conclusão task 040.
+- [docs/mobile/tasks/mobile_041_completion.md](./docs/mobile/tasks/mobile_041_completion.md): Conclusão task 041.
+- [docs/mobile/tasks/mobile_10_3_upgrade_sdk_54.md](./docs/mobile/tasks/mobile_10_3_upgrade_sdk_54.md): Upgrade SDK 54.
+- [docs/mobile/tasks/mobile_11_auth_infra.md](./docs/mobile/tasks/mobile_11_auth_infra.md): Infra de auth.
+- [docs/mobile/tasks/mobile_12_auth_application.md](./docs/mobile/tasks/mobile_12_auth_application.md): Aplicação de auth.
+- [docs/mobile/tasks/mobile_13_navigation_bootstrap.md](./docs/mobile/tasks/mobile_13_navigation_bootstrap.md): Bootstrap de navegação.
+- [docs/mobile/tasks/mobile_14a_semantic_auth.md](./docs/mobile/tasks/mobile_14a_semantic_auth.md): Auth semântica.
+- [docs/mobile/tasks/mobile_14b_auth_boundary.md](./docs/mobile/tasks/mobile_14b_auth_boundary.md): Fronteira de auth.
+- [docs/mobile/tasks/mobile_14b_completion.md](./docs/mobile/tasks/mobile_14b_completion.md): Conclusão task 14b.
+- [docs/mobile/tasks/mobile_14_auth_semantics.md](./docs/mobile/tasks/mobile_14_auth_semantics.md): Semântica de auth.
+- [docs/mobile/tasks/mobile_15_ui_foundation.md](./docs/mobile/tasks/mobile_15_ui_foundation.md): Fundação de UI.
+- [docs/mobile/tasks/mobile_16_ui_implementation.md](./docs/mobile/tasks/mobile_16_ui_implementation.md): Implementação de UI.
+- [docs/mobile/tasks/mobile_16_ui_login_home.md](./docs/mobile/tasks/mobile_16_ui_login_home.md): UI Login/Home.
+- [docs/mobile/tasks/mobile_17_kds_orders.md](./docs/mobile/tasks/mobile_17_kds_orders.md): KDS Orders.
+- [docs/mobile/tasks/mobile_18_realtime_kds.md](./docs/mobile/tasks/mobile_18_realtime_kds.md): Realtime KDS.
+- [docs/mobile/tasks/mobile_19_operational_identity.md](./docs/mobile/tasks/mobile_19_operational_identity.md): Identidade operacional.
+- [docs/mobile/tasks/mobile_20_resilience_state_sync.md](./docs/mobile/tasks/mobile_20_resilience_state_sync.md): Resiliência e sync.
+- [docs/mobile/tasks/mobile_21_sla_engine.md](./docs/mobile/tasks/mobile_21_sla_engine.md): SLA Engine.
+- [docs/mobile/tasks/mobile_22_operational_alerts.md](./docs/mobile/tasks/mobile_22_operational_alerts.md): Alertas operacionais.
+- [docs/mobile/tasks/mobile_23_operator_controls.md](./docs/mobile/tasks/mobile_23_operator_controls.md): Controles do operador.
+- [docs/mobile/tasks/mobile_24_resilience_recovery.md](./docs/mobile/tasks/mobile_24_resilience_recovery.md): Recuperação de resiliência.
+- [docs/mobile/tasks/mobile_25_error_states.md](./docs/mobile/tasks/mobile_25_error_states.md): Estados de erro.
+- [docs/mobile/tasks/mobile_26_local_persistence.md](./docs/mobile/tasks/mobile_26_local_persistence.md): Persistência local.
+- [docs/mobile/tasks/mobile_27_observability.md](./docs/mobile/tasks/mobile_27_observability.md): Observabilidade.
+- [docs/mobile/tasks/mobile_28_release_candidate.md](./docs/mobile/tasks/mobile_28_release_candidate.md): Release candidate.
+- [docs/mobile/tasks/mobile_29a_pos_foundation.md](./docs/mobile/tasks/mobile_29a_pos_foundation.md): Fundação POS.
+- [docs/mobile/tasks/mobile_29b_order_entry.md](./docs/mobile/tasks/mobile_29b_order_entry.md): Entrada de pedidos.
+- [docs/mobile/tasks/mobile_29c_order_submission.md](./docs/mobile/tasks/mobile_29c_order_submission.md): Envio de pedidos.
+- [docs/mobile/tasks/mobile_30a_printer_foundation.md](./docs/mobile/tasks/mobile_30a_printer_foundation.md): Fundação de impressão.
+- [docs/mobile/tasks/mobile_30b_bluetooth_integration.md](./docs/mobile/tasks/mobile_30b_bluetooth_integration.md): Integração Bluetooth.
+- [docs/mobile/tasks/mobile_31_push_notifications.md](./docs/mobile/tasks/mobile_31_push_notifications.md): Push notifications.
+- [docs/mobile/tasks/mobile_32_waiter_calls.md](./docs/mobile/tasks/mobile_32_waiter_calls.md): Chamados de garçom.
+- [docs/mobile/tasks/mobile_33_native_payments.md](./docs/mobile/tasks/mobile_33_native_payments.md): Pagamentos nativos.
+- [docs/mobile/tasks/mobile_34_offline_queue.md](./docs/mobile/tasks/mobile_34_offline_queue.md): Fila offline.
+- [docs/mobile/tasks/mobile_35_production_prep.md](./docs/mobile/tasks/mobile_35_production_prep.md): Preparação de produção.
+- [docs/mobile/tasks/mobile_36_native_build.md](./docs/mobile/tasks/mobile_36_native_build.md): Build nativo.
+- [docs/mobile/tasks/mobile_37_printer_homologation.md](./docs/mobile/tasks/mobile_37_printer_homologation.md): Homologação de impressora.
+- [docs/mobile/tasks/mobile_38_sentry_integration.md](./docs/mobile/tasks/mobile_38_sentry_integration.md): Integração Sentry.
+- [docs/mobile/tasks/mobile_hardening_ux.md](./docs/mobile/tasks/mobile_hardening_ux.md): Hardening UX.
+- [docs/mobile/testing/HUMAN_UI_TESTS_L5.md](./docs/mobile/testing/HUMAN_UI_TESTS_L5.md): Testes UI humanos L5.
+- [docs/mobile/testing/HUMAN_UI_TEST_MATRIX.md](./docs/mobile/testing/HUMAN_UI_TEST_MATRIX.md): Matriz de testes UI.
+
+### Outros (`docs/`)
+- [docs/architecture/domain-separation.md](./docs/architecture/domain-separation.md): Separação de domínios.
+- [docs/archive/](./docs/archive/): Arquivos legados e históricos.
+- [docs/audit/](./docs/audit/): Relatórios de auditoria de código.
+- [docs/commercial/](./docs/commercial/): Documentos comerciais e de vendas.
+- [docs/cycles/](./docs/cycles/): Planejamento de ciclos de desenvolvimento.
+- [docs/enterprise/](./docs/enterprise/): Documentação específica para clientes Enterprise.
+- [docs/frontend/](./docs/frontend/): Documentação específica do Frontend.
+- [docs/implemented/](./docs/implemented/): Logs de funcionalidades implementadas.
+- [docs/improvements/](./docs/improvements/): Propostas de melhoria.
+- [docs/integration/](./docs/integration/): Guias de integração.
+- [docs/investors/](./docs/investors/): Material para investidores.
+- [docs/legal/](./docs/legal/): Documentos legais (Termos, Privacidade).
+- [docs/management/](./docs/management/): Documentos de gestão de projeto.
+- [docs/manuals/](./docs/manuals/): Manuais de usuário e operação.
+- [docs/manual_testing/](./docs/manual_testing/): Roteiros de teste manual.
+- [docs/performance/](./docs/performance/): Planejamento de capacidade.
+- [docs/quality/](./docs/quality/): Métricas de qualidade.
+- [docs/releases/](./docs/releases/): Notas de lançamento.
+- [docs/reports/](./docs/reports/): Relatórios gerais.
+- [docs/security/](./docs/security/): Políticas de segurança.
+- [docs/specs/](./docs/specs/): Especificações funcionais.
+- [docs/sre/](./docs/sre/): Runbooks e planos de resposta a incidentes.
+- [docs/strategy/](./docs/strategy/): Estratégia de produto.
+- [docs/tasks/details/](./docs/tasks/details/): Detalhamento técnico de tasks específicas.
+- [docs/team/](./docs/team/): Documentos de RH e contratação.
+- [docs/technical/](./docs/technical/): Documentação técnica profunda.
+- [docs/troubleshooting/](./docs/troubleshooting/): Guias de solução de problemas.
+- [docs/trust/](./docs/trust/): Documentação do Trust Center.
+
+## 5. Frontend (`frontend/`)
+- [frontend/README.md](./frontend/README.md): Instruções específicas do projeto Frontend.
+- [frontend/test-results/](./frontend/test-results/): Logs de erros de testes automatizados.
+
+## 6. Comunicação (`comunication/`)
+- [comunication/handoff_final.md](./comunication/handoff_final.md): Texto final de entrega.
+- [comunication/handoff_log.md](./comunication/handoff_log.md): Log de transferência.
+- [comunication/logs/](./comunication/logs/): Logs brutos de execução.
+- [comunication/orders/](./comunication/orders/): Logs específicos de pedidos (debug).
+- [comunication/prompts/](./comunication/prompts/): Prompts utilizados para gerar código.
+- [comunication/reports/](./comunication/reports/): Relatórios gerados por scripts (legado/backup).

@@ -306,3 +306,270 @@ Longo Prazo (3 meses+):
 Integração Fiscal: Necessário para escalar vendas B2B.
 
 App do Garçom: Para substituir sistemas legados (Totvs, etc).
+# 📋 Backlog Mestre: Ecossistema MesaFlow OS (Completo)
+**Versão:** 6.0 — Total Coverage
+**Regra de Ouro:** Funcionalidades marcadas como [CONFERIDO] devem ser re-validadas pelo Omni-Check a cada deploy.
+
+---
+
+## 🛡️ Camada 0: Qualidade & Anti-Regressão (IMEDIATO)
+- [ ] **[QA] Omni-Check Script:** Script que roda todos os validadores (`.py` e `.ts`) simultaneamente.
+- [ ] **[QA] Questionários de 100 Perguntas:** Implementar os 6 arquivos de checagem técnica por perfil.
+- [ ] **[DOC] Dicionário de Telas:** Documento individual para cada uma das 34 rotas mapeadas.
+- [ ] **[DOC] Checklist de Produção:** Implementar o Hard-Gate de segurança e infra.
+
+## 🍔 Experiência do Cliente (Frontend/PWA)
+- [x] [CONFERIDO] Navegação de Categorias.
+- [x] [CONFERIDO] Carrinho Local.
+- [ ] **[REGRESSÃO]** Adicionais e Observações (N:N).
+- [ ] **[REGRESSÃO]** Lógica de Meio a Meio.
+- [ ] **[REGRESSÃO]** Upsell via IA (Sugestões baseadas no carrinho).
+- [ ] **[REGRESSÃO]** Split de Conta Multiplayer (WebSocket Sync).
+
+## 👨‍🍳 Operação & KDS (Mobile/Web)
+- [x] [CONFERIDO] Recebimento de Pedidos (Real-time).
+- [x] [CONFERIDO] Alertas Sonoros/Vibratórios.
+- [ ] **[REGRESSÃO]** Recall de Pedido (Undo Action).
+- [ ] **[REGRESSÃO]** Filtro de Estação (Bar vs Cozinha).
+- [ ] **[REGRESSÃO]** Modo Pausa de Cozinha.
+- [ ] **[REGRESSÃO]** Impressão Bluetooth Nativa.
+
+## 💳 Fintech & Fiscal (Backend)
+- [x] [CONFERIDO] Split de Pagamento Mercado Pago.
+- [x] [CONFERIDO] Gestão de Assinaturas Stripe.
+- [ ] **[REGRESSÃO]** Emissão de Nota Fiscal (Focus NFe).
+- [ ] **[REGRESSÃO]** Conciliação Financeira (Ledger vs Gateway).
+- [ ] **[REGRESSÃO]** Wallet de Cliente (Cashback & Saldo).
+
+## 🏢 Gestão & Admin (Web)
+- [x] [CONFERIDO] Dashboard Financeiro.
+- [ ] **[REGRESSÃO]** Gestão de Franquias (Multi-unidade).
+- [ ] **[REGRESSÃO]** Controle de Estoque (Ficha Técnica/Ingredientes).
+- [ ] **[REGRESSÃO]** Auditoria de Preço e Logs de Alteração.
+
+---
+*Este backlog é a única fonte de verdade para a próxima sprint.*
+# 📋 Backlog Mestre: MesaFlow OS (L6 Edition)
+**Status:** VIVO | **Fase:** Era 3 (Enterprise)
+
+Este documento unifica as demandas de Produto e Engenharia.
+
+---
+
+## 🛡️ Camada 0: Qualidade (CONCLUÍDO)
+- [x] **Omni-Check Script:** Validado e funcional.
+- [x] **Questionários de 100 Perguntas:** 700 questões redigidas.
+- [x] **Dicionário de Telas:** 34 rotas especificadas.
+- [x] **Checklist de Produção:** Hard-gates definidos.
+
+## 🚨 Alta Prioridade (Q1 2026)
+- [ ] **[FISC] Integração Fiscal Real:** Focus NFe em produção.
+- [ ] **[INT] Hub iFood:** Ingestão de pedidos via Webhook.
+- [ ] **[MOB] Publicação Lojas:** Apple e Google.
+- [ ] **[FEAT] Adicionais N:N:** Personalização de itens no cardápio.
+
+## 🍔 Experiência do Cliente
+- [ ] **[FEAT] Meio a Meio:** Lógica para pizzas.
+- [ ] **[FEAT] Upsell IA:** Sugestões baseadas no carrinho.
+- [ ] **[FEAT] Split Bill:** Pagamento colaborativo via WebSocket.
+
+## 👨‍🍳 Operação & KDS
+- [ ] **[FEAT] Recall de Pedido:** Undo action no KDS.
+- [ ] **[FEAT] Filtro de Estação:** Bar vs Cozinha persistente.
+- [ ] **[FEAT] Impressão Bluetooth:** Driver nativo completo.
+
+## 💳 Fintech & Gestão
+- [ ] **[PAY] Conciliação Automática:** Ledger vs Gateway.
+- [ ] **[PAY] Wallet Cliente:** Cashback e Saldo.
+- [ ] **[ADM] Multi-Loja:** Dashboard de Franquias.
+- [ ] **[ADM] Ficha Técnica:** Baixa de estoque por ingrediente.
+
+---
+*Legenda: [x] = Estabilizado, [ ] = Pendente.*
+# 📋 Backlog Mestre: MesaFlow OS (L6 Edition)
+**Status:** VIVO | **Fase:** Era 3 (Enterprise)
+**Última Auditoria:** 100% Estável (Omni-Check v1.2)
+
+---
+
+## 🛡️ Camada 0: Qualidade (CONCLUÍDO)
+- [x] **Omni-Check Script:** Validado e funcional.
+- [x] **Questionários de 100 Perguntas:** 700 questões redigidas para 7 perfis.
+- [x] **Dicionário de Telas:** 34 rotas especificadas em `docs/technical/pages/`.
+- [x] **Checklist de Produção:** Hard-gates definidos e explicados.
+- [x] **Resumo Narrativo:** Script de geração de parágrafos explicativos.
+
+## 🚨 Alta Prioridade (Q1 2026)
+- [ ] **[FISC] Integração Fiscal Real:** Migrar do Mock para Focus NFe.
+- [ ] **[INT] Hub iFood:** Implementar recepção de pedidos via Webhook.
+- [ ] **[MOB] Publicação Lojas:** Preparar assets e assinar binários.
+- [ ] **[FEAT] Adicionais N:N:** Lógica de complementos no cardápio.
+
+## 🍔 Experiência do Cliente
+- [ ] **[FEAT] Meio a Meio:** Lógica para pizzas e itens fracionados.
+- [ ] **[FEAT] Upsell IA:** Motor de recomendação baseado em histórico.
+- [ ] **[FEAT] Split Bill:** Sincronia de pagamento entre dispositivos.
+
+## 👨‍🍳 Operação & KDS
+- [ ] **[FEAT] Recall de Pedido:** Botão para desfazer finalização.
+- [ ] **[FEAT] Filtro de Estação:** Persistência de visão (Bar/Cozinha) por device.
+- [ ] **[FEAT] Impressão Bluetooth:** Driver nativo para Android/iOS.
+
+---
+*Legenda: [x] = Estabilizado e Conferido, [ ] = Pendente.*
+# 📋 Backlog Mestre: MesaFlow OS (L6 Edition)
+**Status:** VIVO
+**Priorização:** RICE Score (Impacto x Esforço)
+
+Este documento unifica as demandas de Produto (Features) e Engenharia (Enablers).
+
+---
+
+## 🚨 Alta Prioridade (Q1 2026)
+*Foco: Desbloqueio de Vendas Enterprise e Estabilidade.*
+
+| ID | Tipo | Título | RICE | Status | Dependência |
+| :--- | :--- | :--- | :---: | :---: | :--- |
+| **TASK-FIS-01** | 🔌 Backend | **Integração Fiscal Real (Focus NFe)** | 98 | 🚧 WIP | `SEC-04` |
+| **TASK-MOB-05** | 📱 Mobile | **Publicação nas Lojas (Apple/Google)** | 95 | 📅 Plan | `INF-04` |
+| **TASK-INT-02** | 🔌 Backend | **Hub iFood (Ingestão de Pedidos)** | 90 | 📅 Plan | `APP-02` |
+| **TASK-FIN-04** | 💰 Fintech | **Conciliação Automática (Ledger vs Gateway)** | 88 | 📅 Plan | `APP-03` |
+| **TASK-UX-05** | 🎨 Frontend | **Modo Offline Robusto (Service Workers)** | 85 | 📅 Plan | - |
+
+---
+
+## 🍔 Experiência do Cliente (Growth)
+*Foco: Aumentar Ticket Médio e Retenção.*
+
+- [ ] **[FEAT] Upsell Inteligente v2:** Sugestão baseada em histórico real (não apenas regras fixas).
+- [ ] **[FEAT] Personalização de Item:** Adicionais e Observações estruturadas (N:N no banco).
+- [ ] **[FEAT] Racha-Conta (Split Bill):** Pagamento colaborativo na mesa via WebSocket.
+- [ ] **[UX] Gamificação:** Níveis de fidelidade e badges para clientes recorrentes.
+
+## 👨‍🍳 Operação & KDS (Efficiency)
+*Foco: Reduzir tempo de preparo e erros.*
+
+- [ ] **[KDS] Visão de Praça:** Filtro por estação (Bar, Cozinha, Sobremesa) persistente por dispositivo.
+- [ ] **[KDS] Recall de Pedido:** Desfazer "Pronto" em caso de erro (Undo Action).
+- [ ] **[KDS] Impressão de Contingência:** Fallback automático para impressora USB se a rede cair.
+
+## 🏢 Gestão & SaaS (Control)
+*Foco: Governança para Franquias.*
+
+- [ ] **[ADM] Multi-Loja:** Dashboard consolidado para redes de franquias.
+- [ ] **[ADM] Controle de Estoque (Ficha Técnica):** Baixa de ingredientes composta (1 Burger = 1 Pão + 1 Carne).
+- [ ] **[ADM] Auditoria de Preço:** Log de quem alterou preços e quando.
+
+## 🛡️ Engenharia & Segurança (Enablers)
+*Foco: Manutenibilidade e Compliance.*
+
+- [ ] **[SEC] Pentest Automatizado:** CI/CD rodando ZAP Scanner semanalmente.
+- [ ] **[INF] Multi-Region:** Réplica de leitura do banco em outra zona de disponibilidade.
+- [ ] **[DEV] Storybook:** Documentação viva dos componentes de UI.
+
+---
+*Legenda: WIP (Work In Progress), Plan (Planejado).*
+# 📋 Backlog Mestre: MesaFlow OS (L6 Edition)
+**Status:** VIVO
+**Priorização:** RICE Score (Impacto x Esforço)
+
+Este documento unifica as demandas de Produto (Features) e Engenharia (Enablers).
+
+---
+
+## 🚨 Alta Prioridade (Q1 2026)
+*Foco: Desbloqueio de Vendas Enterprise e Estabilidade.*
+
+| ID | Tipo | Título | RICE | Status | Dependência |
+| :--- | :--- | :--- | :---: | :---: | :--- |
+| **TASK-FIS-01** | 🔌 Backend | **Integração Fiscal Real (Focus NFe)** | 98 | 🚧 WIP | `SEC-04` |
+| **TASK-MOB-05** | 📱 Mobile | **Publicação nas Lojas (Apple/Google)** | 95 | 📅 Plan | `INF-04` |
+| **TASK-INT-02** | 🔌 Backend | **Hub iFood (Ingestão de Pedidos)** | 90 | 📅 Plan | `APP-02` |
+| **TASK-FIN-04** | 💰 Fintech | **Conciliação Automática (Ledger vs Gateway)** | 88 | 📅 Plan | `APP-03` |
+| **TASK-UX-05** | 🎨 Frontend | **Modo Offline Robusto (Service Workers)** | 85 | 📅 Plan | - |
+
+---
+
+## 🍔 Experiência do Cliente (Growth)
+*Foco: Aumentar Ticket Médio e Retenção.*
+
+- [ ] **[FEAT] Upsell Inteligente v2:** Sugestão baseada em histórico real (não apenas regras fixas).
+- [ ] **[FEAT] Personalização de Item:** Adicionais e Observações estruturadas (N:N no banco).
+- [ ] **[FEAT] Racha-Conta (Split Bill):** Pagamento colaborativo na mesa via WebSocket.
+- [ ] **[UX] Gamificação:** Níveis de fidelidade e badges para clientes recorrentes.
+
+## 👨‍🍳 Operação & KDS (Efficiency)
+*Foco: Reduzir tempo de preparo e erros.*
+
+- [ ] **[KDS] Visão de Praça:** Filtro por estação (Bar, Cozinha, Sobremesa) persistente por dispositivo.
+- [ ] **[KDS] Recall de Pedido:** Desfazer "Pronto" em caso de erro (Undo Action).
+- [ ] **[KDS] Impressão de Contingência:** Fallback automático para impressora USB se a rede cair.
+
+## 🏢 Gestão & SaaS (Control)
+*Foco: Governança para Franquias.*
+
+- [ ] **[ADM] Multi-Loja:** Dashboard consolidado para redes de franquias.
+- [ ] **[ADM] Controle de Estoque (Ficha Técnica):** Baixa de ingredientes composta (1 Burger = 1 Pão + 1 Carne).
+- [ ] **[ADM] Auditoria de Preço:** Log de quem alterou preços e quando.
+
+## 🛡️ Engenharia & Segurança (Enablers)
+*Foco: Manutenibilidade e Compliance.*
+
+- [ ] **[SEC] Pentest Automatizado:** CI/CD rodando ZAP Scanner semanalmente.
+- [ ] **[INF] Multi-Region:** Réplica de leitura do banco em outra zona de disponibilidade.
+- [ ] **[DEV] Storybook:** Documentação viva dos componentes de UI.
+
+---
+*Legenda: WIP (Work In Progress), Plan (Planejado).*
+# 📋 Backlog Mestre: MesaFlow OS (L6 Edition)
+**Status:** VIVO
+**Priorização:** RICE Score (Impacto x Esforço)
+
+Este documento unifica as demandas de Produto (Features) e Engenharia (Enablers).
+
+---
+
+## 🚨 Alta Prioridade (Q1 2026)
+*Foco: Desbloqueio de Vendas Enterprise e Estabilidade.*
+
+| ID | Tipo | Título | RICE | Status | Dependência |
+| :--- | :--- | :--- | :---: | :---: | :--- |
+| **TASK-FIS-01** | 🔌 Backend | **Integração Fiscal Real (Focus NFe)** | 98 | 🚧 WIP | `SEC-04` |
+| **TASK-MOB-05** | 📱 Mobile | **Publicação nas Lojas (Apple/Google)** | 95 | 📅 Plan | `INF-04` |
+| **TASK-INT-02** | 🔌 Backend | **Hub iFood (Ingestão de Pedidos)** | 90 | 📅 Plan | `APP-02` |
+| **TASK-FIN-04** | 💰 Fintech | **Conciliação Automática (Ledger vs Gateway)** | 88 | 📅 Plan | `APP-03` |
+| **TASK-UX-05** | 🎨 Frontend | **Modo Offline Robusto (Service Workers)** | 85 | 📅 Plan | - |
+
+---
+
+## 🍔 Experiência do Cliente (Growth)
+*Foco: Aumentar Ticket Médio e Retenção.*
+
+- [ ] **[FEAT] Upsell Inteligente v2:** Sugestão baseada em histórico real (não apenas regras fixas).
+- [ ] **[FEAT] Personalização de Item:** Adicionais e Observações estruturadas (N:N no banco).
+- [ ] **[FEAT] Racha-Conta (Split Bill):** Pagamento colaborativo na mesa via WebSocket.
+- [ ] **[UX] Gamificação:** Níveis de fidelidade e badges para clientes recorrentes.
+
+## 👨‍🍳 Operação & KDS (Efficiency)
+*Foco: Reduzir tempo de preparo e erros.*
+
+- [ ] **[KDS] Visão de Praça:** Filtro por estação (Bar, Cozinha, Sobremesa) persistente por dispositivo.
+- [ ] **[KDS] Recall de Pedido:** Desfazer "Pronto" em caso de erro (Undo Action).
+- [ ] **[KDS] Impressão de Contingência:** Fallback automático para impressora USB se a rede cair.
+
+## 🏢 Gestão & SaaS (Control)
+*Foco: Governança para Franquias.*
+
+- [ ] **[ADM] Multi-Loja:** Dashboard consolidado para redes de franquias.
+- [ ] **[ADM] Controle de Estoque (Ficha Técnica):** Baixa de ingredientes composta (1 Burger = 1 Pão + 1 Carne).
+- [ ] **[ADM] Auditoria de Preço:** Log de quem alterou preços e quando.
+
+## 🛡️ Engenharia & Segurança (Enablers)
+*Foco: Manutenibilidade e Compliance.*
+
+- [ ] **[SEC] Pentest Automatizado:** CI/CD rodando ZAP Scanner semanalmente.
+- [ ] **[INF] Multi-Region:** Réplica de leitura do banco em outra zona de disponibilidade.
+- [ ] **[DEV] Storybook:** Documentação viva dos componentes de UI.
+
+---
+*Legenda: WIP (Work In Progress), Plan (Planejado).*

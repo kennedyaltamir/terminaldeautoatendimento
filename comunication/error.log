@@ -1,0 +1,87 @@
+{"timestamp": "2026-01-13T07:28:48.011274", "script": "SYS-01", "type": "INTEGRITY_FAILURE", "reason": "AUDIT_FAILED", "details": ["Evidence Missing: REPORT_SYSTEM_INTEGRITY.md (for system_integrity_check.py)"]}
+
+--- FAIL: Integridade Estrutural (2026-01-13 11:10:21.715647) ---
+
+Traceback (most recent call last):
+  File "C:\mesaflow\scripts\maintenance\system_integrity_check.py", line 157, in <module>
+    sys.exit(run_integrity_audit())
+             ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\mesaflow\scripts\maintenance\system_integrity_check.py", line 58, in run_integrity_audit
+    print("\U0001f6e1\ufe0f  Running SYS-01: System Integrity Audit (Canonical)...")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kennedy Oliveira\AppData\Local\Programs\Python\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 0-1: character maps to <undefined>
+
+--- FAIL: Descoberta de Schema (2026-01-13 11:10:22.157859) ---
+
+Traceback (most recent call last):
+  File "C:\mesaflow\scripts\validar\discover_schema.py", line 66, in <module>
+    discover()
+    ~~~~~~~~^^
+  File "C:\mesaflow\scripts\validar\discover_schema.py", line 15, in discover
+    print("\U0001f50d Iniciando Descoberta de Schema e Auditoria RLS...")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kennedy Oliveira\AppData\Local\Programs\Python\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f50d' in position 0: character maps to <undefined>
+
+--- FAIL: Row-Level Security (2026-01-13 11:10:22.206850) ---
+
+python: can't open file 'C:\\mesaflow\\scripts\\validar\\verify_TASK-SEC-01.py': [Errno 2] No such file or directory
+
+--- FAIL: Integridade Estrutural (2026-01-13 11:11:36.646178) ---
+
+Traceback (most recent call last):
+  File "C:\mesaflow\scripts\maintenance\system_integrity_check.py", line 157, in <module>
+    sys.exit(run_integrity_audit())
+             ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\mesaflow\scripts\maintenance\system_integrity_check.py", line 58, in run_integrity_audit
+    print("\U0001f6e1\ufe0f  Running SYS-01: System Integrity Audit (Canonical)...")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kennedy Oliveira\AppData\Local\Programs\Python\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 0-1: character maps to <undefined>
+
+--- FAIL: Descoberta de Schema (2026-01-13 11:11:37.097504) ---
+
+Traceback (most recent call last):
+  File "C:\mesaflow\scripts\validar\discover_schema.py", line 66, in <module>
+    discover()
+    ~~~~~~~~^^
+  File "C:\mesaflow\scripts\validar\discover_schema.py", line 15, in discover
+    print("\U0001f50d Iniciando Descoberta de Schema e Auditoria RLS...")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kennedy Oliveira\AppData\Local\Programs\Python\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f50d' in position 0: character maps to <undefined>
+
+--- FAIL: Row-Level Security (2026-01-13 11:11:37.144345) ---
+
+python: can't open file 'C:\\mesaflow\\scripts\\validar\\verify_TASK-SEC-01.py': [Errno 2] No such file or directory
+
+--- FAIL: Descoberta de Schema (2026-01-14 23:24:10.716962) ---
+[SCHEMA] Initiating Schema Discovery and RLS Audit...
+
+Error: Connection failure: 'utf-8' codec can't decode byte 0xe7 in position 78: invalid continuation byte
+
+
+--- FAIL: Row-Level Security (2026-01-14 23:24:11.099997) ---
+[SEC-01] Initiating RLS Hardened Validation...
+CRITICAL: Test execution failed: 'utf-8' codec can't decode byte 0xe7 in position 78: invalid continuation byte
+
+
+--- FAIL: Descoberta de Schema (2026-01-14 23:31:46.066715) ---
+[SCHEMA] Initiating Schema Discovery and RLS Audit...
+
+Error: Connection failure: 'utf-8' codec can't decode byte 0xe7 in position 78: invalid continuation byte
+
+
+--- FAIL: Row-Level Security (2026-01-14 23:31:46.474151) ---
+[SEC-01] Initiating RLS Hardened Validation...
+CRITICAL: Test execution failed: 'utf-8' codec can't decode byte 0xe7 in position 78: invalid continuation byte
+

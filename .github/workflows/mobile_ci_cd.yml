@@ -1,0 +1,58 @@
+
+name: Mobile L5 Pipeline
+
+on:
+  pull_request:
+    paths: ['mobile/**']
+  push:
+    branches: [main]
+
+jobs:
+  quality_gate:
+    name: 🛡️ Kernel Quality Gate
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: |
+          cd mobile
+          npm install
+
+      - name: 1️⃣ UI Sweep (Visual Integrity)
+        run: |
+          cd mobile
+          npx ts-node scripts/ui_sweep.ts
+
+      - name: 2️⃣ Human QA Simulation
+        run: python scripts/automation/run_human_qa.py
+
+      - name: 3️⃣ Kernel Bot Decision
+        run: node scripts/github/quality_gate_bot.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build_deploy:
+    name: 🚀 EAS Build & Submit
+    needs: quality_gate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Android (Production)
+        run: |
+          cd mobile
+          eas build --platform android --profile production --non-interactive
+

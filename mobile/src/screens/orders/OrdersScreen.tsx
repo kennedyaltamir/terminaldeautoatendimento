@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ActivityIndicator, Pressable } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
@@ -9,8 +10,9 @@ import { Button } from '../../ui/components/Button';
 import { colors } from '../../ui/tokens/colors';
 import { spacing } from '../../ui/tokens/spacing';
 import { typography } from '../../ui/tokens/typography';
-import { RefreshCw, WifiOff, AlertCircle, ChefHat, Bell, BellOff } from 'lucide-react-native';
+import { RefreshCw, WifiOff, ChefHat, Bell, BellOff } from 'lucide-react-native';
 import LoadingScreen from '../common/LoadingScreen';
+import { ErrorStateView } from '../../components/ui/ErrorStateView';
 
 export default function OrdersScreen() {
   const { 
@@ -23,7 +25,6 @@ export default function OrdersScreen() {
     fetchOrders, 
     advanceStatus 
   } = useOrdersStore();
-
   const { isSilentMode, toggleSilentMode } = useSettingsStore();
   const slug = useSessionStore(state => state.slug);
 
@@ -59,7 +60,6 @@ export default function OrdersScreen() {
           </Text>
         </View>
       </View>
-
       <View style={styles.itemsContainer}>
         {item.items.map((i, index) => (
           <Text key={index} style={styles.itemText}>
@@ -67,7 +67,6 @@ export default function OrdersScreen() {
           </Text>
         ))}
       </View>
-
       <View style={styles.cardFooter}>
         <Text style={styles.elapsedText}>Há {item.elapsedTime}</Text>
         <Button 
@@ -88,7 +87,7 @@ export default function OrdersScreen() {
           <Text style={styles.offlineText}>Conexão Perdida</Text>
         </View>
       )}
-
+      
       <View style={styles.screenHeader}>
         <View>
           <Text style={styles.title}>KDS Mobile</Text>
@@ -102,10 +101,8 @@ export default function OrdersScreen() {
             )}
           </View>
         </View>
-
         <View style={styles.headerActions}>
           {isLoading && <ActivityIndicator size="small" color={colors.primary} style={{ marginRight: spacing.md }} />}
-
           <Pressable 
             onPress={toggleSilentMode}
             style={({ pressed }) => [
@@ -124,17 +121,11 @@ export default function OrdersScreen() {
       </View>
 
       {error && orders.length === 0 ? (
-        <View style={styles.centerContent}>
-          <AlertCircle size={48} color={colors.status.danger} style={{ marginBottom: spacing.md }} />
-          <Text style={styles.errorTitle}>Falha de Conexão</Text>
-          <Text style={styles.errorSubtitle}>{error}</Text>
-          <Button 
-            title="Tentar Novamente" 
-            variant="outline" 
-            style={{ marginTop: spacing.xl }}
-            onPress={() => slug && fetchOrders(slug)} 
-          />
-        </View>
+        <ErrorStateView 
+          type="UNKNOWN" 
+          message={error}
+          onRetry={() => slug && fetchOrders(slug)}
+        />
       ) : (
         <View style={styles.listContainer}>
           <FlashList
@@ -161,7 +152,7 @@ export default function OrdersScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  listContainer: { flex: 1, minHeight: 2 }, // Fix para FlashList em Android
+  listContainer: { flex: 1, minHeight: 2 },
   offlineBanner: {
     backgroundColor: colors.status.danger,
     paddingVertical: 4,
@@ -255,6 +246,5 @@ const styles = StyleSheet.create({
   actionButton: { height: 44, paddingHorizontal: spacing.xl, borderRadius: 10 },
   centerContent: { flex: 1, padding: spacing.xxxl, alignItems: 'center', justifyContent: 'center' },
   emptyText: { color: colors.text.muted, fontSize: typography.size.sm, fontWeight: '500' },
-  errorTitle: { color: colors.text.primary, fontSize: typography.size.md, fontWeight: '900', marginBottom: spacing.xs },
-  errorSubtitle: { color: colors.text.secondary, fontSize: typography.size.sm, textAlign: 'center', maxWidth: '80%' }
 });
+

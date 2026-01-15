@@ -130,3 +130,73 @@ Para garantir que este documento permaneça relevante e alinhado com a realidade
 
 ---
 *Este roadmap é um documento vivo, revisado trimestralmente pelo comitê de produto e engenharia.*
+# 🗺️ MesaFlow Master Roadmap: A Jornada da Estabilidade Absoluta
+**Status:** Gold Master Candidate (L6)
+
+## 🏛️ Era 1: Fundação (Concluída e Auditada)
+*Core operacional, RLS, WebSockets e Pagamentos Básicos.*
+
+## 🛡️ Era 2: Estabilização & Omni-Check (Janeiro 2026)
+*Foco: Parar o retrabalho. Blindagem total.*
+- **Fase A:** Implementação do Omni-Check (Script de Regressão Total).
+- **Fase B:** Documentação Exaustiva de Telas e Questionários de 100 Perguntas.
+- **Fase C:** Selagem de Produção (Checklist Final).
+
+## 🏢 Era 3: Enterprise & Fiscal (Fevereiro 2026)
+*Funcionalidades de alto escalão sobre base estável.*
+- **Fiscal:** Emissão de NFC-e real e contingência.
+- **Ecossistema:** Hub iFood e Integrações Externas.
+- **Lojas:** Publicação oficial Mobile.
+
+## 🧠 Era 4: Inteligência & Expansão (Q2 2026+)
+*IA Preditiva e Rede Global de Cashback (Passport).*
+
+---
+*Este Roadmap é imutável em suas eras concluídas e rigoroso em suas eras futuras.*
+# 🗺️ MesaFlow Master Roadmap: A Jornada da Estabilidade (L6)
+
+## 🏛️ Era 1: Fundação (Concluída)
+*Core operacional, RLS e Pagamentos Básicos.*
+
+## 🛡️ Era 2: Estabilização (Concluída)
+*Foco: Eliminar o retrabalho.*
+- [x] **Omni-Check:** Escudo de regressão total ativo.
+- [x] **Omniscience:** 100% do sistema documentado e mapeado.
+- [x] **Immune System:** Acúmulo de conhecimento automático no Kernel.
+
+## 🏢 Era 3: Enterprise & Fiscal (Fevereiro 2026)
+*Funcionalidades de alto escalão sobre base estável.*
+- **Fiscal:** Ativação da Focus NFe e Contingência Offline.
+- **Ecossistema:** Hub iFood e Webhooks de Saída.
+- **Mobile:** Lançamento oficial nas lojas.
+
+## 🧠 Era 4: Inteligência (Q2 2026+)
+- **IA Preditiva:** Previsão de demanda e sugestão de compras.
+- **Passport:** Rede global de fidelidade MesaFlow.
+
+---
+*Nenhuma etapa avança sem o sinal verde do Omni-Check.*
+# 🗺️ MesaFlow Master Roadmap: A Jornada da Estabilidade (L6)
+
+## 🏛️ Era 1: Fundação (Concluída)
+*Core operacional, RLS e Pagamentos Básicos.*
+
+## 🛡️ Era 2: Estabilização (Concluída)
+*Foco: Eliminar o retrabalho e criar soberania de conhecimento.*
+- [x] **Omni-Check:** Escudo de regressão total ativo e validado.
+- [x] **Omniscience:** 100% do sistema documentado (34 rotas).
+- [x] **Immune System:** Acúmulo de conhecimento automático no Kernel.
+- [x] **Audit Ready:** 700 perguntas de auditoria para o time.
+
+## 🏢 Era 3: Enterprise & Fiscal (Fevereiro 2026)
+*Funcionalidades de alto escalão sobre base inquebrável.*
+- **Fiscal:** Ativação da Focus NFe e Contingência Offline.
+- **Ecossistema:** Hub iFood e Webhooks de Saída.
+- **Mobile:** Lançamento oficial nas lojas Apple e Google.
+
+## 🧠 Era 4: Inteligência (Q2 2026+)
+- **IA Preditiva:** Previsão de demanda e sugestão de compras.
+- **Passport:** Rede global de fidelidade MesaFlow.
+
+---
+*Nenhuma etapa avança sem o sinal verde do Omni-Check.*

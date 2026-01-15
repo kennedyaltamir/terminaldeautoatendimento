@@ -1,0 +1,673 @@
+Quero que você redija um prompt extremamente detalhado para que a IA redija um script para poder olhar todos os parametros envolvidos nesses erros, o script deve ser algo que cheque tudo em todos os arquivos que estão dando o erro e encontre todas as inconsistencias. A partir daí teremos uma base para poder ver o que pode estar acontecendo.
+
+Abaixo está um PROMPT EXTREMAMENTE DETALHADO, PROFISSIONAL E ORIENTADO A DIAGNÓSTICO, feito para você enviar a outra IA (ou usar internamente) com o objetivo de gerar um script de inspeção profunda que encontre todas as inconsistências envolvidas no problema da tela do cliente não aparecer e do mapa não ser montado.
+
+
+
+
+### 📋 Checklist de Evolução MesaFlow OS
+
+- [x] **Explicação de cada arquivo .md:** O script `scripts/documentation/generate_full_index.py` foi evoluído para extrair o título e o primeiro parágrafo de cada documento, provendo contexto imediato no índice.
+- [x] **DOCUMENTATION_INDEX clicável:** Implementado com caminhos relativos que permitem navegação direta pelo VS Code ou GitHub.
+- [x] **SCRIPT_INDEX:** Criado em `docs/SCRIPT_INDEX.md` para catalogar todas as ferramentas de automação, separando-as do código do produto.
+- [x] **Backlog & Roadmap L6:** Reescritos para priorizar a "Estabilização Absoluta" e o "Escudo de Regressão" antes de novas features.
+- [x] **Protocolo de Resposta (UEP):** Localizado em `governance/protocols/UPDATE_EXECUTION_PROTOCOL.md`. Define a estrutura XML e as regras de integridade.
+- [x] **Base de Conhecimento:** Identificada como `todososarquivos.txt` (contexto total para a IA) e `docs/technical/AI_KNOWLEDGE_BASE.md` (memória imunológica persistente).
+- [x] **Lista de Arquivos Importantes:** Consolidada no novo `MESAFLOW_OMNISCIENCE_PROTOCOL.md` na raiz.
+- [x] **Definição de Profissionais:** Criada a pasta `docs/team/roles/` com 7 perfis (Architect, PM, Backend, Frontend, Mobile, DevOps, QA) e suas respectivas competências.
+- [x] **100 Perguntas por Profissional:** Redigidos 7 documentos totalizando 700 questões de auditoria técnica baseadas na documentação real do projeto.
+- [x] **Checklist de Produção + Explicação:** Criados `docs/PRE_PRODUCTION_CHECKLIST.md` e `docs/technical/PRODUCTION_CHECKLIST_EXPLAINED.md` como "Hard Gates" para o deploy.
+- [x] **Dicionário de Telas (34 rotas):** Todas as rotas mapeadas no Frontend foram detalhadas em documentos técnicos dentro de `docs/technical/pages/`, cobrindo elementos, comportamentos e APIs.
+- [x] **Guia de Gestão de Filas:** Criado `docs/commercial/EVENT_QUEUE_MANAGEMENT_GUIDE.md` com a estratégia tática para grandes eventos.
+- [x] **Protocolo de Omnisciência (MOP):** Criado na raiz para ser o guia definitivo de entrada no projeto.
+- [x] **Acúmulo de Conhecimento:** UEP atualizado para v8.0, tornando obrigatória a tag `<Knowledge_Accumulation>` em todas as respostas.
+- [x] **Omni-Check Script:** Implementado em `scripts/validation/omni_check.py` e validado com sucesso no seu terminal.
+
+
+
+MArque um x em tudo que foi feito e explique cada um dos checkbox a seguir:
+[]quero um parágrafo explicando cada arquivo .md do meu projeto seguindo o script "( isso tem que pedir)
+Dentro de DOCUMENTATION_INDEX, quero que possa clicar para navegar Foi implementado
+Quero criar um arquivo assim como o DOCUMENTATION_INDEX, que movi para pasta raiz, olhe todos os scripts do projeto.
+C:\mesaflow\docs\DOCUMENTATION_INDEX.md - arquivo que é gerado pelo script scripts/documentation/generate_full_index.py onde captura todos os arquivos.md do projeto.
+
+Quero saber todos os meus scripts, qual script verificador de script nós temos?
+python scripts/documentation/generate_script_index.py - gera todos os scripts que temos em docs\SCRIPT_INDEX.md
+Quero saber todos os meus docs, qual script verificador de docs .md nós temos?
+python scripts/documentation/generate_full_index.py gera todos os docs que temos em docs\DOCUMENTATION_INDEX.md
+
+[X]Entendo que você escreveu o estado atual, baseado nos nossos registros atuais. Mas não posso deixar assim, tanto no backlog, quanto no roadmap, redija ainda o que tem que conferir. Estou tendo muito retrabalho. Quero padronizar pois o projeto é extenso e estou enfrentando muito retrabalho. Sempre que adiciono uma funcionalidade, tenho que voltar para corrigir outra funcionalidade que já foi implementada e foi quebrada. Tive a ideia de começar a implementar algo para corrigir tudo e todos os scripts devem rodar ao mesmo tempo para conferir todos os pontos. Reescreva os dois arquivos, dizendo que essa etapa atual já foi conferida, mas as outras funcionalidades devem estar nele e conferi-las também. Tanto backlog, quanto roadmap devem ser completos para todo o ecossistema.
+[]Dentro do projeto, onde fica o arquivo que diz como você deve me responder?
+[X]Qual arquivo fica a base de conhecimento?
+docs\technical\AI_KNOWLEDGE_BASE.md COlocamos o atualizar.py para aceitar o knowledge e atualizamos os protocolos de respostas, ficar sempre atento a isso
+[]Onde fica o protocolo de conversação?(QUe define como deve ser a sua resposta?)
+[]ME envie a lista de todos os arquivos que são importantes para o entendimento do projeto completo
+[]SIte, app, Sistema KERNEL, protocolo INDA, agentes que executam.
+[]Definir todos os profissionais que necessitam para executar o projeto completo, fazer uma pasta para cada um profissional e habilidades esperadas.
+Entendo que você escreveu o estado atual, baseado nos nossos registros atuais. Mas não posso deixar assim, tanto no backlog, quanto no roadmap, redija ainda o que tem que conferir. Estou tendo muito retrabalho. Quero padronizar pois o projeto é extenso e estou enfrentando muito retrabalho. Sempre que adiciono uma funcionalidade, tenho que voltar para corrigir outra funcionalidade que já foi implementada e foi quebrada. Tive a ideia de começar a implementar algo para corrigir tudo e todos os scripts devem rodar ao mesmo tempo para conferir todos os pontos. Reescreva os dois arquivos, dizendo que essa etapa atual já foi conferida, mas as outras funcionalidades devem estar nele e conferi-las também. Tanto backlog, quanto roadmap devem ser completos para todo o ecossistema.
+[]--Redigir 100 perguntas para cada um dos profissionais envolvidos no projeto. ESSAS perguntas deve ser feitas de acordo com toda a documentação atual do projeto a fim de checagem. Caso quiser posso te enviar minhas documentações atualizadas. Só gerarmos um script que concatene minha documentação para te atualizar.
+QUero que cada profissional seja redigida 100 perguntas sobre o projeto, serão perguntas técnicas e explicativas que serão usadas para base de conhecimento.
+[]-Temos que fazer um arquivo que é um checklist antes de subir para produção. Esse checklist deve ser completo. Vamos redigir um arquivo que será a explicação desse checklist
+[]-Fazer um documento sobre cada página e cada tela do aplicativo. Esse documento deve conter todas as especificações, como elementos interagíveis e o comportamento esperado pelo ecossistema. Essa documentação deve ser completa e falar tudo sobre aquela tela.
+[]-Temos que detalhar melhor o pdf que é o guia de gestão de filas para eventos que é prometido na landing page.
+
+[] Redigir um protocolo para o entendimento do projeto inteiro(DEsde o systema KErnel, protocolo INDA, qual personalidade absorver, todas as rotas, site, app, todo o mapa resumido e onde encontrar as informações) Este arquivo ficará na raiz do projeto 
+[]**Dicionário de Telas:** Iniciar a documentação detalhada das 34 rotas (elementos, comportamentos, APIs).
+ []   *   **Checklist de Produção:** Redigir o arquivo de explicação detalhada do checklist.
+ []   *   **PDF de Gestão de Filas:** Redigir o conteúdo do guia para eventos.
+[] prosseguir com a documentação detalhada das outras 31 rotas restantes do Dicionário de Telas
+[] Redija o **Dicionário de Telas** (especificação detalhada das 34 rotas)?
+PAGE_DICTIONARY.md
+[] o que pode ser melhorado na documentação técnica?(Adicionado)
+[] REdigir no protocolo de resposta que deverá ser adicionado em cada resposta um conhecimento. esse conhecimento, ao utilizar o atualizar.py será adicionado em algum lugar. Assim tereemos uma base de conhecimento cada vez maior em cada resposta atualizado automaticamente a cada resposta. E sempre será somado a cada resposta o conhecimento, assim a base de conhecimento só cresce, nunca retorna, a menos que eu apague.
+[] Inicie a implementação do **Omni-Check Script** (`scripts/validation/omni_check.py`) para automatizar a conferência de todos esses pontos simultaneamente
+[]prossiga redigindo os documentos detalhados das páginas que ainda estão como [PENDENTE] no dicionário
+[]O índice mestre está pronto. Comece a redigir os documentos individuais detalhados para cada uma das 34 rotas (ex: `docs/technical/pages/LOGIN.md`, etc.)
+[]ADicionar o Knowledge_Accumulation no atualizar.py, ele deve conter a seguinte funcionalidade:
+ - O que foi adicionado, comportamento esperado(extremamente detalhado), como testar arquivos envolvidos, dia, hora, minuto, segundo. Script para realizar o teste.
+[] prossiga com as próximas (ex: Financeiro, Equipe, Marketing, etc.)
+
+melhorias
+1.  **Diagramas Mermaid:** Adicionar diagramas de sequência e fluxo dentro dos arquivos `.md` das páginas (ex: fluxo de pagamento, fluxo de pedido iFood).
+2.  **Schemas XSD/JSON:** Criar definições formais para os arquivos de configuração (como o `registry.xml`) para que o VS Code aponte erros de digitação em tempo real.
+3.  **Vídeos de Demo:** Linkar pequenos GIFs ou vídeos de 10s demonstrando o comportamento esperado de cada tela no `PAGE_DICTIONARY.md`.
+
+
+Quero saber todos os meus scripts, qual script verificador de script nós temos?
+python scripts/documentation/generate_script_index.py - gera todos os scripts que temos em docs\SCRIPT_INDEX.md
+Quero saber todos os meus docs, qual script verificador de docs .md nós temos?
+python scripts/documentation/generate_full_index.py gera todos os docs que temos em docs\DOCUMENTATION_INDEX.md
+
+# 📓 MESAFLOW OS — PAINEL DE CONTROLE E ANOTAÇÕES
+**Versão:** 2.0 (Sincronizado com Kernel L6)
+**Última Atualização:** 2026-01-14 22:30:00
+
+---
+
+## 🧠 1. GOVERNANÇA E PROTOCOLO (O Cérebro)
+- [x] **Protocolo de Resposta (UEP v8.0):** Define XML, tags CDATA e comandos de terminal.
+- [x] **Protocolo de Omnisciência (MOP v3.0):** Guia mestre na raiz para entendimento do mapa.
+- [x] **Acúmulo de Conhecimento (Immune System):** Persistência em `docs/technical/AI_KNOWLEDGE_BASE.md`.
+- [x] **Personalidade do Agente:** Técnico, imperativo e focado em integridade.
+
+---
+
+## 🛡️ 2. QUALIDADE E VALIDAÇÃO (O Escudo)
+- [x] **Omni-Check Script (v1.3):** Validador universal (`python scripts/validation/omni_check.py`).
+- [x] **Checklist de Pré-Produção:** Hard-gates em `docs/PRE_PRODUCTION_CHECKLIST.md`.
+- [x] **Explicação do Checklist:** Detalhamento em `docs/technical/PRODUCTION_CHECKLIST_EXPLAINED.md`.
+- [x] **Backlog & Roadmap L6:** Focados em estabilização e Era Enterprise.
+
+---
+
+## 🗺️ 3. MAPEAMENTO E INVENTÁRIO (O Mapa)
+- [x] **Índice de Documentação (MD):** `docs/DOCUMENTATION_INDEX.md` (com resumos).
+- [x] **Índice de Scripts (Automação):** `docs/SCRIPT_INDEX.md` (apenas ferramentas).
+- [x] **Resumo Narrativo Mestre:** `docs/MASTER_MD_SUMMARY.md` (parágrafos explicativos).
+- [x] **Dicionário de Telas (34 Rotas):** Especificações em `docs/technical/PAGE_DICTIONARY.md`.
+
+---
+
+## 👥 4. TIME E CONHECIMENTO (As Pessoas)
+- [x] **Definição de Profissionais:** 7 perfis em `docs/team/roles/`.
+- [x] **Questionários de 100 Perguntas:** 700 questões em `docs/team/questionnaires/`.
+
+---
+
+## 🚀 5. MELHORIAS L7 (Hardening Visual e Técnico)
+- [x] **Diagramas Mermaid:** Fluxos visuais em `docs/technical/FLOW_DIAGRAMS.md`.
+- [x] **Schemas XSD:** Validação do registry em `governance/schemas/registry.xsd`.
+- [x] **Guia de Gestão de Filas:** Conteúdo tático em `docs/commercial/EVENT_QUEUE_MANAGEMENT_GUIDE.md`.
+
+---
+
+## 🛠️ 6. COMANDOS DE TERMINAL ÚTEIS
+- **Testar Tudo:** `python scripts/validation/omni_check.py`
+- **Atualizar Índices:** 
+  - `python scripts/documentation/generate_full_index.py`
+  - `python scripts/documentation/generate_script_index.py`
+- **Limpar Memória IA:** `python scripts/maintenance/sanitize_knowledge_base.py`
+- **Visualizar no Windows:** `chcp 65001` (Antes de usar `type`)
+implementação do Hub iFood e focar na Conciliação Financeira L7?
+
+
+ATualmente onde está o arquivo que diz sobre como vocÊ deve me responder?
+Só que agora temos que implementar para o cliente preencher o token dele na página de configurações e ele mesmo emitir a nota fiscal dele através do nosso ecossistema.
+  payment_provider?: 'mercadopago' | 'efi' | 'stripe' | 'pagarme' | 'none'; vamos deixar pelo menos mais 3 plataformas de pagamento para recebermos os 2.5% além da stripe para receber as assinaturas.
+Atualizar no site(landing page todas as integrações.)
+Se eu implementar esse sistema em um restaurante por exemplo, as vendas nele podem ser classificadas como vendas online e terem um menor imposto?
+
+Já configuramos:
+redis
+render.com
+neon.tech
+sentry
+estamos configurando 
+focusnfe
+Colocar pra quando tentarem cadastrar na /admin/register como eventos, hotelaria e corporativo aparecer um modal que explica que está em desenvolvimento ainda. Será adicionado algumas funcionalidades diferentes nesses 3.
+SE caso o cliente quiser pagar por cripto temos que implementar algum sistema pra receber.
+REPORT_UI_INTERACTIONS.md em python scripts/validation/ui_interaction_audit.py ainda contém um erro, não conseguimos encontrar onde.
+Vamos agora redigir um script que capta todos os elementos interagíveis de todas as páginas que nos temos, inclusive depois que entra no login, vamos checar como todos estão em questão de funcionamento e corrigir tudo.
+O sistema não está identificando os elementos interagiveis das telas, não iremos fazer deploy enquanto não listarmos todos os elementos de interação de todas as páginas que temos em frontend.
+Vamos listar todos os elementos navegar por todos para checar se o elemento tem o comportamento esperado. Quero um script que entre e navegue em todas as telas e cheque se o comportamento esperado virtual está condizente com o comportamento da realidade. quero observar o script funcionando em cada uma de nossas telas, clicando em cada um dos elementos interagiveis e checando cada comportamento se está sendo realizado corretamente. o script deve capturar todos os erros pelo caminho e reportalos em forma de arquivo.md
+Quando abre tem um tutorial que atualmente está apenas 5 passos, esse tutorial deve clicar em todos os lugares mostrando todas as funcionalidades.
+Eu quero um script que navegue nessas 38 páginas e identifique todos os elementos interagiveis e cheque se estão todos correspondendo à realidade do comportamento esperado.
+(.venv) C:\mesaflow>python scripts/audit/list_frontend_pages.py
+🔍 Mapeando páginas em: frontend\src\app
+
+TIPO       | ROTA
+------------------------------------------------------------
+Estática   | /
+Dinâmica   | /[slug]/kiosk
+Dinâmica   | /[slug]/menu
+Dinâmica   | /[slug]/monitor
+Dinâmica   | /admin/[slug]/audit
+Dinâmica   | /admin/[slug]/audit/financial
+Dinâmica   | /admin/[slug]/counter
+Dinâmica   | /admin/[slug]/dashboard
+Dinâmica   | /admin/[slug]/dashboard/history
+Dinâmica   | /admin/[slug]/delivery
+Dinâmica   | /admin/[slug]/driver
+Dinâmica   | /admin/[slug]/expeditor
+Dinâmica   | /admin/[slug]/franchise
+Dinâmica   | /admin/[slug]/history
+Dinâmica   | /admin/[slug]/inventory
+Dinâmica   | /admin/[slug]/kitchen
+Dinâmica   | /admin/[slug]/marketing
+Dinâmica   | /admin/[slug]/menu
+Dinâmica   | /admin/[slug]/profile
+Dinâmica   | /admin/[slug]/settings
+Dinâmica   | /admin/[slug]/settings/billing
+Dinâmica   | /admin/[slug]/settings/features
+Dinâmica   | /admin/[slug]/tables
+Dinâmica   | /admin/[slug]/team
+Dinâmica   | /admin/[slug]/waiter
+Dinâmica   | /admin/[slug]/waiter/orders
+Dinâmica   | /admin/[slug]/waiter/pos/[tableId]
+Dinâmica   | /admin/[slug]/waiter/pos/quick
+Estática   | /admin/forgot-password
+Estática   | /admin/login
+Estática   | /admin/payment/callback
+Estática   | /admin/register
+Estática   | /admin/reset-password
+Estática   | /admin/support
+Estática   | /offline
+Estática   | /trust
+Estática   | /trust/security
+Estática   | /trust/status
+------------------------------------------------------------
+✅ Total de páginas encontradas: 38
+
+(.venv) C:\mesaflow>
+
+
+
+QUero uma tabela de todos os elementos interagíveis e todos os comportamentos esperados e todos os comportamentos esperados tem que corresponder a realidade.
+Excelente, agora vamos listar todos os elementos interagíveis, todos os comportamentos esperados de todas as telas.
+
+por exemplo quero que qual o comportamento esperado quando alguem faz um pedido usando a tela X, qual o comportamento esperado na tela do entregador quando acontece o evento Y, vamos listar tudo.
+
+Quero ver todos as linhas e colunas do meu banco de dados.
+
+
+
+EXPECTED_BEHAVIOR_MATRIX.md ( Arquivo que mostra todos os comportamentos esperados do sistema)
+VAmos gerar um script para ver o que acontece na tela do entregador quando ele pega um pedido.
+VAmos gerar um script para ver como é quando o garçom atende alguém que está na mesa e não leu qrcode
+VAmos gerar um script para ver como é quando o garçom atende alguém que está na mesa e leu qrcode
+VAmos gerar um script para ver quando o entregador pega um pedido ( ele deve acionar algo para comunicar tanto a tela que fez o pedido que o pedido está  a caminho quanto enviar uma mensagem no whatsapp que o pedido está indo também temos que implementar a lógica que envia uma senha que o entregador pegará com o cliente que realizou a compra do usuário para validar a entrega)
+VAmos gerar um script para ver quando o entregador pega um pedido e a rota é traçada( irá chamar ou o waze ou o google maps para traçar a rota e em caso de multiplos pedidos traçar a rota mais economica)
+REdigir um script para checar todos os endpoint estão corretos
+
+Eu queria que na tela do entregador mostrasse as coordenadas geográficas reais do entregador e a rota que ele vai percorrer até chegar no lugar do pedido, além do mais na tela do cliente fosse possivel ver onde o entregador está e que tivesse algo como um check que o pedido está a caminho e quando o entregador iniciar a rota além do menu /hamburgueria-ze/menu?order=f134e263-16b5-4ed5-89f7-4ceaaced7127 estiver em algum lugar pra acompanhar a rota do entregador.
+Na tela do entregador não está aparecendo as rotas e na tela do cliente não está sendo notificado. Redija um relatório extremamente detalhado e adicione as rotas de gps  simulando que é um pedido feito na rua joao machado 376 de pompeu minas gerais e o local é na rua padre joão porto 1000. quero que o entregador saia do endereço dele e faça a entrega.
+Eu preciso ver ou o google maps aberto fazendo a rota ou o waze de opção para o entregador e ele se movendo.
+A tela do lado esquerdo é para ser do entregador, a tela do lado direito é para ser do cliente, estou gerando um script que é pra testar isso. QUero que o entregador pegue o pedido, na tela do cliente seja notificado que está em rota  e caso o cliente quiser acompanhar a rota do entregador apareça pra ele acompanhar. Na tela do entregador quero que apareça algum tipo de gps, ou waze ou google maps traçando a rota de entrega. O entregador sai da rua padre joao porto 1000 e vai para joao machado 376. EStou tentando explicar isso para IA me ajudar no handoff e ela não está conseguidno me ajudar. a ultima resposta dela não foi satisfatoria. me ajude a detalhar melhor isso e fazer ela fazer corretamente. a ultima resposta dela:
+🎯 Integrar isso direto no seu código atual (arquivos reais)
+
+🧪 Adaptar o script de simulação para rota real
+
+🔐 Ajustar políticas WS/RLS se quiser endurecer
+envelope WS v2
+
+throttling inteligente de GPS
+
+persistência de trilha
+gerar um QA Style Guide oficial (ADR-001)
+escreva o calculate_eta_simple pronto
+
+FEche o schema WS v2
+
+valide isso para 1k entregadores simultâneos
+heatmap de entregadores
+
+SLA breach detection
+
+ETA adaptativo por histórico
+
+replay de rotas para auditoria
+
+🔧 Converter esses scripts em k6 / Locust / pytest reais
+
+📊 Montar um plano de testes para produção
+
+🧨 Criar testes de caos (queda de WS, GPS inválido, latência alta)
+
+🧠 Criar métricas SLO / SLA para logística em tempo real
+Este é o **Plano de Validação de Logística L6**, desenhado para garantir que o MesaFlow OS opere com a robustez de uma plataforma global. Abaixo, os 10 scripts conceituais que cobrem o caminho crítico do sistema.
+
+---
+
+### 1. Teste de Lock Transacional (Double Dispatch)
+*   **Objetivo:** Validar que o banco de dados impede que dois entregadores coletem o mesmo pedido em um cenário de alta concorrência.
+*   **Cenário:** Simulação de dois requests simultâneos (`race condition`) para o endpoint `/dispatch` do mesmo `order_id`.
+*   **Pré-condições:** Pedido com status `ready`.
+*   **Passo a Passo:**
+    1. Disparar 2 threads assíncronas exatamente no mesmo milissegundo.
+    2. Ambos tentam `PATCH /admin/delivery/orders/{id}/dispatch`.
+*   **Dados Simulados:** `order_id: "ORD-123"`, `driver_1_token`, `driver_2_token`.
+*   **Resultado Esperado:** Um request retorna `200 OK`. O segundo retorna `400 Bad Request` com a mensagem "Pedido já coletado".
+*   **Falhas que detecta:** Falta de `with_for_update()` no banco; inconsistência de estado concorrente.
+*   **Tipo de Teste:** Concorrência / Integração.
+*   **Ferramenta Sugerida:** `Locust` ou `pytest-asyncio`.
+
+### 2. Teste de Exclusividade de Entregador
+*   **Objetivo:** Garantir a regra de negócio: "Um entregador, uma entrega por vez".
+*   **Cenário:** Um entregador tenta coletar o Pedido B enquanto já está em trânsito com o Pedido A.
+*   **Pré-condições:** Entregador logado com um pedido em status `delivering`.
+*   **Passo a Passo:**
+    1. Realizar `PATCH /dispatch` para o Pedido A (Sucesso).
+    2. Tentar `PATCH /dispatch` para o Pedido B (Falha).
+*   **Dados Simulados:** `driver_id: 55`, `order_A: status=delivering`, `order_B: status=ready`.
+*   **Resultado Esperado:** O segundo request deve retornar `400 Bad Request` informando que o driver já possui entrega ativa.
+*   **Falhas que detecta:** Furo na lógica de validação de estado do driver no backend.
+*   **Tipo de Teste:** Funcional / Regra de Negócio.
+*   **Ferramenta Sugerida:** `pytest`.
+
+### 3. Teste de Segurança de Ownership
+*   **Objetivo:** Impedir que o Entregador A envie coordenadas para um pedido atribuído ao Entregador B (Spoofing).
+*   **Cenário:** Tentativa de injeção de localização em pedido alheio.
+*   **Pré-condições:** Pedido X atribuído ao Driver 1.
+*   **Passo a Passo:**
+    1. Autenticar como Driver 2.
+    2. Tentar `POST /admin/delivery/orders/PedidoX/location` com coordenadas aleatórias.
+*   **Dados Simulados:** `auth: token_driver_2`, `target_order: Pedido_Driver_1`.
+*   **Resultado Esperado:** Status `403 Forbidden`.
+*   **Falhas que detecta:** Quebra de isolamento de segurança (Insecure Direct Object Reference).
+*   **Tipo de Teste:** Segurança (Security).
+*   **Ferramenta Sugerida:** `pytest` ou `Insomnia`.
+
+### 4. Teste de Broadcast WS v2 (Status Update)
+*   **Objetivo:** Verificar se a mudança de status no backend dispara a transição de interface no cliente em tempo real.
+*   **Cenário:** Atualização de `ready` para `delivering` via API.
+*   **Pré-condições:** Cliente conectado ao WebSocket do seu `company_slug`.
+*   **Passo a Passo:**
+    1. Abrir conexão WS no cliente.
+    2. Chamar `/dispatch` via API.
+    3. Monitorar a chegada do frame JSON no socket.
+*   **Dados Simulados:** Evento `{ "type": "delivery.status", "payload": { "status": "delivering" }, "v": 2 }`.
+*   **Resultado Esperado:** O cliente deve receber o frame em < 200ms.
+*   **Falhas que detecta:** Falha no Pub/Sub do Redis ou na lógica de broadcast do WebSocketManager.
+*   **Tipo de Teste:** Real-time / E2E.
+*   **Ferramenta Sugerida:** `Playwright` ou `Autobahn Testsuite`.
+
+### 5. Teste de Broadcast WS v2 (Location & ETA)
+*   **Objetivo:** Validar a propagação da telemetria GPS e do cálculo de ETA para o consumidor final.
+*   **Cenário:** Envio contínuo de GPS pelo driver.
+*   **Pré-condições:** Pedido em rota; Cliente e Driver conectados.
+*   **Passo a Passo:**
+    1. Driver envia `/location`.
+    2. Verificar se o payload do WS contém `eta_seconds`.
+*   **Dados Simulados:** `lat: -19.22`, `lng: -44.93`.
+*   **Resultado Esperado:** Cliente recebe `delivery.location` com coordenadas e ETA populado.
+*   **Falhas que detecta:** Erro no cálculo de Haversine; Payload malformado.
+*   **Tipo de Teste:** Integração.
+*   **Ferramenta Sugerida:** `k6` com extensão de WebSockets.
+
+### 6. Teste de Throttle de GPS (Rate Limiting)
+*   **Objetivo:** Proteger o backend contra flood de dados e economia de bateria/processamento.
+*   **Cenário:** App do entregador tenta enviar GPS 10 vezes por segundo.
+*   **Pré-condições:** Driver em rota ativa.
+*   **Passo a Passo:**
+    1. Disparar loop de 10 requests `/location` em 1 segundo.
+    2. Contabilizar quantos requests foram aceitos.
+*   **Dados Simulados:** Requests repetitivos com pequenas variações de lat/lng.
+*   **Resultado Esperado:** Apenas 1 request é processado; os outros são ignorados ou retornam `429 Too Many Requests`.
+*   **Falhas que detecta:** Falta de controle de vazão (Throttling) no backend.
+*   **Tipo de Teste:** Performance / Resiliência.
+*   **Ferramenta Sugerida:** `k6`.
+
+### 7. Teste de Escala (1.000 Entregadores)
+*   **Objetivo:** Validar a arquitetura sob carga real de produção.
+*   **Cenário:** 1.000 drivers virtuais enviando GPS simultaneamente a cada 3s.
+*   **Pré-condições:** Cluster backend ativo (ou local potente); Redis configurado.
+*   **Passo a Passo:**
+    1. Subir 1.000 VUs (Virtual Users).
+    2. Manter ciclo de 3s por update.
+    3. Medir latência de resposta e uso de CPU.
+*   **Dados Simulados:** 333 updates de localização por segundo.
+*   **Resultado Esperado:** Latência média < 100ms; zero queda de conexões WebSocket.
+*   **Falhas que detecta:** Gargalo de I/O; saturação de threads do FastAPI.
+*   **Tipo de Teste:** Carga (Load Test).
+*   **Ferramenta Sugerida:** `k6` ou `Locust`.
+
+### 8. Teste de Consistência de ETA
+*   **Objetivo:** Garantir que o ETA seja matematicamente lógico (decrescente conforme aproximação).
+*   **Cenário:** Simulação de um trajeto linear em direção ao destino.
+*   **Pré-condições:** Coordenadas de destino fixas.
+*   **Passo a Passo:**
+    1. Enviar GPS a 1km de distância.
+    2. Enviar GPS a 500m.
+    3. Enviar GPS a 100m.
+*   **Dados Simulados:** Sequência de pontos geográficos.
+*   **Resultado Esperado:** O valor de `eta_seconds` no payload do WS deve ser estritamente menor a cada passo.
+*   **Falhas que detecta:** Erro na fórmula de Haversine; erro de sinal (positivo/negativo).
+*   **Tipo de Teste:** Unitário / Lógica.
+*   **Ferramenta Sugerida:** `pytest`.
+
+### 9. Teste de Frontend Entregador (Mapa + Rota)
+*   **Objetivo:** Validar que a interface "vira a chave" e renderiza a engine de mapas corretamente.
+*   **Cenário:** Clique no botão "PEGAR" no Dashboard.
+*   **Pré-condições:** App rodando em modo visível; Mock de geolocalização ativo.
+*   **Passo a Passo:**
+    1. Localizar card pelo `data-testid="driver.delivery.order.card"`.
+    2. Clicar no botão de pickup.
+    3. Verificar se o elemento `[data-testid="driver.delivery.map"]` aparece.
+*   **Dados Simulados:** Login de driver real.
+*   **Resultado Esperado:** Desaparecimento da lista; surgimento do mapa com polyline visível.
+*   **Falhas que detecta:** Erros de importação dinâmica do Leaflet (SSR); falha de renderização condicional.
+*   **Tipo de Teste:** E2E / UI.
+*   **Ferramenta Sugerida:** `Playwright`.
+
+### 10. Teste de Frontend Cliente (Tracking Passivo)
+*   **Objetivo:** Garantir que o cliente observa o movimento sem gerar carga extra de roteamento.
+*   **Cenário:** Acompanhamento de pedido via navegador mobile.
+*   **Pré-condições:** Pedido em status `delivering`.
+*   **Passo a Passo:**
+    1. Abrir a página de status do pedido.
+    2. Monitorar o DOM em busca de atualizações no marcador.
+    3. Validar que **não há** chamadas para `project-osrm.org` ou APIs de rota.
+*   **Dados Simulados:** Order ID ativo.
+*   **Resultado Esperado:** O ícone da moto se move no mapa apenas com dados vindos do WebSocket.
+*   **Falhas que detecta:** Vazamento de lógica (cliente tentando calcular rota); falha de recepção do evento v2.
+*   **Tipo de Teste:** Performance / UX.
+*   **Ferramenta Sugerida:** `Playwright` (Network monitoring).
+
+---
+
+### 🚀 Próximos Passos Sugeridos
+1.  **Implementação do k6:** Este é o melhor custo-benefício para testar o WebSocket v2 e a carga de 1.000 drivers.
+2.  **Chaos Mesh:** Em uma fase posterior, podemos derrubar o Redis durante o teste de escala para validar o fallback de memória.
+🔍 Revisar teste por teste em profundidade
+
+🧪 Escrever os helpers faltantes
+
+🚦 Definir SLO / SLA realistas
+
+🧨 Planejar chaos testing
+🔐 Te ajudar a criar auth fixtures reais
+
+🧪 Refatorar os testes para AAA pattern
+
+🚦 Criar um quality gate CI
+
+📊 Transformar isso em dashboard de qualidade
+🔐 Evoluir isso para auth fixtures multi-role
+
+🚦 Criar quality gate (fail/pass por domínio)
+
+🧪 Separar testes determinísticos vs oportunísticos
+
+📊 Transformar o relatório em baseline de regressão
+🔄 separar permissões Admin vs Driver mais explicitamente
+
+🧪 criar seed automático só para testes
+
+🗺️ evoluir rota real no frontend (OSRM/Mapbox)
+🗺️ rota real (OSRM / Mapbox)
+
+📍 map component no app do entregador
+
+👀 tracking público do cliente
+
+🧪 seed isolado para testes
+📍 Testes de WebSocket em tempo real (posição do entregador)
+
+🗺️ Mock de provider de mapas (OSRM / Mapbox)
+
+🔐 Testes de RBAC visual (driver não vê dados do cliente)
+
+🚀 Preparar isso para CI (GitHub Actions / GitLab CI)
+🔌 WebSocket E2E (driver → cliente em tempo real)
+
+🧪 Mock de Maps Provider (Mapbox/OSRM determinístico)
+
+🔐 RBAC visual (perfis não veem o que não devem)
+
+🚀 GitHub Actions / GitLab CI com artefatos Playwright
+📂 Criar a estrutura de pastas oficial para esses 10 testes
+
+🧪 Escrever 1 script-base real de cada tipo
+
+📜 Gerar um QA Test Plan formal (PDF / Markdown)
+
+🔁 Definir o que roda em PR vs Nightly
+desenhar 10 novos testes E2E críticos
+
+ou revisar só o padrão de data-testid
+
+ou entrar 100% em tempo real (WebSocket + mapa)
+🔜 3. Próxima bateria de testes (quando você quiser)
+
+Sugestão de próxima rodada:
+
+📍 Atualização de localização em tempo real
+
+📍 ETA decrescendo no frontend
+
+📍 Cliente recebendo WS sem refresh
+
+📍 Entregador desconectado / reconectado
+
+📍 Dois entregadores disputando pedido (lock visual)
+🔧 Gerar o patch completo em formato Git Diff
+🧪 Gerar um test-utils backend para criar pedidos via API
+🏗️ Criar um seed automático integrado ao Playwright
+🚦 Criar dashboard de estado dos testes
+🔍 Dashboard automático de Seed Health
+
+🧪 Playwright Test Healer
+
+🔄 Script de auto-reset entre testes
+Um documento final de QA formal (PDF / Markdown)?
+✔️ Um test plan oficial (ISO/ISTQB-like)?
+✔️ Scripts Playwright automáticos para cada fase?
+✔️ Scripts de seed para cada cenário (happy path + concorrência)?
+
+
+
+
+
+
+
+
+
+
+Perfeito — agora sei exatamente o que você quer:
+
+➡️ Gerar uma suíte COMPLETA para a tela dos entregadores,
+➡️ incluindo unitário + integração + E2E + helpers + fixtures + RBAC + WS + mapa,
+➡️ mais SLO/SLA, chaos testing, seed isolado, quality gate, dashboard, baseline de regressão, test healer, CI, etc.
+
+Ou seja:
+
+✅ Você quer A + B + C (completos)
+
+E não apenas a geração dos scripts, mas toda a arquitetura de QA moderna do domínio “Logística / Entregadores”.
+
+Então vamos fazer assim:
+
+✅ 1. Confirmação final antes de gerar tudo
+
+Para montar a suíte completa, preciso de uma única confirmação, porque isso define TODAS as fixtures, helpers, seeds e mocks:
+
+❓ Qual é o framework backend exato que você está usando?
+
+Preciso só dessa peça para formatar todos os arquivos corretamente.
+
+Escolha uma:
+
+1. FastAPI + SQLAlchemy + Alembic
+
+(Padrão mais comum)
+
+2. FastAPI + Tortoise ORM
+3. Node + Express + Prisma
+4. Django + Django Rest Framework
+5. Outro — qual?
+🎯 Por que isso importa?
+
+Porque:
+
+Factories usam modelos do ORM
+
+Fixtures dependem de como o app inicializa
+
+WS depende de qual lib está sendo usada (uvicorn, Starlette, Socket.IO, etc)
+
+Mock do Maps Provider depende de como você chama OSRM/Mapbox
+
+Helpers e seeds precisam refletir sua infra real
+
+🚀 O que eu vou gerar assim que você responder:
+📦 Estrutura completa em pasta
+
+Com mais de 40 arquivos de teste, todos prontos:
+
+tests/
+ ├── unit/
+ │    ├── test_driver_service.py
+ │    ├── test_order_service.py
+ │    ├── test_routing.py
+ │    ├── test_gps_update.py
+ │    └── ...
+ ├── integration/
+ │    ├── test_orders_flow.py
+ │    ├── test_rbac.py
+ │    ├── test_realtime.py
+ │    ├── test_seed_health.py
+ │    └── ...
+ ├── e2e/
+ │    ├── driver_accept_order.spec.ts
+ │    ├── driver_location_ws.spec.ts
+ │    ├── public_tracking.spec.ts
+ │    └── ...
+ ├── fixtures/
+ ├── helpers/
+ ├── factories/
+ └── seeds/
+
+🧪 1 script unitário completo por endpoint
+
+Com AAA pattern:
+
+Arrange
+
+Act
+
+Assert
+
+🔌 WebSocket Realtime Testing
+
+mock determinístico de GPS
+
+testes de posição 1fps
+
+reconexão
+
+disputa de pedido entre dois entregadores
+
+🔐 RBAC Multi-role
+
+Drivers não podem:
+
+ler dados de cliente
+
+ver saldo de outros
+
+acessar painel admin
+
+Admins podem tudo.
+
+🧨 Chaos Testing
+
+Cenários:
+
+perda de GPS
+
+latência
+
+duplicação de mensagens
+
+WS drop
+
+race condition de dois entregadores
+
+🧪 Seed isolado
+
+seed_clean()
+
+seed_for_order_flow()
+
+seed_for_concurrency()
+
+🚦 Quality Gate (CI)
+
+Pipeline falha se:
+
+cobertura < 85%
+
+tempo > SLA
+
+regressão visual
+
+seed quebrado
+
+métricas realtime erradas
+
+📊 Dashboard de Qualidade
+
+Com:
+
+mapa de estabilidade
+
+last failure
+
+regressões detectadas
+
+seed health
+
+🛠️ Test Healer automático
+
+Retry inteligente apenas em testes flakey (WS / rede / tempo real).
+
+👇 Responda só isso:
+Qual framework backend você está usando?
+
+1, 2, 3, 4 ou outro?
+
+Assim que você responder, eu gero direto:
+
+✅ todos os scripts
+✅ todas as pastas
+✅ todos os mocks
+✅ todas as fixtures
+✅ todos os seeds
+✅ todos os testes unitários
+✅ todos os testes de integração
+✅ todos os testes E2E
+✅ pipeline CI completo
+✅ quality gate
+✅ dashboard
+✅ chaos testing
+QUero que redija um prompt extremamente detalhado para simular o pedido de uma pessoa real, uma tela simulando uma pessoa pedindo, colocando o endereço, confirmando o pedido, o estabelecimento aceitando o pedido, o pedido indo pra cozinha, sendo aceito, acionado o entregador e saindo pra entrega. O cliente deve ser notificado na tela dele em cada etapa correspondente, inclusive quando o pedido fica a caminho e ele poderá ver a rota que o entregador fará e a localização do entregador.Redija esse prompt de maneira mais detalhada e profissional possivel.

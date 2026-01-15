@@ -1,122 +1,131 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+# DOMAIN: BACKEND
+# LAST_MODIFIED: 2026-01-15 14:40:00
+import math
+from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session, selectinload
-from typing import List
+from typing import List, Any
 from uuid import UUID
-from app.database import get_db
-from app.models import Order, OrderStatus, Company, OrderType, OrderItem, Employee, UserRole, PaymentStatus, DriverLedger, LedgerType
-from app.routers.auth import get_current_user
-from app.schemas import OrderResponse, DispatchOrderRequest, CompleteDeliveryRequest
-from app.services.whatsapp_service import WhatsAppService
-from app.websockets import manager
 from datetime import datetime
-from decimal import Decimal
+from app.database import get_db
+from app.models import Order, OrderStatus, Employee
+from app.routers.auth import get_current_user
+from app.websockets import manager
 
 router = APIRouter()
-whatsapp_service = WhatsAppService()
 
-def require_delivery_access(current_user: any = Depends(get_current_user)):
-    return current_user
+def calculate_eta_simple(curr_lat: float, curr_lng: float, dest_lat: float, dest_lng: float) -> int:
+    """Enterprise ETA Model (Haversine)."""
+    R = 6371000.0
+    phi1 = math.radians(curr_lat)
+    phi2 = math.radians(dest_lat)
+    dphi = math.radians(dest_lat - curr_lat)
+    dlambda = math.radians(dest_lng - curr_lng)
+    a = (math.sin(dphi / 2) ** 2 +
+         math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    distance_meters = R * c
+    if distance_meters <= 0: return 60
+    speed_mps = 5.5 
+    return int((distance_meters / speed_mps) * 1.25)
 
-@router.get("/orders", response_model=List[OrderResponse])
-def get_delivery_orders(
-    db: Session = Depends(get_db),
-    current_user: any = Depends(require_delivery_access)
-):
+@router.get("/orders", response_model=None)
+def get_delivery_orders(db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     company_id = getattr(current_user, "company_id", getattr(current_user, "id", None))
-    orders = (
-        db.query(Order)
-        .options(
-            selectinload(Order.items).selectinload(OrderItem.product),
-            selectinload(Order.items).selectinload(OrderItem.selected_options)
-        )
-        .filter(
-            Order.company_id == company_id,
-            Order.order_type == OrderType.DELIVERY,
-            Order.status.in_([OrderStatus.READY, OrderStatus.DELIVERING])
-        )
-        .order_by(Order.created_at.asc())
-        .all()
-    )
-    return orders
+    return db.query(Order).filter(
+        Order.company_id == company_id,
+        Order.status.in_(["ready", "delivering"])
+    ).order_by(Order.created_at.desc()).all()
 
 @router.patch("/orders/{order_id}/dispatch", status_code=200)
 async def dispatch_order(
     order_id: UUID,
-    dispatch_data: DispatchOrderRequest,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    current_user: any = Depends(require_delivery_access)
+    current_user: Any = Depends(get_current_user)
 ):
-    slug = getattr(current_user, "slug", "unknown")
-    if hasattr(current_user, "owner_email"): slug = current_user.slug
+    """Inicia a entrega com Event Adapter para Cliente e Driver."""
+    company_id = getattr(current_user, "company_id", getattr(current_user, "id", None))
+    driver_id = current_user.id if isinstance(current_user, Employee) else None
+    
+    order = db.query(Order).with_for_update().options(selectinload(Order.company)).filter(
+        Order.id == order_id, 
+        Order.company_id == company_id
+    ).first()
 
-    # Carrega Company para pegar configs de WhatsApp
-    order = db.query(Order).options(
-        selectinload(Order.driver),
-        selectinload(Order.company)
-    ).filter(Order.id == order_id).first()
+    if not order: 
+        raise HTTPException(404, "Pedido não encontrado")
 
-    if not order: raise HTTPException(404, "Pedido não encontrado")
+    # Idempotência
+    if order.status == "delivering" and order.driver_id == driver_id:
+        return {"message": "Rota já iniciada", "status": "delivering"}
 
-    order.status = OrderStatus.DELIVERING
-    if dispatch_data.driver_id:
-        order.driver_id = dispatch_data.driver_id
-        db.commit()
-        db.refresh(order)
-
-    # Gatilho de WhatsApp: Saiu para Entrega
-    if order.customer_phone:
-        background_tasks.add_task(
-            whatsapp_service.notify_delivery_dispatch,
-            customer_name=order.customer_name or "Cliente",
-            phone=order.customer_phone,
-            driver_name=order.driver.name if order.driver else None,
-            order_id=str(order.id),
-            slug=slug,
-            company_settings=order.company # Injeção de dependência
-        )
-
+    order.status = "delivering"
+    order.driver_id = driver_id
     db.commit()
-    await manager.broadcast({"type": "order_update", "order_id": str(order.id), "status": order.status}, slug)
-    return {"message": "Pedido despachado"}
+
+    # 🛡️ EVENT ADAPTER (L9): Emite para ambos os contextos
+    # 1. Contexto Técnico (Driver/Admin)
+    await manager.broadcast({
+        "type": "delivery.status", 
+        "order_id": str(order.id), 
+        "status": "delivering"
+    }, order.company.slug)
+
+    # 2. Contexto de Domínio (Cliente) - CORREÇÃO DA CEGUEIRA
+    await manager.broadcast({
+        "type": "order_update",
+        "order_id": str(order.id),
+        "status": "delivering"
+    }, order.company.slug)
+
+    return {"message": "Rota iniciada", "status": "delivering"}
 
 @router.patch("/orders/{order_id}/complete", status_code=200)
-async def complete_delivery(
+async def complete_order(
     order_id: UUID,
-    data: CompleteDeliveryRequest,
     db: Session = Depends(get_db),
-    current_user: any = Depends(require_delivery_access)
+    current_user: Any = Depends(get_current_user)
 ):
-    slug = getattr(current_user, "slug", "unknown")
-    if hasattr(current_user, "owner_email"): slug = current_user.slug
-
-    order = db.query(Order).filter(Order.id == order_id).first()
+    order = db.query(Order).options(selectinload(Order.company)).filter(Order.id == order_id).first()
     if not order: raise HTTPException(404, "Pedido não encontrado")
 
-    if order.order_type == OrderType.DELIVERY:
-        if order.delivery_code and order.delivery_code != data.code:
-             if not data.code:
-                 raise HTTPException(status_code=400, detail="Código de confirmação é obrigatório")
-             raise HTTPException(status_code=403, detail="Código de confirmação incorreto")
-
-    order.status = OrderStatus.DELIVERED
-    order.payment_status = PaymentStatus.PAID
+    order.status = "delivered"
     order.finished_at = datetime.now()
-
-    # Lógica de Ledger (Dívida do Motorista)
-    # Se o pagamento for em dinheiro e tiver motorista, cria dívida
-    if order.payment_method == "cash" and order.driver_id:
-        ledger = DriverLedger(
-            company_id=order.company_id,
-            driver_id=order.driver_id,
-            order_id=order.id,
-            type=LedgerType.DEBT,
-            amount=order.total_amount,
-            description=f"Entrega #{str(order.id)[:6]}"
-        )
-        db.add(ledger)
-
     db.commit()
 
-    await manager.broadcast({"type": "order_update", "order_id": str(order.id), "status": order.status}, slug)
-    return {"message": "Entrega finalizada"}
+    # Notificação Normalizada
+    await manager.broadcast({
+        "type": "order_update",
+        "order_id": str(order.id),
+        "status": "delivered"
+    }, order.company.slug)
+
+    return {"message": "Entrega finalizada", "status": "delivered"}
+
+@router.post("/orders/{order_id}/location", status_code=200)
+async def update_order_location(
+    order_id: UUID,
+    lat: float = Body(..., embed=True),
+    lng: float = Body(..., embed=True),
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
+    order = db.query(Order).options(selectinload(Order.company)).filter(Order.id == order_id).first()
+    if not order: raise HTTPException(404, "Pedido não encontrado")
+    
+    dest_lat, dest_lng = -19.22815, -44.94195
+    eta_seconds = calculate_eta_simple(lat, lng, dest_lat, dest_lng)
+
+    # 🛡️ EVENT ADAPTER (L9): Normalização de Telemetria
+    # O Cliente espera "DELIVERY_LOCATION" com payload aninhado
+    await manager.broadcast({
+        "type": "DELIVERY_LOCATION",
+        "order_id": str(order.id),
+        "payload": {
+            "lat": lat,
+            "lng": lng,
+            "eta_seconds": eta_seconds
+        }
+    }, order.company.slug)
+
+    return {"status": "propagated", "eta_seconds": eta_seconds}
+

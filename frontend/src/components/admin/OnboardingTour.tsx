@@ -1,27 +1,40 @@
+// DOMAIN: FRONTEND
+// LAST_MODIFIED: 2026-01-15 19:35:00
 "use client";
-
 import { useState, useEffect } from "react";
 import Joyride, { CallBackProps, STATUS, Step } from "react-joyride";
 
+/**
+ * OnboardingTour: Componente de guia interativo.
+ * Desabilitado automaticamente em ambientes de teste E2E para evitar bloqueio de cliques.
+ */
 export default function OnboardingTour() {
   const [run, setRun] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Verifica se o usuário já completou o tour
+    
+    // 🛡️ RESILIÊNCIA QA: Se estivermos em modo teste ou o tour já foi concluído, não inicia.
+    const isE2E = typeof window !== 'undefined' && 
+                 (window.location.search.includes('e2e=true') || 
+                  localStorage.getItem('mesaflow_tour_completed') === 'true');
+
+    if (isE2E) {
+      setRun(false);
+      return;
+    }
+
     const hasSeenTour = localStorage.getItem("mesaflow_tour_completed");
     if (!hasSeenTour) {
-      // Pequeno delay para garantir que o layout carregou
-      const timer = setTimeout(() => setRun(true), 1000);
+      const timer = setTimeout(() => setRun(true), 1500);
       return () => clearTimeout(timer);
     }
   }, []);
 
   const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status, type } = data;
+    const { status } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
-
     if (finishedStatuses.includes(status)) {
       setRun(false);
       localStorage.setItem("mesaflow_tour_completed", "true");
@@ -34,7 +47,7 @@ export default function OnboardingTour() {
     {
       target: "body",
       content: (
-        <div className="text-left">
+        <div className="text-left" data-testid="joyride-welcome">
           <h3 className="font-bold text-lg mb-2 text-gray-900">Bem-vindo ao MesaFlow! 🚀</h3>
           <p className="text-gray-600">Vamos configurar seu restaurante em 3 passos simples para você começar a vender hoje mesmo.</p>
         </div>
@@ -44,38 +57,22 @@ export default function OnboardingTour() {
     },
     {
       target: "#nav-menu",
-      content: (
-        <div className="text-gray-700 text-left">
-            1º Passo: Cadastre seus produtos e categorias aqui. É o coração do seu sistema.
-        </div>
-      ),
+      content: <div className="text-gray-700 text-left">1º Passo: Cadastre seus produtos e categorias aqui.</div>,
       placement: "bottom",
     },
     {
       target: "#nav-tables",
-      content: (
-        <div className="text-gray-700 text-left">
-            2º Passo: Crie suas mesas (ou pontos de venda) e gere os QR Codes para imprimir.
-        </div>
-      ),
+      content: <div className="text-gray-700 text-left">2º Passo: Crie suas mesas e gere os QR Codes.</div>,
       placement: "bottom",
     },
     {
       target: "#nav-kitchen",
-      content: (
-        <div className="text-gray-700 text-left">
-            3º Passo: Abra esta tela em um tablet na cozinha. Os pedidos aparecerão aqui em tempo real!
-        </div>
-      ),
+      content: <div className="text-gray-700 text-left">3º Passo: Abra o KDS em um tablet na cozinha.</div>,
       placement: "left",
     },
     {
       target: "#nav-dashboard",
-      content: (
-        <div className="text-gray-700 text-left">
-            Pronto! Acompanhe suas vendas e métricas aqui. Boa sorte!
-        </div>
-      ),
+      content: <div className="text-gray-700 text-left">Pronto! Acompanhe suas vendas e métricas aqui.</div>,
       placement: "bottom",
     },
   ];
@@ -87,7 +84,6 @@ export default function OnboardingTour() {
       continuous
       showSkipButton
       showProgress
-      disableScrolling={false}
       scrollToFirstStep={true}
       callback={handleJoyrideCallback}
       styles={{
@@ -97,19 +93,14 @@ export default function OnboardingTour() {
           backgroundColor: "#fff",
           zIndex: 10000,
         },
+        overlay: {
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        },
         buttonNext: {
             backgroundColor: "#ea580c",
             fontWeight: "bold",
             borderRadius: "8px",
             color: "#fff"
-        },
-        buttonBack: {
-            color: "#666",
-            marginRight: "10px"
-        },
-        buttonSkip: {
-            color: "#999",
-            fontSize: "14px"
         }
       }}
       locale={{
@@ -122,3 +113,4 @@ export default function OnboardingTour() {
     />
   );
 }
+

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- 
+    MESAFLOW REGISTRY SCHEMA v1.0
+    Purpose: Formal validation for governance/registry.xml
+  -->
+  <xs:element name="Registry">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Meta" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Status" type="xs:string"/>
+              <xs:element name="Authority" type="xs:string"/>
+              <xs:element name="LastAudit" type="xs:dateTime"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Scripts" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Script" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:attribute name="id" type="xs:string" use="required"/>
+                  <xs:attribute name="name" type="xs:string" use="required"/>
+                  <xs:attribute name="status" use="required">
+                    <xs:simpleType>
+                      <xs:restriction base="xs:string">
+                        <xs:enumeration value="PENDING"/>
+                        <xs:enumeration value="TESTING"/>
+                        <xs:enumeration value="SUCCESS"/>
+                        <xs:enumeration value="FAILED"/>
+                        <xs:enumeration value="BLOCKED_BY_DATA"/>
+                        <xs:enumeration value="DEPRECATED"/>
+                      </xs:restriction>
+                    </xs:simpleType>
+                  </xs:attribute>
+                  <xs:attribute name="blocking" type="xs:boolean" use="required"/>
+                  <xs:attribute name="evidence" type="xs:string" use="optional"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="version" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

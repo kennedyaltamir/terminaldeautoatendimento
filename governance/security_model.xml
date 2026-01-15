@@ -1,0 +1,15 @@
+
+<SecurityModel version="1.0">
+    <Isolation_Strategy>PostgreSQL Row-Level Security (RLS)</Isolation_Strategy>
+    <Authentication>JWT (Stateless) com Rotação de Refresh Tokens</Authentication>
+    <Authorization>RBAC (Role-Based Access Control)</Authorization>
+    <Data_Protection>
+        <Transit>TLS 1.2+ (HTTPS/WSS)</Transit>
+        <Rest>AES-256 (Neon Managed)</Rest>
+    </Data_Protection>
+    <Threat_Mitigation>
+        <Rate_Limiting>SlowAPI (Redis backed)</Rate_Limiting>
+        <Sanitization>HTML Escape + Pydantic Validation</Sanitization>
+    </Threat_Mitigation>
+</SecurityModel>
+

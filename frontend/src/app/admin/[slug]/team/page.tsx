@@ -27,7 +27,15 @@ export default function TeamPage({ params }: { params: { slug: string } }) {
   const [activeTab, setActiveTab] = useState<RoleFilter>('all');
   const [searchTerm, setSearchTerm] = useState("");
   
-  const { register, handleSubmit, reset } = useForm();
+  // FIX: Definir valores padrão para evitar envio de undefined
+  const { register, handleSubmit, reset } = useForm({
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      role: "cashier" // Valor padrão seguro
+    }
+  });
 
   const fetchEmployees = async () => {
     try {
@@ -107,7 +115,6 @@ export default function TeamPage({ params }: { params: { slug: string } }) {
   return (
     <div className="space-y-6 pb-20">
       <Toaster position="top-right" richColors />
-      
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center gap-2">
@@ -135,7 +142,6 @@ export default function TeamPage({ params }: { params: { slug: string } }) {
             onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
-        
         <div className="flex gap-2 overflow-x-auto no-scrollbar">
           {[
             { id: 'all', label: 'Todos', icon: Users },
@@ -206,13 +212,14 @@ export default function TeamPage({ params }: { params: { slug: string } }) {
               O novo membro receberá acesso imediato. Certifique-se de escolher a função correta para limitar as permissões.
             </p>
           </div>
-
+          
           <AuthInput 
             label="Nome Completo" 
             icon={User} 
             placeholder="Ex: João Silva" 
             {...register("name", { required: true })} 
           />
+          
           <AuthInput 
             label="Email de Acesso" 
             icon={User} 
@@ -220,6 +227,7 @@ export default function TeamPage({ params }: { params: { slug: string } }) {
             placeholder="joao@restaurante.com" 
             {...register("email", { required: true })} 
           />
+          
           <AuthInput 
             label="Senha Inicial" 
             icon={Shield} 
@@ -227,12 +235,12 @@ export default function TeamPage({ params }: { params: { slug: string } }) {
             placeholder="******" 
             {...register("password", { required: true, minLength: 4 })} 
           />
-          
+
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Função & Permissões</label>
             <div className="grid grid-cols-1 gap-2">
               <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <input type="radio" value="cashier" {...register("role")} defaultChecked className="accent-orange-600" />
+                <input type="radio" value="cashier" {...register("role")} className="accent-orange-600" />
                 <div>
                   <span className="block font-bold text-sm text-gray-900">Garçom / Caixa</span>
                   <span className="block text-xs text-gray-500">Acesso ao App do Garçom e Mesas.</span>

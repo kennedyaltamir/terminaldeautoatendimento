@@ -1,5 +1,5 @@
 // DOMAIN: FRONTEND
-// LAST_MODIFIED: 2026-01-10 02:20:00
+// LAST_MODIFIED: 2026-01-15 03:15:00
 import { getToken, getRefreshToken, setTokens, removeTokens } from "./auth";
 import { Company, Ingredient, RecipeItem, Promotion, CouponValidationResponse } from "@/types";
 
@@ -13,32 +13,20 @@ class ApiError extends Error {
   }
 }
 
-/**
- * Wrapper para fetch com tratamento de autenticação e headers.
- */
 async function fetchClient(endpoint: string, options: RequestInit = {}) {
   const token = getToken();
-  
-  // Extração segura de headers para evitar conflitos de tipo no RequestInit
-  const { headers: customHeaders, restOptions } = options;
-
-  const finalHeaders: any = {
+  const headers: any = {
     "Content-Type": "application/json",
-    customHeaders,
+    ...options.headers,
   };
 
   if (token) {
-    finalHeaders["Authorization"] = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
-
-  const url = `${API_BASE_URL}${endpoint}`;
 
   let response;
   try {
-    response = await fetch(url, { 
-      restOptions, 
-      headers: finalHeaders 
-    });
+    response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
   } catch (error) {
     console.error("Erro de conexão com API:", error);
     throw new ApiError("Servidor indisponível. Verifique sua conexão.", 0);
@@ -63,13 +51,8 @@ async function fetchClient(endpoint: string, options: RequestInit = {}) {
       if (refreshRes.ok) {
         const data = await refreshRes.json();
         setTokens(data.access_token, data.refresh_token);
-        
-        // Tenta a requisição original novamente com o novo token
-        finalHeaders["Authorization"] = `Bearer ${data.access_token}`;
-        response = await fetch(url, { 
-          restOptions, 
-          headers: finalHeaders 
-        });
+        headers["Authorization"] = `Bearer ${data.access_token}`;
+        response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
       } else {
         throw new Error("Refresh falhou");
       }
@@ -87,14 +70,14 @@ async function fetchClient(endpoint: string, options: RequestInit = {}) {
     try {
         const errorData = await response.json();
         errorMessage = errorData.detail || errorMessage;
-    } catch (e) {
-        // Ignora erro de parse
-    }
+    } catch (e) {}
     throw new ApiError(errorMessage, response.status);
   }
 
   return response;
 }
+
+// --- PUBLIC API ---
 
 export async function getMenu(slug: string) {
   try {
@@ -105,6 +88,12 @@ export async function getMenu(slug: string) {
     console.error("Erro ao buscar menu:", error);
     throw new Error("Não foi possível carregar o cardápio. O sistema pode estar offline.");
   }
+}
+
+export async function getPublicMonitorOrders(slug: string) {
+  const res = await fetch(`${API_BASE_URL}/${slug}/monitor`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Falha ao carregar monitor");
+  return res.json();
 }
 
 export async function getWallet(slug: string, phone: string) {
@@ -187,38 +176,25 @@ export async function requestService(slug: string, data: { table_id: number, qr_
   return res.json();
 }
 
-export async function getServiceRequests(slug: string) {
-  try {
-    const res = await fetchClient(`/admin/${slug}/service-requests`);
-    return res.json();
-  } catch (e: any) {
-    if (e.status === 404) {
-        console.warn("Rota de chamados não encontrada (404). Retornando lista vazia.");
-        return [];
-    }
-    throw e;
-  }
-}
-
-export async function resolveServiceRequest(requestId: number) {
-  const res = await fetchClient(`/admin/service-requests/${requestId}/resolve`, { method: "PATCH" });
-  return res.ok;
-}
+// --- ADMIN API ---
 
 export async function login(username: string, password: string) {
   const formData = new URLSearchParams();
   formData.append("username", username);
   formData.append("password", password);
+
   try {
     const res = await fetch(`${API_BASE_URL}/auth/token`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: formData,
     });
+
     if (!res.ok) {
         const err = await res.json();
         throw new Error(err.detail || "Login falhou.");
     }
+
     const data = await res.json();
     setTokens(data.access_token, data.refresh_token);
     return data;
@@ -233,10 +209,12 @@ export async function register(data: any) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
+
   if (!res.ok) {
     const errorData = await res.json();
     throw new Error(errorData.detail || "Falha no cadastro");
   }
+
   const responseData = await res.json();
   setTokens(responseData.access_token, responseData.refresh_token);
   return responseData;
@@ -248,6 +226,7 @@ export async function getDashboardMetrics(startDate?: string, endDate?: string) 
   if (startDate) params.append("start_date", startDate);
   if (endDate) params.append("end_date", endDate);
   if (params.toString()) query = `?${params.toString()}`;
+
   const res = await fetchClient(`/admin/metrics${query}`);
   return res.json();
 }
@@ -652,3 +631,43 @@ export async function importIfoodMenu(url: string) {
   });
   return res.json();
 }
+
+// --- FINANCIAL AUDIT (NEW EXPORTS) ---
+
+export async function getLedgerHistory(limit = 50) {
+  const res = await fetchClient(`/admin/audit/financial/ledger?limit=${limit}`);
+  return res.json();
+}
+
+export async function getReconciliationReport() {
+  const res = await fetchClient(`/admin/audit/financial/reconciliation`);
+  return res.json();
+}
+
+export async function verifyLedgerIntegrity() {
+  const res = await fetchClient(`/admin/audit/financial/verify-integrity`);
+  return res.json();
+}
+
+export async function fixOrphanTransaction(externalId: string) {
+  const res = await fetchClient(`/admin/audit/financial/fix-orphan`, {
+    method: "POST",
+    body: JSON.stringify({ external_id: externalId })
+  });
+  return res.json();
+}
+
+// Renomeado para evitar conflito com a interface ServiceRequest
+export async function getServiceRequestsAdmin(slug: string) {
+  const res = await fetchClient(`/admin/${slug}/service-requests`);
+  return res.json();
+}
+
+// Adicionado para resolver erro de compilação
+export async function resolveServiceRequest(slug: string, requestId: number) {
+  const res = await fetchClient(`/admin/${slug}/service-requests/${requestId}/resolve`, {
+    method: "PATCH"
+  });
+  return res.json();
+}
+

@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getKitchenOrders, updateOrderStatus, updateOrderPayment, getServiceRequests, resolveServiceRequest, getRecentCompletedOrders } from "@/lib/api";
+// CORREÇÃO: Importando getServiceRequestsAdmin em vez de getServiceRequests
+import { getKitchenOrders, updateOrderStatus, updateOrderPayment, getServiceRequestsAdmin, resolveServiceRequest, getRecentCompletedOrders } from "@/lib/api";
 import { Order, ServiceRequest, OrderItemResponse } from "@/types";
 import { ChefHat, RefreshCw, LogOut, ArrowRightCircle, CheckCircle2, Volume2, VolumeX, DollarSign, Printer, Bike, BellRing, XCircle, Utensils, Wine, Layers, History, Undo2, Box, AlertTriangle, IceCream, Smartphone, ListChecks, Maximize2, Minimize2, Tag, Keyboard, ShoppingBag, Mic, MicOff } from "lucide-react";
 import { removeToken } from "@/lib/auth";
@@ -40,7 +41,8 @@ export default function KitchenPage({ params }: { params: { slug: string } }) {
     try {
       const [ordersData, requestsData] = await Promise.all([
         getKitchenOrders(slug),
-        getServiceRequests(slug)
+        // CORREÇÃO: Usando a função correta da API
+        getServiceRequestsAdmin(slug)
       ]);
 
       setOrders(ordersData);
@@ -289,3 +291,4 @@ export default function KitchenPage({ params }: { params: { slug: string } }) {
     </div>
   );
 }
+

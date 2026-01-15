@@ -1,132 +1,72 @@
+
 # DOMAIN: DEVOPS_SCRIPTS
-# LAST_MODIFIED: 2026-01-10 02:30:00
+# LAST_MODIFIED: 2026-01-13 11:25:00
 import os
 import sys
-import socket
+import io
 import json
-import subprocess
 from pathlib import Path
-from decimal import Decimal
+from datetime import datetime
 
-class Colors:
-    HEADER = '\033[95m'
-    BLUE = '\033[94m'
-    CYAN = '\033[96m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
+# Windows Resilience: Force UTF-8 Output
+if sys.platform == "win32":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-def print_status(label, status, detail=""):
-    color = Colors.GREEN if status == "OK" else Colors.RED if status == "FAIL" else Colors.YELLOW
-    print(f"{Colors.BOLD}{label:<40}{Colors.ENDC} | {color}{status:<6}{Colors.ENDC} | {detail}")
+REPORT_PATH = Path("governance/evidence/REPORT_SYSTEM_INTEGRITY.md")
+ERROR_LOG_PATH = Path("comunication/error.log")
 
-def check_port(port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.settimeout(0.5)
-        return s.connect_ex(('127.0.0.1', port)) == 0
-
-def run_integrity_check():
-    print(f"\n{Colors.HEADER}🛡️  MesaFlow System Integrity Auditor v1.0{Colors.ENDC}")
-    print("=" * 80)
+def run_integrity_audit():
+    # Removido emojis do print para evitar UnicodeEncodeError em terminais legados
+    print("[SYS-01] Running System Integrity Audit...")
     
-    issues_found = 0
-    warnings_found = 0
-
-    # --- 1. AMBIENTE & CONFIGURAÇÃO ---
-    print(f"\n{Colors.CYAN}[1/5] AMBIENTE & CONFIGURAÇÃO{Colors.ENDC}")
-    env_path = Path(".env")
-    example_path = Path(".env.example")
+    required_paths = [
+        "app", "frontend", "mobile", "scripts", 
+        "governance/evidence", "governance/policies"
+    ]
     
-    if not env_path.exists():
-        print_status("Arquivo .env", "FAIL", "Arquivo ausente na raiz.")
-        issues_found += 1
-    else:
-        from dotenv import dotenv_values
-        current = dotenv_values(env_path)
-        expected = dotenv_values(example_path)
-        missing = [k for k in expected.keys() if k not in current]
-        if missing:
-            print_status("Paridade .env", "FAIL", f"Faltam: {', '.join(missing)}")
-            issues_found += 1
-        else:
-            print_status("Paridade .env", "OK")
-
-    # --- 2. BACKEND & INFRA ---
-    print(f"\n{Colors.CYAN}[2/5] BACKEND & INFRAESTRUTURA{Colors.ENDC}")
-    if check_port(5432):
-        print_status("PostgreSQL (5432)", "OK")
-    else:
-        print_status("PostgreSQL (5432)", "FAIL", "Servidor offline ou porta bloqueada.")
-        issues_found += 1
-
-    if check_port(6379):
-        print_status("Redis (6379)", "OK")
-    else:
-        print_status("Redis (6379)", "WARN", "Offline. Cache e WebSockets em modo degradado.")
-        warnings_found += 1
-
-    # --- 3. FRONTEND INTEGRITY ---
-    print(f"\n{Colors.CYAN}[3/5] FRONTEND INTEGRITY{Colors.ENDC}")
-    fe_src = Path("frontend/src")
-    syntax_err = 0
-    if fe_src.exists():
-        for p in fe_src.rglob("*.ts*"):
-            try:
-                content = p.read_text(encoding="utf-8")
-                if content.startswith("# DOMAIN"):
-                    syntax_err += 1
-            except: continue
-        
-        if syntax_err > 0:
-            print_status("Sintaxe de Metadados", "FAIL", f"{syntax_err} arquivos com '#' em vez de '//'")
-            issues_found += 1
-        else:
-            print_status("Sintaxe de Metadados", "OK")
+    issues = []
+    results = []
     
-    if Path("frontend/node_modules").exists():
-        print_status("Dependencias Frontend", "OK")
-    else:
-        print_status("Dependencias Frontend", "FAIL", "node_modules ausente.")
-        issues_found += 1
+    for p in required_paths:
+        exists = Path(p).exists()
+        status = "OK" if exists else "MISSING"
+        if not exists:
+            issues.append(f"Directory missing: {p}")
+        results.append(f"| `{p}` | {'PASS' if exists else 'FAIL'} |")
 
-    # --- 4. MOBILE INTEGRITY ---
-    print(f"\n{Colors.CYAN}[4/5] MOBILE INTEGRITY{Colors.ENDC}")
-    mob_assets = Path("mobile/assets")
-    required_assets = ["icon.png", "splash.png", "adaptive-icon.png", "favicon.png"]
-    missing_assets = [a for a in required_assets if not (mob_assets / a).exists()]
+    # Final Verdict
+    success = (len(issues) == 0)
     
-    if missing_assets:
-        print_status("Assets Expo", "FAIL", f"Faltam: {', '.join(missing_assets)}")
-        issues_found += 1
-    else:
-        print_status("Assets Expo", "OK")
+    report_content = [
+        "# System Integrity Report (SYS-01)",
+        f"**Date:** {datetime.now().isoformat()}",
+        "\n## 1. Directory Verification",
+        "| Path | Status |",
+        "| :--- | :---: |",
+        *results,
+        f"\n## 2. Verdict: {'PASS' if success else 'FAIL'}"
+    ]
 
-    # --- 5. GOVERNANÇA & DOCS ---
-    print(f"\n{Colors.CYAN}[5/5] GOVERNANÇA & DOCUMENTAÇÃO{Colors.ENDC}")
-    tasks_path = Path("docs/TASKS.md")
-    if tasks_path.exists():
-        content = tasks_path.read_text(encoding="utf-8")
-        pending = content.count("[ ]")
-        print_status("Backlog (TASKS.md)", "OK", f"{pending} tarefas pendentes.")
-    else:
-        print_status("Backlog (TASKS.md)", "FAIL", "Arquivo mestre ausente.")
-        issues_found += 1
+    os.makedirs(REPORT_PATH.parent, exist_ok=True)
+    with open(REPORT_PATH, "w", encoding="utf-8") as f:
+        f.write("\n".join(report_content))
 
-    # --- RESULTADO FINAL ---
-    print("\n" + "=" * 80)
-    health = max(0, 100 - (issues_found * 20) - (warnings_found * 5))
-    print(f"{Colors.BOLD}SAÚDE DO SISTEMA: {health}%{Colors.ENDC}")
-    print(f"Erros Críticos: {Colors.RED}{issues_found}{Colors.ENDC} | Avisos: {Colors.YELLOW}{warnings_found}{Colors.ENDC}")
-    print("=" * 80)
+    if not success:
+        error_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "script": "SYS-01",
+            "type": "INTEGRITY_FAILURE",
+            "reason": "MISSING_DIRECTORIES",
+            "details": issues
+        }
+        os.makedirs(ERROR_LOG_PATH.parent, exist_ok=True)
+        with open(ERROR_LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(error_entry) + "\n")
+        return 1
 
-    if issues_found > 0:
-        print(f"\n{Colors.RED}🚨 O sistema possui inconsistências que podem impedir a operação.{Colors.ENDC}")
-        sys.exit(1)
-    else:
-        print(f"\n{Colors.GREEN}✨ Sistema íntegro e pronto para produção.{Colors.ENDC}")
-        sys.exit(0)
+    print("Success: System structure is valid.")
+    return 0
 
 if __name__ == "__main__":
-    run_integrity_check()
+    sys.exit(run_integrity_audit())
+

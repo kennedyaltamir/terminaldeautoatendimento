@@ -1,0 +1,1047 @@
+[2026-01-07 06:20:09] CREATE: docs/mobile/TEST_PLAN_MANUAL.md
+[2026-01-07 06:20:09] CREATE: scripts/functional/mobile_adb_automation.py
+[2026-01-07 06:20:09] CREATE: mobile/src/services/__tests__/orders.sla.test.ts
+[2026-01-07 06:23:34] CREATE: mobile/src/store/__tests__/auth.store.test.ts
+[2026-01-07 06:23:34] CREATE: mobile/src/lib/__tests__/escpos.encoder.test.ts
+[2026-01-07 06:24:53] CREATE: mobile/jest.setup.js
+[2026-01-07 06:24:53] CREATE: mobile/src/store/__tests__/orders.store.test.ts
+[2026-01-07 06:30:35] CREATE: mobile/src/services/__tests__/jwt.test.ts
+[2026-01-07 06:30:51] UPDATE: mobile/src/services/auth/jwt.ts
+[2026-01-07 06:30:51] UPDATE: mobile/src/store/auth.store.ts
+[2026-01-07 06:30:51] UPDATE: docs/TASKS.md
+[2026-01-07 06:33:29] CREATE: docs/mobile/PRINTER_HOMOLOGATION_GUIDE.md
+[2026-01-07 07:04:13] CREATE: scripts/maintenance/check_mobile_readiness.py
+[2026-01-07 07:41:08] CREATE: scripts/setup/refresh_mobile_app.ps1
+[2026-01-07 07:42:34] CREATE: scripts/setup/refresh_mobile_app.py
+[2026-01-07 07:52:55] CREATE: scripts/setup/final_build_push.sh
+[2026-01-07 08:31:33] CREATE: scripts/maintenance/master_alignment_check.py
+[2026-01-07 08:48:14] CREATE: scripts/tests/test_table_realtime.py
+[2026-01-07 08:48:14] CREATE: mobile/src/store/__tests__/waiter.store.test.ts
+[2026-01-07 08:59:22] CREATE: scripts/setup/check_mobile_env.py
+[2026-01-07 09:21:17] CREATE: mobile/android/local.properties
+[2026-01-07 10:21:02] CREATE: scripts/setup/fix_mobile_build.py
+[2026-01-07 10:36:10] CREATE: docs/mobile/setup/LOCAL_BUILD_GUIDE.md
+[2026-01-07 10:42:15] CREATE: scripts/setup/build_android.py
+[2026-01-07 10:43:39] CREATE: scripts/setup/fix_android_sdk.py
+[2026-01-07 10:53:38] CREATE: scripts/setup/mobile_doctor.py
+[2026-01-07 11:03:48] CREATE: scripts/setup/install_apk.py
+[2026-01-07 11:14:56] CREATE: scripts/setup/mobile_connectivity_doctor.py
+[2026-01-07 11:17:48] CREATE: scripts/setup/fix_mobile_env.py
+[2026-01-07 11:21:16] CREATE: scripts/setup/optimize_gradle.py
+[2026-01-07 11:57:43] CREATE: scripts/setup/force_ndk_version.py
+[2026-01-07 12:00:05] CREATE: scripts/setup/fix_build_environment.py
+[2026-01-07 12:05:41] CREATE: scripts/setup/force_ndk_26.py
+[2026-01-07 12:07:02] CREATE: scripts/setup/fix_ndk_final.py
+[2026-01-07 12:10:40] CREATE: scripts/setup/force_build_correct_ndk.py
+[2026-01-07 12:12:09] CREATE: scripts/setup/switch_to_ndk17.py
+[2026-01-07 12:13:27] CREATE: scripts/setup/fix_java_and_build.py
+[2026-01-07 12:14:58] CREATE: scripts/setup/align_ndk.py
+[2026-01-07 12:16:34] CREATE: scripts/setup/link_ndk_27.py
+[2026-01-07 12:23:22] CREATE: scripts/setup/nuclear_android_fix.py
+[2026-01-07 12:28:32] CREATE: docs/mobile/setup/Android_Build_Protocol.xml
+[2026-01-07 20:20:00] CREATE: mobile/src/config/sentry.ts
+[2026-01-07 20:20:00] CREATE: scripts/functional/mobile_diagnostics.py
+[2026-01-07 20:20:00] CREATE: docs/mobile/tasks/mobile_38_sentry_integration.md
+[2026-01-07 20:53:18] CREATE: docs/governance/MIHP_PROTOCOL.md
+[2026-01-07 20:57:20] CREATE: docs/governance/AI_ROLE_PROTOCOL.md
+[2026-01-07 20:57:20] CREATE: docs/governance/AI_SCOPE_VIOLATION_PROTOCOL.md
+[2026-01-07 20:57:20] CREATE: docs/governance/CODE_CHANGE_PROTOCOL.md
+[2026-01-07 20:57:20] CREATE: docs/governance/FILE_OWNERSHIP_PROTOCOL.md
+[2026-01-07 20:57:20] CREATE: docs/governance/VERIFICATION_PROTOCOL.md
+[2026-01-07 20:57:20] CREATE: docs/governance/ROLLBACK_PROTOCOL.md
+[2026-01-07 20:57:20] CREATE: docs/governance/DOCUMENTATION_STANDARD_PROTOCOL.md
+[2026-01-07 20:57:20] CREATE: docs/governance/TASK_LIFECYCLE_PROTOCOL.md
+[2026-01-07 20:57:20] CREATE: docs/governance/SECURITY_BOUNDARY_PROTOCOL.md
+[2026-01-07 21:03:55] CREATE: docs/governance/README.md
+[2026-01-07 21:07:36] CREATE: docs/governance/GOVERNANCE_CHANGE_PROTOCOL.md
+[2026-01-07 21:20:33] CREATE: docs/governance/CONTEXT_GENERATION_PROTOCOL.md
+[2026-01-07 21:27:13] CREATE: caminho/do/arquivo.ext
+[2026-01-07 21:27:47] CREATE: docs/governance/UPDATE_EXECUTION_PROTOCOL.md
+[2026-01-07 21:43:21] WRITE: atualizar.py
+[2026-01-07 21:48:05] FAIL: [AI_ABORT] - A IA recusou a tarefa: " in content:
+        error_match = re.search(r"<ERROR>(.*?)
+[2026-01-07 21:49:46] FAIL: [AI_ABORT] - A IA recusou a tarefa: " in content:
+        error_match = re.search(r"<ERROR>(.*?)
+[2026-01-07 21:49:57] FAIL: [AI_ABORT] - A IA recusou a tarefa: " in content:
+        error_match = re.search(r"<ERROR>(.*?)
+[2026-01-07 21:50:25] FAIL: [AI_ABORT] - A IA recusou a tarefa: " in content:
+        error_match = re.search(r"<ERROR>(.*?)
+[2026-01-07 21:50:35] FAIL: [AI_ABORT] - A IA recusou a tarefa: " in content:
+        error_match = re.search(r"<ERROR>(.*?)
+[2026-01-07 21:51:40] FAIL: [AI_ABORT] - A IA recusou a tarefa: # Agora verificamos se a tag está no início ou isolada, evitando falso positivo no próprio código fonte.
+    if re.search(r"^\s*<ERROR>", content, re.MULTILINE):
+        error_match = re.search(r"<ERROR>(.*?)
+[2026-01-07 21:56:02] FAIL: [AI_ABORT] - A IA recusou a tarefa: " in content:
+        error_match = re.search(r"<ERROR>(.*?)
+[2026-01-07 22:20:25] FAIL: [PROTOCOL_ERROR] - Classificação de Task (TRIVIAL ou COMPLEXA) não encontrada.
+[2026-01-07 22:24:47] FAIL: [PROTOCOL_ERROR] - Divergência de tags: 4 BEGIN vs 3 END.
+[2026-01-07 22:26:34] WRITE: docs/TASKS.md
+[2026-01-07 22:26:34] WRITE: docs/ROADMAP.md
+[2026-01-07 22:26:34] WRITE: docs/MASTER_PROJECT_BIBLE.md
+[2026-01-07 22:32:00] FAIL: [PROTOCOL_ERROR] - Classificação de Task (TRIVIAL ou COMPLEXA) não encontrada.
+[2026-01-07 22:32:31] WRITE: docs/ROADMAP.md
+[2026-01-07 22:35:23] WRITE: docs/ROADMAP.md
+[2026-01-07 22:40:00] WRITE: docs/TASKS.md
+[2026-01-07 22:40:19] WRITE: docs/TASKS.md
+[2026-01-07 22:40:39] WRITE: docs/TASKS.md
+[2026-01-07 22:43:14] FAIL: [PROTOCOL_ERROR] - Task COMPLEXA sem arquivo de teste e sem justificativa [TEST_EXEMPT].
+[2026-01-07 22:44:12] FAIL: [PROTOCOL_ERROR] - Task COMPLEXA sem arquivo de teste e sem justificativa [TEST_EXEMPT].
+[2026-01-07 22:48:44] WRITE: docs/management/PROJECT_CHARTER.md
+[2026-01-07 22:48:44] WRITE: docs/management/RISK_REGISTER.md
+[2026-01-07 22:48:44] WRITE: docs/management/STAKEHOLDER_REGISTER.md
+[2026-01-07 22:48:44] WRITE: docs/technical/PRD.md
+[2026-01-07 22:48:44] WRITE: docs/technical/SDS.md
+[2026-01-07 22:48:44] WRITE: docs/management/LESSONS_LEARNED.md
+[2026-01-07 22:48:44] WRITE: docs/management/PROJECT_SCHEDULE.md
+[2026-01-07 22:48:44] WRITE: docs/manuals/USER_GUIDE_MASTER.md
+[2026-01-07 22:48:44] WRITE: docs/manuals/DEPLOYMENT_PLAN.md
+[2026-01-07 22:48:44] WRITE: docs/technical/TEST_STRATEGY.md
+[2026-01-07 22:48:44] WRITE: docs/management/PROJECT_STATUS_REPORT_TEMPLATE.md
+[2026-01-07 22:52:20] FAIL: [PROTOCOL_ERROR] - Task COMPLEXA sem arquivo de teste e sem justificativa [TEST_EXEMPT].
+[2026-01-07 22:56:43] FAIL: [PROTOCOL_ERROR] - Task COMPLEXA sem arquivo de teste e sem justificativa [TEST_EXEMPT].
+[2026-01-07 23:02:06] FAIL: [AI_ABORT] - A IA recusou a tarefa: Missão ambígua
+[2026-01-07 23:04:52] FAIL: [AI_ABORT] - A IA recusou a tarefa: " in content:
+        error_match = re.search(r"<ERROR>(.*?)
+[2026-01-07 23:05:02] FAIL: [AI_ABORT] - A IA recusou a tarefa: " in content:
+        error_match = re.search(r"<ERROR>(.*?)
+[2026-01-07 23:06:04] WRITE: atualizar.py
+[2026-01-07 23:06:31] FAIL_FAST: FFP-01 - Parse falhou: 2 blocos extraídos vs 3 tags de fechamento.
+[2026-01-07 23:06:38] FAIL_FAST: FFP-01 - Parse falhou: 2 blocos extraídos vs 3 tags de fechamento.
+[2026-01-07 23:08:11] WRITE: atualizar.py
+[2026-01-07 23:08:11] WRITE: docs/governance/ERROR_RESPONSE_MAPPING_PROTOCOL.md
+[2026-01-07 23:10:55] FAIL_FAST: FFP-01 - Parse falhou: 1 blocos extraídos vs 2 tags de fechamento.
+[2026-01-07 23:11:01] FAIL_FAST: FFP-01 - Parse falhou: 1 blocos extraídos vs 2 tags de fechamento.
+[2026-01-07 23:13:54] FAIL_FAST: FFP-01 - Parse falhou: 2 blocos extraídos vs 3 tags de fechamento.
+[2026-01-07 23:15:53] WRITE: docs/ROADMAP.md
+[2026-01-07 23:26:36] FAIL_FAST: FFP-01 - Parse falhou: 5 blocos extraídos vs 7 tags de fechamento.
+[2026-01-07 23:28:29] FAIL_FAST: FFP-03 - Task COMPLEXA sem arquivo de teste e sem justificativa [TEST_EXEMPT].
+[2026-01-07 23:33:00] FAIL_FAST: FFP-03 - Task COMPLEXA sem arquivo de teste e sem justificativa [TEST_EXEMPT].
+[2026-01-07 23:33:05] FAIL_FAST: FFP-03 - Task COMPLEXA sem arquivo de teste e sem justificativa [TEST_EXEMPT].
+[2026-01-07 23:34:00] WRITE: atualizar.py
+[2026-01-07 23:34:00] WRITE: docs/governance/AI_STARTUP_SEQUENCE.xml
+[2026-01-07 23:34:00] WRITE: docs/tasks/update_governance_system_v2.md
+[2026-01-07 23:38:51] WARNING: Governance Override activated.
+[2026-01-07 23:38:51] WRITE: gerartxt.py
+[2026-01-07 23:44:43] WARNING: Governance Override activated.
+[2026-01-07 23:44:43] WRITE: gerartxt.py
+[2026-01-07 23:47:20] WARNING: Governance Override activated.
+[2026-01-07 23:47:20] FAIL_FAST: FFP-02 - Placeholder detectado em path: 'restante\s*do\s*código'
+[2026-01-07 23:59:36] FAIL_FAST: FFP-06 - Tentativa de alterar arquivo protegido pela Constituição: gerartxt.py
+[2026-01-08 00:18:38] FAIL_FAST: FFP-03 - Task COMPLEXA sem arquivo de teste e sem justificativa [TEST_EXEMPT].
+[2026-01-08 00:22:49] WARNING: Governance Override activated.
+[2026-01-08 00:22:49] FAIL_FAST: FFP-01 - Parse falhou: 5 blocos extraídos vs 6 tags de fechamento.
+[2026-01-08 00:42:54.440083] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 00:59:00.430605] ABORT [FFP-02]: Omissão detectada em gerar_kernel.py: '\.\.\.'
+[2026-01-08 03:59:47.204623] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 04:00:10.069643] WRITE: docs/governance/AI_OPERATIONAL_MEMORY_PROTOCOL.xml
+[2026-01-08 04:21:56.713084] WRITE: docs/governance/INDA_TASK_PROTOCOL.md
+[2026-01-08 04:25:46.834861] WRITE: docs/tasks/TASK-014A_MOBILE_SEMANTIC_AUTH.md
+[2026-01-08 04:30:34.161949] ABORT [FFP-02]: Omissão detectada em docs/tasks/TASK-024_MOBILE_RESILIENCE.md: '\.\.\.'
+[2026-01-08 04:32:17.105187] WRITE: docs/tasks/TASK-023_MOBILE_SILENT_MODE.md
+[2026-01-08 04:32:17.106284] WRITE: docs/tasks/TASK-024_MOBILE_RESILIENCE.md
+[2026-01-08 04:32:17.107618] WRITE: docs/tasks/TASK-036_MOBILE_NATIVE_BUILD.md
+[2026-01-08 04:32:17.108463] WRITE: docs/tasks/TASK-039_MOBILE_DEEP_LINKING.md
+[2026-01-08 04:32:17.109249] WRITE: docs/tasks/TASK-040_MOBILE_OTA_UPDATES.md
+[2026-01-08 04:32:17.110941] WRITE: docs/TASKS.md
+[2026-01-08 04:34:29.176178] WRITE: docs/tasks/TASK-041_MOBILE_PERFORMANCE_FLASHLIST.md
+[2026-01-08 04:34:29.177264] WRITE: docs/tasks/TASK-042_MOBILE_STORE_AUTOMATION.md
+[2026-01-08 04:34:29.179486] WRITE: docs/TASKS.md
+[2026-01-08 04:48:03.023718] ABORT [FFP-02]: Omissão detectada em atualizar.py: '\.\.\.'
+[2026-01-08 04:52:19.409129] ABORT [FFP-02]: Omissão detectada em mobile/src/store/auth.store.ts: '\.\.\.'
+[2026-01-08 04:52:24.484428] ABORT [FFP-02]: Omissão detectada em mobile/src/store/auth.store.ts: '\.\.\.'
+[2026-01-08 04:54:08.080469] ABORT [FFP-02]: Omissão detectada em atualizar.py: '\.\.\.'
+[2026-01-08 04:54:45.835342] WRITE: mobile/src/services/auth/jwt.ts
+[2026-01-08 04:54:45.844260] WRITE: mobile/src/store/auth.store.ts
+[2026-01-08 04:54:45.851397] WRITE: mobile/src/store/__tests__/auth.store.test.ts
+[2026-01-08 04:57:13.491042] WRITE: mobile/src/services/auth/jwt.ts
+[2026-01-08 04:57:13.499372] WRITE: mobile/src/store/auth.store.ts
+[2026-01-08 04:57:13.505604] WRITE: mobile/src/store/__tests__/auth.store.test.ts
+[2026-01-08 04:58:09.962913] WRITE: mobile/src/services/auth/jwt.ts
+[2026-01-08 04:58:09.970616] WRITE: mobile/src/store/auth.store.ts
+[2026-01-08 04:58:09.977832] WRITE: mobile/src/store/__tests__/auth.store.test.ts
+[2026-01-08 05:04:55.696600] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 05:05:02.475954] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 05:06:07.559714] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 05:06:18.028585] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 05:06:45.671075] WRITE: atualizar.py
+[2026-01-08 05:09:39.172346] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 05:13:24.118854] UPDATE: docs/troubleshooting/TROUBLESHOOTING_MASTER.md
+[2026-01-08 05:15:44.306184] UPDATE: docs/governance/AI_OPERATIONAL_MEMORY_PROTOCOL.xml
+[2026-01-08 05:20:56.334324] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 05:26:15.479105] UPDATE: mobile/src/navigation/AuthGate.tsx
+[2026-01-08 05:26:26.830189] UPDATE: mobile/src/navigation/RootNavigator.tsx
+[2026-01-08 05:26:35.214250] UPDATE: mobile/src/navigation/__tests__/AuthGate.test.tsx
+[2026-01-08 05:26:50.238388] UPDATE: docs/TASKS.md
+[2026-01-08 05:29:14.526933] UPDATE: mobile/src/store/settings.store.ts
+[2026-01-08 05:29:18.982136] UPDATE: mobile/src/services/alerts/alerts.output.service.ts
+[2026-01-08 05:29:23.930163] UPDATE: mobile/src/screens/orders/OrdersScreen.tsx
+[2026-01-08 05:30:33.906513] UPDATE: docs/TASKS.md
+[2026-01-08 05:35:11.195048] UPDATE: docs/governance/INDA_TASK_PROTOCOL.md
+[2026-01-08 05:36:08.567451] UPDATE: docs/governance/VERIFICATION_PROTOCOL.md
+[2026-01-08 05:36:25.930831] UPDATE: docs/governance/TASK_LIFECYCLE_PROTOCOL.md
+[2026-01-08 05:36:36.403007] UPDATE: docs/TASKS.md
+[2026-01-08 05:37:42.522956] UPDATE: docs/governance/INDA_TASK_PROTOCOL.md
+[2026-01-08 05:39:40.974756] UPDATE: scripts/validation/verify_TASK-014A.py
+[2026-01-08 05:39:47.470556] UPDATE: scripts/validation/verify_TASK-014B.py
+[2026-01-08 05:39:52.206936] UPDATE: docs/TASKS.md
+[2026-01-08 05:48:14.195039] UPDATE: docs/reports/INCIDENT_2026_01_08_NPM_TEST.md
+[2026-01-08 05:48:47.502946] UPDATE: docs/troubleshooting/TROUBLESHOOTING_MASTER.md
+[2026-01-08 05:48:49.415345] UPDATE: scripts/maintenance/fix_mobile_test_script.py
+[2026-01-08 05:51:24.051727] UPDATE: mobile/package.json
+[2026-01-08 05:52:27.510957] UPDATE: mobile/package.json
+[2026-01-08 05:54:17.307736] UPDATE: scripts/setup/install_mobile_deps.py
+[2026-01-08 05:56:39.304601] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 05:56:57.971641] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 05:57:10.786253] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 06:00:47.894857] UPDATE: docs/reports/INCIDENT_2026_01_08_NPM_TEST.md
+[2026-01-08 06:00:50.246522] UPDATE: docs/troubleshooting/TROUBLESHOOTING_MASTER.md
+[2026-01-08 06:00:59.475573] UPDATE: scripts/maintenance/fix_mobile_test_script.py
+[2026-01-08 06:04:38.043035] UPDATE: scripts/validation/verify_TASK-014A.py
+[2026-01-08 06:04:40.506437] UPDATE: scripts/validation/verify_TASK-014B.py
+[2026-01-08 06:06:32.683722] UPDATE: scripts/validation/verify_TASK-014B.py
+[2026-01-08 06:08:42.407113] UPDATE: mobile/package.json
+[2026-01-08 06:10:53.931646] UPDATE: scripts/maintenance/update_mobile_packages.py
+[2026-01-08 06:11:00.988190] UPDATE: mobile/package.json
+[2026-01-08 06:11:16.020520] UPDATE: scripts/maintenance/update_mobile_packages.py
+[2026-01-08 06:11:17.955457] UPDATE: mobile/package.json
+[2026-01-08 06:14:38.471108] UPDATE: scripts/maintenance/fix_mobile_versions.py
+[2026-01-08 06:17:34.251251] UPDATE: scripts/maintenance/fix_react_test_renderer.py
+[2026-01-08 06:19:48.423290] UPDATE: mobile/jest.config.js
+[2026-01-08 06:19:50.183275] UPDATE: scripts/maintenance/fix_jest_config.py
+[2026-01-08 06:23:24.523393] UPDATE: scripts/maintenance/fix_jest_transform.py
+[2026-01-08 06:25:54.771343] UPDATE: scripts/maintenance/fix_jest_final.py
+[2026-01-08 06:30:39.637586] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 06:30:59.515056] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 06:34:25.051560] UPDATE: scripts/maintenance/debug_jest_config.py
+[2026-01-08 06:37:17.156175] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 06:37:19.555470] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 06:37:34.148757] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 06:43:17.927933] UPDATE: scripts/maintenance/upgrade_rntl.py
+[2026-01-08 06:46:09.912263] UPDATE: docs/TASKS.md
+[2026-01-08 06:46:48.339560] UPDATE: docs/troubleshooting/TROUBLESHOOTING_MASTER.md
+[2026-01-08 06:46:56.156432] UPDATE: docs/mobile/tasks/mobile_14b_completion.md
+[2026-01-08 06:48:45.355343] UPDATE: mobile/src/store/settings.store.ts
+[2026-01-08 06:48:47.667166] UPDATE: mobile/src/services/alerts/alerts.output.service.ts
+[2026-01-08 06:48:52.195301] UPDATE: mobile/src/screens/orders/OrdersScreen.tsx
+[2026-01-08 06:48:54.627112] UPDATE: scripts/validation/verify_TASK-023.py
+[2026-01-08 06:50:37.283576] UPDATE: docs/TASKS.md
+[2026-01-08 06:50:42.427156] UPDATE: mobile/src/services/realtime.reconnect.policy.ts
+[2026-01-08 06:50:45.546971] UPDATE: mobile/src/services/orders.realtime.service.ts
+[2026-01-08 06:50:48.551578] UPDATE: mobile/src/services/orders.sync.service.ts
+[2026-01-08 06:50:51.443127] UPDATE: mobile/src/store/orders.store.ts
+[2026-01-08 06:50:53.967448] UPDATE: scripts/validation/verify_TASK-024.py
+[2026-01-08 06:53:32.779880] UPDATE: docs/TASKS.md
+[2026-01-08 06:53:37.395532] UPDATE: mobile/app.json
+[2026-01-08 06:53:43.859270] UPDATE: mobile/eas.json
+[2026-01-08 06:53:47.067521] UPDATE: scripts/validation/verify_TASK-036.py
+[2026-01-08 06:55:49.452358] UPDATE: mobile/app.json
+[2026-01-08 06:56:08.931353] UPDATE: mobile/src/navigation/linking.ts
+[2026-01-08 06:56:17.839490] UPDATE: mobile/App.tsx
+[2026-01-08 06:56:27.191759] UPDATE: scripts/validation/verify_TASK-039.py
+[2026-01-08 06:56:35.248490] UPDATE: docs/TASKS.md
+[2026-01-08 06:58:45.024261] UPDATE: docs/mobile/tasks/mobile_039_completion.md
+[2026-01-08 06:58:49.151661] UPDATE: mobile/app.json
+[2026-01-08 06:58:54.839991] UPDATE: mobile/eas.json
+[2026-01-08 06:58:58.240303] UPDATE: scripts/setup/setup_ota.py
+[2026-01-08 06:59:00.783700] UPDATE: scripts/validation/verify_TASK-040.py
+[2026-01-08 07:02:43.720018] UPDATE: docs/mobile/tasks/mobile_040_completion.md
+[2026-01-08 07:02:51.039241] UPDATE: docs/TASKS.md
+[2026-01-08 07:02:54.567241] UPDATE: mobile/src/screens/orders/OrdersScreen.tsx
+[2026-01-08 07:02:59.751524] UPDATE: scripts/setup/install_flashlist.py
+[2026-01-08 07:03:01.727100] UPDATE: scripts/validation/verify_TASK-041.py
+[2026-01-08 07:07:05.553904] UPDATE: docs/mobile/tasks/mobile_041_completion.md
+[2026-01-08 07:07:31.938567] SKIP: docs/TASKS.md
+[2026-01-08 07:07:35.242544] SKIP: mobile/fastlane/Fastfile
+[2026-01-08 07:07:36.186406] SKIP: mobile/fastlane/Snapfile
+[2026-01-08 07:07:37.682459] SKIP: scripts/automation/capture_mobile_screens.py
+[2026-01-08 07:07:38.726421] SKIP: scripts/validation/verify_TASK-042.py
+[2026-01-08 07:09:24.584456] UPDATE: docs/mobile/tasks/mobile_041_completion.md
+[2026-01-08 07:09:41.567349] UPDATE: docs/TASKS.md
+[2026-01-08 07:09:48.080467] UPDATE: mobile/fastlane/Fastfile
+[2026-01-08 07:09:49.539454] UPDATE: mobile/fastlane/Snapfile
+[2026-01-08 07:09:51.920122] UPDATE: scripts/automation/capture_mobile_screens.py
+[2026-01-08 07:09:53.607425] UPDATE: scripts/validation/verify_TASK-042.py
+[2026-01-08 07:21:57.832857] ABORT [FFP-01]: ESTRUTURA INVÁLIDA: O XML não segue a ordem canônica.
+[2026-01-08 07:22:18.037207] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 07:25:12.043086] SKIP: docs/CHANGELOG.md
+[2026-01-08 07:25:38.558914] SKIP: docs/troubleshooting/TROUBLESHOOTING_MASTER.md
+[2026-01-08 07:25:43.943831] SKIP: docs/tasks/TASK-SEC-01_POSTGRES_RLS.md
+[2026-01-08 07:25:47.066840] SKIP: docs/tasks/TASK-ESC-01_IFOOD_WEBHOOKS.md
+[2026-01-08 07:25:48.207175] SKIP: docs/tasks/details/HARDENING_STRATEGY_V3.md
+[2026-01-08 07:26:00.186715] SKIP: docs/TASKS.md
+[2026-01-08 07:26:49.871005] SKIP: docs/CHANGELOG.md
+[2026-01-08 07:26:50.227932] SKIP: docs/troubleshooting/TROUBLESHOOTING_MASTER.md
+[2026-01-08 07:26:54.215001] SKIP: docs/tasks/TASK-SEC-01_POSTGRES_RLS.md
+[2026-01-08 07:26:56.574211] SKIP: docs/tasks/TASK-ESC-01_IFOOD_WEBHOOKS.md
+[2026-01-08 07:26:58.442917] SKIP: docs/tasks/TASK-FIN-01_CENTAVOS_REFACTOR.md
+[2026-01-08 07:27:01.058555] SKIP: docs/tasks/TASK-MOB-01_CLOCK_OPTIMIZATION.md
+[2026-01-08 07:27:03.538673] SKIP: docs/tasks/details/HARDENING_STRATEGY_V3.md
+[2026-01-08 07:27:05.578616] SKIP: docs/TASKS.md
+[2026-01-08 07:29:19.770780] SKIP: docs/CHANGELOG.md
+[2026-01-08 07:32:38.072132] UPDATE: docs/troubleshooting/TROUBLESHOOTING_MASTER.md
+[2026-01-08 07:32:40.839737] UPDATE: docs/tasks/TASK-SEC-01_POSTGRES_RLS.md
+[2026-01-08 07:32:42.616397] UPDATE: docs/tasks/TASK-ESC-01_IFOOD_WEBHOOKS.md
+[2026-01-08 07:32:44.599761] UPDATE: docs/tasks/TASK-FIN-01_CENTAVOS_REFACTOR.md
+[2026-01-08 07:32:46.521056] UPDATE: docs/tasks/TASK-MOB-01_CLOCK_OPTIMIZATION.md
+[2026-01-08 07:32:48.207349] UPDATE: docs/tasks/details/HARDENING_STRATEGY_V3.md
+[2026-01-08 07:32:51.095520] UPDATE: docs/TASKS.md
+[2026-01-08 08:12:24.431137] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 08:13:10.207284] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 08:20:40.292692] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 08:21:09.126336] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 08:36:46.838840] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 09:35:22.369025] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 09:36:30.842052] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML.
+[2026-01-08 09:37:14.765001] ABORT [FFP-02]: Abortado pelo usuário devido a omissão em atualizar.py
+[2026-01-08 09:37:34.430402] UPDATE: docs/TASKS.md
+[2026-01-08 09:37:37.657093] UPDATE: app/routers/webhooks_ifood.py
+[2026-01-08 09:37:43.321192] UPDATE: app/services/ifood_service.py
+[2026-01-08 09:37:55.569484] UPDATE: app/main.py
+[2026-01-08 09:38:09.957767] UPDATE: scripts/validation/verify_TASK-ESC-01.py
+[2026-01-08 09:38:47.929978] UPDATE: docs/TASKS.md
+[2026-01-08 09:38:50.464246] SKIP: app/routers/webhooks_ifood.py
+[2026-01-08 09:38:53.248087] SKIP: app/services/ifood_service.py
+[2026-01-08 09:38:55.424901] SKIP: app/main.py
+[2026-01-08 09:38:57.216633] SKIP: scripts/validation/verify_TASK-ESC-01.py
+[2026-01-08 09:40:46.397791] UPDATE: scripts/maintenance/auto_fix_rls.py
+[2026-01-08 09:40:53.178258] UPDATE: scripts/validation/verify_TASK-SEC-01.py
+[2026-01-08 09:43:53.373500] UPDATE: docs/TASKS.md
+[2026-01-08 09:44:02.196564] SKIP: app/routers/webhooks_ifood.py
+[2026-01-08 09:44:07.892894] SKIP: app/services/ifood_service.py
+[2026-01-08 09:44:09.508238] SKIP: app/main.py
+[2026-01-08 09:44:11.185376] SKIP: scripts/validation/verify_TASK-ESC-01.py
+[2026-01-08 09:44:45.646237] UPDATE: docs/TASKS.md
+[2026-01-08 09:44:52.025884] UPDATE: app/routers/webhooks_ifood.py
+[2026-01-08 09:44:54.344249] SKIP: app/services/ifood_service.py
+[2026-01-08 09:46:15.973551] UPDATE: app/routers/webhooks_ifood.py
+[2026-01-08 09:48:57.170067] UPDATE: mobile/src/services/global.clock.service.ts
+[2026-01-08 09:49:04.417145] UPDATE: scripts/validation/verify_TASK-MOB-01.py
+[2026-01-08 09:49:11.010323] UPDATE: docs/TASKS.md
+[2026-01-08 09:52:16.377558] UPDATE: app/schemas.py
+[2026-01-08 09:52:22.385469] UPDATE: frontend/src/lib/utils.ts
+[2026-01-08 09:52:29.234179] UPDATE: frontend/src/context/CartContext.tsx
+[2026-01-08 09:52:33.305378] UPDATE: scripts/validation/verify_TASK-FIN-01.py
+[2026-01-08 09:54:32.793815] UPDATE: docs/TASKS.md
+[2026-01-08 09:56:33.644550] SKIP: docs/CHANGELOG.md
+[2026-01-08 09:57:00.057953] UPDATE: docs/technical/SECURITY_ARCHITECTURE.md
+[2026-01-08 09:57:52.836983] SKIP: docs/technical/API_REFERENCE.md
+[2026-01-08 09:58:13.585118] SKIP: docs/technical/TROUBLESHOOTING.md
+[2026-01-08 10:00:04.356421] SKIP: docs/CHANGELOG.md
+[2026-01-08 10:00:46.668694] SKIP: docs/technical/SECURITY_ARCHITECTURE.md
+[2026-01-08 10:01:34.432495] SKIP: docs/technical/API_REFERENCE.md
+[2026-01-08 10:01:55.596939] SKIP: docs/technical/TROUBLESHOOTING.md
+[2026-01-08 10:03:28.469975] UPDATE: docs/technical/API_REFERENCE.md
+[2026-01-08 10:09:21.010345] UPDATE: app/routers/admin_payment.py
+[2026-01-08 10:17:07.691657] UPDATE: scripts/tests/test_context_gen.py
+[2026-01-08 10:19:21.654545] UPDATE: scripts/tests/test_audit_logs.py
+[2026-01-08 10:19:32.370857] UPDATE: scripts/tests/test_context_gen.py
+[2026-01-08 10:19:45.522376] UPDATE: scripts/tests/test_delivery_fee.py
+[2026-01-08 10:20:00.066114] UPDATE: scripts/tests/test_delivery_flow.py
+[2026-01-08 10:20:23.630435] UPDATE: scripts/tests/test_driver_finance.py
+[2026-01-08 10:23:06.218122] UPDATE: app/database.py
+[2026-01-08 10:23:10.978584] UPDATE: scripts/tests/test_context_gen.py
+[2026-01-08 10:29:32.627144] UPDATE: docs/strategy/WAR_PLAN_GTM.md
+[2026-01-08 10:29:35.553930] UPDATE: docs/strategy/GTM_TACTICAL_GUIDE.md
+[2026-01-08 18:44:23.437946] UPDATE: docs/TASKS.md
+[2026-01-08 18:44:34.440922] UPDATE: docs/tasks/TASK-GTM-01_INFRA_HARDENING.md
+[2026-01-08 18:44:37.288571] UPDATE: docs/tasks/TASK-GTM-02_OBSERVABILITY.md
+[2026-01-08 18:44:38.994336] UPDATE: docs/tasks/TASK-GTM-03_MOBILE_PUBLISH.md
+[2026-01-08 18:44:40.752239] UPDATE: docs/tasks/TASK-GTM-04_LEGAL_COMMERCIAL.md
+[2026-01-08 18:46:09.644991] UPDATE: docs/tasks/details/TASK-GTM-01_details.md
+[2026-01-08 18:46:11.568610] UPDATE: docs/tasks/details/TASK-GTM-02_details.md
+[2026-01-08 18:46:13.784454] UPDATE: docs/tasks/details/TASK-GTM-03_details.md
+[2026-01-08 18:46:15.360889] UPDATE: docs/tasks/details/TASK-GTM-04_details.md
+[2026-01-08 19:06:33.164003] ABORT [FFP-01]: ESTRUTURA INVÁLIDA: O XML não segue a ordem canônica v6.3.
+[2026-01-08 19:09:47.912111] ABORT [FFP-01]: ESTRUTURA INVÁLIDA: O XML não segue a ordem canônica v6.3.
+[2026-01-08 19:18:38.553513] ABORT [FFP-01]: ESTRUTURA INVÁLIDA: O XML não segue a ordem canônica v6.3.
+[2026-01-08 21:53:37.352323] ABORT [FFP-01]: ESTRUTURA INVÁLIDA: O XML não segue a ordem canônica v6.3.
+[2026-01-08 21:53:41.007675] ABORT [FFP-01]: ESTRUTURA INVÁLIDA: O XML não segue a ordem canônica v6.3.
+[2026-01-08 21:57:32.183932] UPDATE: docs/enterprise/evidence_pack/ENTERPRISE_EVIDENCE_INDEX.md
+[2026-01-08 21:57:35.406541] UPDATE: docs/enterprise/evidence_pack/SECURITY_OVERVIEW.md
+[2026-01-08 21:57:36.998837] UPDATE: docs/enterprise/evidence_pack/ARCHITECTURE_OVERVIEW.md
+[2026-01-08 21:57:38.359919] UPDATE: docs/enterprise/evidence_pack/DATA_PROTECTION_AND_LGPD.md
+[2026-01-08 21:57:39.695625] UPDATE: docs/enterprise/evidence_pack/AVAILABILITY_AND_SLA.md
+[2026-01-08 21:57:42.894864] UPDATE: docs/enterprise/evidence_pack/INCIDENT_RESPONSE.md
+[2026-01-08 21:57:44.439614] UPDATE: docs/enterprise/evidence_pack/VENDOR_AND_SUBPROCESSORS.md
+[2026-01-08 21:57:45.959080] UPDATE: scripts/production/verify_enterprise_evidence_pack.py
+[2026-01-08 21:58:00.447352] UPDATE: docs/TASKS.md
+[2026-01-08 22:00:45.787852] UPDATE: docs/tasks/TASK-ENT-03_DR_BCP.md
+[2026-01-08 22:00:48.802664] UPDATE: docs/enterprise/DR_BCP_PLAN.md
+[2026-01-08 22:00:51.127445] UPDATE: scripts/production/verify_dr_readiness.py
+[2026-01-08 22:00:52.871411] UPDATE: docs/TASKS.md
+[2026-01-08 22:03:59.811545] UPDATE: docs/tasks/TASK-ENT-04_VENDOR_RISK.md
+[2026-01-08 22:04:02.338761] UPDATE: docs/enterprise/VENDOR_RISK_ASSESSMENT.md
+[2026-01-08 22:04:04.766451] UPDATE: docs/legal/SUBPROCESSORS.md
+[2026-01-08 22:04:07.694810] UPDATE: scripts/production/verify_vendor_risk.py
+[2026-01-08 22:04:32.727115] UPDATE: docs/TASKS.md
+[2026-01-08 22:07:38.515560] UPDATE: docs/tasks/TASK-OPS-01_PROD_SECRETS.md
+[2026-01-08 22:07:40.162948] UPDATE: .env.production.template
+[2026-01-08 22:07:43.123105] UPDATE: scripts/production/validate_integrations.py
+[2026-01-08 22:07:55.338951] UPDATE: docs/TASKS.md
+[2026-01-08 22:14:34.999933] UPDATE: docs/tasks/TASK-OPS-02_REAL_EMAIL.md
+[2026-01-08 22:14:39.895318] UPDATE: app/services/email_service.py
+[2026-01-08 22:14:48.055879] UPDATE: .env.production.template
+[2026-01-08 22:14:53.567476] UPDATE: scripts/production/validate_integrations.py
+[2026-01-08 22:14:56.372076] UPDATE: docs/TASKS.md
+[2026-01-08 22:16:54.467340] UPDATE: docs/tasks/TASK-OPS-03_CLOUD_STORAGE.md
+[2026-01-08 22:17:19.119367] UPDATE: requirements.txt
+[2026-01-08 22:17:28.691098] UPDATE: app/services/storage_service.py
+[2026-01-08 22:17:55.115229] UPDATE: app/routers/upload.py
+[2026-01-08 22:18:19.519841] UPDATE: .env.production.template
+[2026-01-08 22:18:46.915024] UPDATE: scripts/production/validate_integrations.py
+[2026-01-08 22:18:56.491377] UPDATE: docs/TASKS.md
+[2026-01-08 22:21:04.211558] UPDATE: scripts/production/validate_integrations.py
+[2026-01-08 22:22:05.199313] UPDATE: scripts/production/validate_integrations.py
+[2026-01-08 22:23:31.967604] UPDATE: docs/tasks/TASK-OPS-04_LOAD_TESTING.md
+[2026-01-08 22:23:38.609541] UPDATE: requirements.txt
+[2026-01-08 22:23:41.254961] UPDATE: scripts/performance/locustfile.py
+[2026-01-08 22:23:42.863271] UPDATE: docs/performance/CAPACITY_PLANNING.md
+[2026-01-08 22:23:44.230931] UPDATE: scripts/production/run_load_test.py
+[2026-01-08 22:23:46.983711] UPDATE: docs/TASKS.md
+[2026-01-08 22:26:10.323936] UPDATE: docs/tasks/TASK-ENT-06_SECURITY_DISCLOSURE.md
+[2026-01-08 22:26:11.835101] UPDATE: docs/legal/SECURITY_DISCLOSURE.md
+[2026-01-08 22:26:13.427825] UPDATE: docs/legal/DATA_BREACH_NOTIFICATION.md
+[2026-01-08 22:26:25.155658] UPDATE: SECURITY.md
+[2026-01-08 22:26:28.395210] UPDATE: scripts/production/verify_security_disclosure.py
+[2026-01-08 22:26:40.863629] UPDATE: docs/TASKS.md
+[2026-01-08 22:28:19.016927] UPDATE: docs/tasks/TASK-ENT-07_COMPLIANCE_MAPPING.md
+[2026-01-08 22:28:20.847123] UPDATE: docs/enterprise/COMPLIANCE_MAPPING.md
+[2026-01-08 22:28:22.551330] UPDATE: scripts/production/verify_compliance_mapping.py
+[2026-01-08 22:28:24.688035] UPDATE: docs/TASKS.md
+[2026-01-08 22:30:29.835944] UPDATE: docs/tasks/TASK-OPS-05_CI_CD_HARDENING.md
+[2026-01-08 22:30:41.587715] UPDATE: .github/workflows/ci.yml
+[2026-01-08 22:30:46.447199] UPDATE: scripts/production/verify_ci_readiness.py
+[2026-01-08 22:30:52.119485] UPDATE: docs/TASKS.md
+[2026-01-08 22:32:07.048375] UPDATE: docs/enterprise/COMPLIANCE_MAPPING.md
+[2026-01-08 22:33:56.132583] UPDATE: docs/tasks/TASK-SEC-02_SCA_AUDIT.md
+[2026-01-08 22:34:01.611703] UPDATE: requirements.txt
+[2026-01-08 22:34:03.427662] UPDATE: scripts/security/audit_dependencies.py
+[2026-01-08 22:34:05.796326] UPDATE: docs/TASKS.md
+[2026-01-08 22:37:30.615850] UPDATE: docs/tasks/TASK-SEC-03_VULNERABILITY_REMEDIATION.md
+[2026-01-08 22:37:34.479504] UPDATE: requirements.txt
+[2026-01-08 22:37:43.648273] UPDATE: frontend/package.json
+[2026-01-08 22:37:46.607387] UPDATE: docs/TASKS.md
+[2026-01-08 22:39:52.476701] UPDATE: docs/tasks/TASK-SEC-03_VULNERABILITY_REMEDIATION.md
+[2026-01-08 22:39:54.931694] UPDATE: requirements.txt
+[2026-01-08 22:39:57.155348] UPDATE: frontend/package.json
+[2026-01-08 22:40:04.795525] UPDATE: docs/TASKS.md
+[2026-01-08 22:41:57.032309] UPDATE: docs/tasks/TASK-SEC-03_VULNERABILITY_REMEDIATION.md
+[2026-01-08 22:42:07.707655] UPDATE: requirements.txt
+[2026-01-08 22:42:09.955325] UPDATE: frontend/package.json
+[2026-01-08 22:42:13.523840] UPDATE: docs/TASKS.md
+[2026-01-08 22:45:52.518401] SKIP: docs/CHANGELOG.md
+[2026-01-08 22:47:02.436558] UPDATE: docs/troubleshooting/TROUBLESHOOTING_MASTER.md
+[2026-01-08 22:47:05.955449] UPDATE: scripts/validation/verify_docs_update.py
+[2026-01-08 22:57:19.184735] UPDATE: docs/tasks/TASK-OPS-06_ASYNC_WORKERS.md
+[2026-01-08 22:58:04.294787] SKIP: requirements.txt
+[2026-01-08 22:58:09.183553] UPDATE: app/core/celery_app.py
+[2026-01-08 22:58:10.743533] UPDATE: app/tasks/webhooks.py
+[2026-01-08 22:58:59.002982] SKIP: app/services/webhook_dispatcher.py
+[2026-01-08 22:59:10.464039] UPDATE: render.yaml
+[2026-01-08 22:59:13.975660] UPDATE: scripts/production/verify_celery_worker.py
+[2026-01-08 22:59:26.032213] UPDATE: docs/TASKS.md
+[2026-01-08 23:00:20.496348] UPDATE: requirements.txt
+[2026-01-08 23:02:15.448758] UPDATE: scripts/production/verify_celery_worker.py
+[2026-01-08 23:08:18.900320] UPDATE: app/services/webhook_dispatcher.py
+[2026-01-08 23:08:25.892283] UPDATE: scripts/production/verify_celery_worker.py
+[2026-01-08 23:09:59.959823] UPDATE: app/services/webhook_dispatcher.py
+[2026-01-08 23:10:01.815666] UPDATE: scripts/production/verify_celery_worker.py
+[2026-01-08 23:11:29.592489] UPDATE: scripts/production/verify_celery_worker.py
+[2026-01-08 23:11:32.152451] UPDATE: docs/TASKS.md
+[2026-01-08 23:14:21.252765] UPDATE: docs/tasks/TASK-ENT-08_AUDIT_EXPORT.md
+[2026-01-08 23:14:25.092470] UPDATE: app/routers/admin_audit.py
+[2026-01-08 23:14:27.452182] UPDATE: docs/enterprise/AUDIT_EXPORT_GUIDE.md
+[2026-01-08 23:14:29.548306] UPDATE: scripts/production/verify_audit_export.py
+[2026-01-08 23:14:32.228033] UPDATE: docs/TASKS.md
+[2026-01-08 23:18:21.712834] UPDATE: docs/tasks/TASK-SEC-04_JWT_REVOCATION.md
+[2026-01-08 23:18:24.759982] UPDATE: app/services/token_service.py
+[2026-01-08 23:18:33.943970] UPDATE: app/core/security.py
+[2026-01-08 23:18:45.516064] UPDATE: app/routers/auth.py
+[2026-01-08 23:18:47.852680] UPDATE: scripts/production/verify_jwt_revocation.py
+[2026-01-08 23:18:56.916075] UPDATE: docs/TASKS.md
+[2026-01-08 23:21:26.849475] UPDATE: app/services/token_service.py
+[2026-01-08 23:21:28.696243] UPDATE: scripts/production/verify_jwt_revocation.py
+[2026-01-08 23:25:02.481168] UPDATE: docs/tasks/TASK-FIN-02_PAYMENT_IDEMPOTENCY.md
+[2026-01-08 23:25:24.724159] UPDATE: app/models.py
+[2026-01-08 23:25:34.071886] UPDATE: app/services/payment_service.py
+[2026-01-08 23:25:41.968293] UPDATE: app/routers/webhooks.py
+[2026-01-08 23:25:44.036161] UPDATE: scripts/production/verify_payment_idempotency.py
+[2026-01-08 23:25:50.588698] UPDATE: docs/TASKS.md
+[2026-01-08 23:27:05.732507] UPDATE: scripts/production/verify_payment_idempotency.py
+[2026-01-08 23:29:11.732290] UPDATE: scripts/production/verify_payment_idempotency.py
+[2026-01-08 23:36:12.861310] UPDATE: docs/tasks/TASK-GTM-08_ONBOARDING_AUTOMATION.md
+[2026-01-08 23:36:14.860222] UPDATE: docs/tasks/TASK-GTM-09_MOBILE_OTA_UPDATES.md
+[2026-01-08 23:36:16.352606] UPDATE: docs/tasks/TASK-GTM-10_SAAS_BILLING_ENGINE.md
+[2026-01-08 23:40:09.635992] SKIP: docs/TASKS.md
+[2026-01-09 00:34:13.201680] UPDATE: requirements.txt
+[2026-01-09 00:34:16.732873] UPDATE: app/services/importer_service.py
+[2026-01-09 00:34:22.981096] UPDATE: app/routers/admin_menu.py
+[2026-01-09 00:34:23.103826] SKIP: app/routers/auth.py
+[2026-01-09 00:36:48.249385] UPDATE: requirements.txt
+[2026-01-09 00:36:52.728711] UPDATE: app/services/importer_service.py
+[2026-01-09 00:36:55.169025] UPDATE: app/routers/admin_menu.py
+[2026-01-09 00:36:57.744774] UPDATE: app/routers/auth.py
+[2026-01-09 00:36:59.441182] UPDATE: scripts/validation/verify_TASK-GTM-08.py
+[2026-01-09 00:37:24.550008] UPDATE: docs/TASKS.md
+[2026-01-09 00:43:20.806614] UPDATE: docs/TASKS.md
+[2026-01-09 00:43:28.789531] UPDATE: docs/CHANGELOG.md
+[2026-01-09 00:47:12.608271] SKIP: mobile/package.json
+[2026-01-09 00:47:53.540072] SKIP: mobile/app.json
+[2026-01-09 00:48:22.663891] SKIP: mobile/eas.json
+[2026-01-09 00:48:28.281345] UPDATE: scripts/validation/verify_TASK-GTM-09.py
+[2026-01-09 00:48:39.948005] SKIP: docs/TASKS.md
+[2026-01-09 00:49:27.497203] SKIP: docs/CHANGELOG.md
+[2026-01-09 00:53:43.705598] UPDATE: mobile/package.json
+[2026-01-09 00:53:46.473356] UPDATE: mobile/app.json
+[2026-01-09 00:53:52.201037] UPDATE: mobile/eas.json
+[2026-01-09 00:55:26.313308] UPDATE: scripts/validation/verify_TASK-GTM-09.py
+[2026-01-09 00:55:31.741267] UPDATE: docs/TASKS.md
+[2026-01-09 00:55:44.196323] SKIP: docs/CHANGELOG.md
+[2026-01-09 00:58:32.458569] UPDATE: app/services/stripe_service.py
+[2026-01-09 00:58:36.972987] UPDATE: scripts/validation/verify_TASK-GTM-10.py
+[2026-01-09 00:58:40.245332] UPDATE: docs/TASKS.md
+[2026-01-09 00:58:51.600394] SKIP: docs/CHANGELOG.md
+[2026-01-09 01:00:02.181539] UPDATE: scripts/validation/verify_TASK-GTM-10.py
+[2026-01-09 01:02:14.017534] UPDATE: app/services/stripe_service.py
+[2026-01-09 01:02:27.669080] UPDATE: scripts/validation/verify_TASK-GTM-10.py
+[2026-01-09 01:02:30.989582] UPDATE: docs/TASKS.md
+[2026-01-09 01:03:57.906072] UPDATE: app/services/stripe_service.py
+[2026-01-09 01:04:00.617382] UPDATE: scripts/validation/verify_TASK-GTM-10.py
+[2026-01-09 01:05:40.365628] UPDATE: docs/TASKS.md
+[2026-01-09 01:06:04.665690] UPDATE: docs/CHANGELOG.md
+[2026-01-09 01:08:44.221857] UPDATE: docs/cycles/CYCLE_IGS_BLUEPRINT.md
+[2026-01-09 01:09:03.861734] UPDATE: docs/TASKS.md
+[2026-01-09 01:09:23.905454] UPDATE: docs/CHANGELOG.md
+[2026-01-09 01:12:20.486688] UPDATE: docs/tasks/TASK-AI-01_DEMAND_PREDICTION.md
+[2026-01-09 01:12:25.549658] UPDATE: requirements.txt
+[2026-01-09 01:12:31.402725] UPDATE: app/services/ai_prediction_service.py
+[2026-01-09 01:12:34.305163] UPDATE: app/routers/admin_ai.py
+[2026-01-09 01:12:47.913450] UPDATE: app/main.py
+[2026-01-09 01:12:50.726375] UPDATE: scripts/validation/verify_TASK-AI-01.py
+[2026-01-09 01:13:01.594076] UPDATE: docs/TASKS.md
+[2026-01-09 01:13:07.001443] UPDATE: docs/CHANGELOG.md
+[2026-01-09 02:53:51.943251] UPDATE: docs/tasks/TASK-AI-01_DEMAND_PREDICTION.md
+[2026-01-09 02:53:55.550728] UPDATE: requirements.txt
+[2026-01-09 02:53:57.686909] UPDATE: app/services/ai_prediction_service.py
+[2026-01-09 02:53:59.526051] UPDATE: app/routers/admin_ai.py
+[2026-01-09 02:54:01.414077] UPDATE: app/main.py
+[2026-01-09 02:54:03.470900] UPDATE: scripts/validation/verify_TASK-AI-01.py
+[2026-01-09 02:54:05.333606] UPDATE: docs/TASKS.md
+[2026-01-09 02:54:07.602386] UPDATE: docs/CHANGELOG.md
+[2026-01-09 02:54:30.651199] UPDATE: scripts/validation/verify_TASK-AI-01.py
+[2026-01-09 02:57:15.486955] UPDATE: docs/TASKS.md
+[2026-01-09 02:57:17.966520] UPDATE: docs/CHANGELOG.md
+[2026-01-09 02:57:19.822983] UPDATE: docs/tasks/TASK-NET-01_PASSPORT_ARCH.md
+[2026-01-09 02:57:29.730734] UPDATE: app/models.py
+[2026-01-09 02:57:32.058507] UPDATE: scripts/validation/verify_TASK-NET-01.py
+[2026-01-09 03:01:01.698711] UPDATE: docs/TASKS.md
+[2026-01-09 03:01:14.082476] UPDATE: docs/CHANGELOG.md
+[2026-01-09 03:01:21.650774] UPDATE: docs/tasks/TASK-UX-01_VOICE_KDS.md
+[2026-01-09 03:01:24.522357] UPDATE: frontend/src/hooks/useVoiceControl.ts
+[2026-01-09 03:01:40.734423] UPDATE: frontend/src/app/admin/[slug]/kitchen/page.tsx
+[2026-01-09 03:01:43.494945] UPDATE: scripts/validation/verify_TASK-UX-01.py
+[2026-01-09 03:08:33.703356] UPDATE: scripts/functional/simular_pagamento.py
+[2026-01-09 03:09:45.574671] UPDATE: frontend/src/app/admin/[slug]/kitchen/page.tsx
+[2026-01-09 03:14:24.738922] UPDATE: frontend/src/hooks/useVoiceControl.ts
+[2026-01-09 03:14:31.822324] UPDATE: frontend/src/app/admin/[slug]/kitchen/page.tsx
+[2026-01-09 03:19:30.275193] UPDATE: frontend/src/hooks/useVoiceControl.ts
+[2026-01-09 03:19:32.310476] UPDATE: frontend/src/app/admin/[slug]/kitchen/page.tsx
+[2026-01-09 03:27:01.471336] UPDATE: docs/manuals/TESTE_VOZ_RAPIDO.md
+[2026-01-09 03:31:22.479390] UPDATE: scripts/maintenance/force_open_24h.py
+[2026-01-09 03:33:40.127494] UPDATE: scripts/functional/simular_pagamento.py
+[2026-01-09 12:58:51.853609] UPDATE: frontend/src/app/admin/[slug]/kitchen/page.tsx
+[2026-01-09 13:02:05.974252] UPDATE: scripts/functional/simular_pagamento.py
+[2026-01-09 13:04:14.397192] UPDATE: app/routers/admin.py
+[2026-01-09 13:08:12.549389] UPDATE: app/routers/admin.py
+[2026-01-09 13:11:53.562069] UPDATE: docs/reports/INCIDENT_KDS_404.md
+[2026-01-09 13:11:56.289913] UPDATE: scripts/diagnosis/debug_kds_failure.py
+[2026-01-09 13:14:43.613719] UPDATE: app/routers/admin.py
+[2026-01-09 13:14:53.789637] UPDATE: frontend/src/lib/api.ts
+[2026-01-09 13:14:56.981200] UPDATE: scripts/diagnosis/list_routes.py
+[2026-01-09 13:18:00.485414] UPDATE: scripts/diagnosis/list_routes.py
+[2026-01-09 13:18:03.301830] UPDATE: app/routers/admin.py
+[2026-01-09 13:23:46.525507] UPDATE: frontend/src/hooks/useVoiceControl.ts
+[2026-01-09 13:23:49.773382] UPDATE: frontend/src/app/admin/[slug]/kitchen/page.tsx
+[2026-01-09 17:58:46.121973] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML <MesaFlow_Execution>.
+[2026-01-09 19:39:06.918145] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML <MesaFlow_Execution>.
+[2026-01-09 19:39:18.561774] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML <MesaFlow_Execution>.
+[2026-01-09 23:47:55.318651] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML <MesaFlow_Execution>.
+[2026-01-09 23:52:07.158127] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML <MesaFlow_Execution>.
+[2026-01-09 23:52:31.521755] ABORT [FFP-02]: Omissão de código detectada em scripts/maintenance/sanitize_repo.py. Envie o arquivo completo.
+[2026-01-09 23:53:11.915841] ABORT [FFP-02]: Omissão de código detectada em scripts/maintenance/sanitize_repo.py. Envie o arquivo completo.
+[2026-01-09 23:54:18.356647] UPDATE: docs/tasks/details/TASK-MAINT-01/specs.md
+[2026-01-09 23:54:19.835891] UPDATE: docs/tasks/details/TASK-MAINT-01/verification_plan.md
+[2026-01-09 23:54:21.267968] UPDATE: docs/tasks/details/TASK-MAINT-01/rollback_plan.md
+[2026-01-09 23:54:23.612475] UPDATE: scripts/maintenance/sanitize_repo.py
+[2026-01-09 23:54:25.011965] UPDATE: scripts/validation/verify_TASK-MAINT-01.py
+[2026-01-09 23:55:06.363605] SKIP: docs/TASKS.md
+[2026-01-09 23:55:25.096536] UPDATE: docs/tasks/details/TASK-MAINT-01/specs.md
+[2026-01-09 23:55:31.392441] UPDATE: docs/tasks/details/TASK-MAINT-01/verification_plan.md
+[2026-01-09 23:55:32.872128] UPDATE: docs/tasks/details/TASK-MAINT-01/rollback_plan.md
+[2026-01-09 23:55:35.263801] UPDATE: scripts/maintenance/sanitize_repo.py
+[2026-01-09 23:55:37.271923] UPDATE: scripts/validation/verify_TASK-MAINT-01.py
+[2026-01-09 23:55:43.371986] UPDATE: docs/TASKS.md
+[2026-01-09 23:57:01.703338] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML <MesaFlow_Execution>.
+[2026-01-09 23:58:11.670270] ABORT [FFP-02]: Omissão de código detectada em scripts/maintenance/sanitize_repo.py. Envie o arquivo completo.
+[2026-01-09 23:58:15.096864] ABORT [FFP-02]: Omissão de código detectada em scripts/maintenance/sanitize_repo.py. Envie o arquivo completo.
+[2026-01-09 23:58:50.449498] UPDATE: docs/TASKS.md
+[2026-01-09 23:59:34.832241] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML <MesaFlow_Execution>.
+[2026-01-09 23:59:57.501805] ABORT [FFP-02]: Omissão de código detectada em scripts/setup/audit_env.py. Envie o arquivo completo.
+[2026-01-10 00:06:57.844380] UPDATE: .env
+[2026-01-10 00:07:28.303856] UPDATE: docs/TASKS.md
+[2026-01-10 00:09:24.837062] UPDATE: .env
+[2026-01-10 00:09:27.108319] UPDATE: docs/TASKS.md
+[2026-01-10 00:10:15.944487] ABORT [FFP-02]: Omissão de código detectada em scripts/validation/verify_TASK-DOC-01.py. Envie o arquivo completo.
+[2026-01-10 00:10:48.996431] UPDATE: docs/tasks/details/TASK-DOC-01/specs.md
+[2026-01-10 00:10:50.211439] UPDATE: docs/tasks/details/TASK-DOC-01/verification_plan.md
+[2026-01-10 00:10:52.044156] UPDATE: docs/tasks/details/TASK-DOC-01/rollback_plan.md
+[2026-01-10 00:10:55.508116] UPDATE: README.md
+[2026-01-10 00:10:58.220514] UPDATE: scripts/validation/verify_TASK-DOC-01.py
+[2026-01-10 00:11:00.828367] UPDATE: docs/TASKS.md
+[2026-01-10 00:13:59.476688] UPDATE: docs/tasks/details/TASK-DOC-01/specs.md
+[2026-01-10 00:14:02.076128] UPDATE: docs/tasks/details/TASK-DOC-01/verification_plan.md
+[2026-01-10 00:14:04.139899] UPDATE: docs/tasks/details/TASK-DOC-01/rollback_plan.md
+[2026-01-10 00:14:18.780647] UPDATE: README.md
+[2026-01-10 00:14:23.724313] UPDATE: scripts/validation/verify_TASK-DOC-01.py
+[2026-01-10 00:14:26.064378] UPDATE: docs/TASKS.md
+[2026-01-10 00:15:17.834744] ABORT [FFP-02]: Omissão de código detectada em scripts/maintenance/mobile_doctor.py. Envie o arquivo completo.
+[2026-01-10 00:15:46.140963] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML <MesaFlow_Execution>.
+[2026-01-10 00:18:32.761488] ABORT [FFP-02]: Omissão de código detectada em gerartxt.py. Envie o arquivo completo.
+[2026-01-10 00:19:10.684589] ABORT [FFP-02]: Omissão de código detectada em gerartxt.py. Envie o arquivo completo.
+[2026-01-10 00:19:51.347677] ABORT [FFP-06]: Tentativa de alteração não autorizada em arquivo protegido: gerartxt.py
+[2026-01-10 00:20:01.926434] ABORT [FFP-06]: Tentativa de alteração não autorizada em arquivo protegido: gerartxt.py
+[2026-01-10 00:24:38.026387] ABORT [FFP-02]: Omissão de código detectada em gerartxt.py. Envie o arquivo completo.
+[2026-01-10 00:25:00.898403] ABORT [FFP-02]: Omissão de código detectada em gerartxt.py. Envie o arquivo completo.
+[2026-01-10 00:25:10.303991] ABORT [FFP-06]: Tentativa de alteração não autorizada em arquivo protegido: gerartxt.py
+[2026-01-10 00:28:12.479005] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML <MesaFlow_Execution>.
+[2026-01-10 00:28:20.968940] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML <MesaFlow_Execution>.
+[2026-01-10 00:30:56.135604] ABORT [FFP-02]: Omissão de código detectada em gerartxt.py. Envie o arquivo completo.
+[2026-01-10 00:31:21.625410] ABORT [FFP-06]: Tentativa de alteração não autorizada em arquivo protegido: gerartxt.py
+[2026-01-10 00:32:24.010832] ABORT [FFP-02]: Omissão de código detectada em gerartxt.py. Envie o arquivo completo.
+[2026-01-10 00:32:44.012694] UPDATE: gerartxt.py
+[2026-01-10 00:32:46.316105] UPDATE: scripts/maintenance/mobile_doctor.py
+[2026-01-10 00:32:48.884238] UPDATE: scripts/validation/verify_TASK-MOB-FIX-01.py
+[2026-01-10 00:33:21.932463] UPDATE: gerartxt.py
+[2026-01-10 00:33:23.701060] UPDATE: scripts/maintenance/mobile_doctor.py
+[2026-01-10 00:33:25.684196] UPDATE: scripts/validation/verify_TASK-MOB-FIX-01.py
+[2026-01-10 00:33:31.768734] UPDATE: docs/tasks/details/TASK-MOB-FIX-01/specs.md
+[2026-01-10 00:33:34.520506] UPDATE: docs/TASKS.md
+[2026-01-10 00:34:25.433664] ABORT [FFP-02]: Omissão de código detectada em scripts/validation/verify_TASK-MOB-FIX-01.py. Envie o arquivo completo.
+[2026-01-10 00:34:34.282844] ABORT [FFP-02]: Omissão de código detectada em scripts/validation/verify_TASK-MOB-FIX-01.py. Envie o arquivo completo.
+[2026-01-10 00:34:47.804723] UPDATE: scripts/maintenance/mobile_doctor.py
+[2026-01-10 00:34:51.056090] UPDATE: scripts/validation/verify_TASK-MOB-FIX-01.py
+[2026-01-10 00:34:53.544047] UPDATE: gerartxt.py
+[2026-01-10 00:36:12.903056] ABORT [FFP-02]: Omissão de código detectada em mobile/src/screens/waiter/WaiterDashboard.tsx. Envie o arquivo completo.
+[2026-01-10 00:36:56.231798] SKIP: mobile/package.json
+[2026-01-10 00:37:27.622290] UPDATE: mobile/App.tsx
+[2026-01-10 00:37:56.025297] UPDATE: mobile/src/store/auth.store.ts
+[2026-01-10 00:38:08.371775] UPDATE: mobile/src/navigation/RootNavigator.tsx
+[2026-01-10 00:38:21.900497] UPDATE: mobile/src/screens/auth/LoginScreen.tsx
+[2026-01-10 00:38:26.456865] UPDATE: mobile/src/screens/waiter/WaiterDashboard.tsx
+[2026-01-10 00:38:28.008524] UPDATE: mobile/src/screens/kitchen/KitchenDashboard.tsx
+[2026-01-10 00:38:29.384957] UPDATE: mobile/src/screens/driver/DriverDashboard.tsx
+[2026-01-10 00:38:32.231586] UPDATE: docs/TASKS.md
+[2026-01-10 00:39:27.417497] UPDATE: mobile/package.json
+[2026-01-10 00:39:38.729167] UPDATE: mobile/App.tsx
+[2026-01-10 00:39:46.880609] UPDATE: mobile/src/store/auth.store.ts
+[2026-01-10 00:39:55.460405] UPDATE: mobile/src/navigation/RootNavigator.tsx
+[2026-01-10 00:40:02.257026] UPDATE: mobile/src/screens/auth/LoginScreen.tsx
+[2026-01-10 00:40:10.960509] UPDATE: mobile/src/screens/waiter/WaiterDashboard.tsx
+[2026-01-10 00:40:13.984594] UPDATE: mobile/src/screens/kitchen/KitchenDashboard.tsx
+[2026-01-10 00:40:15.608390] UPDATE: mobile/src/screens/driver/DriverDashboard.tsx
+[2026-01-10 00:40:21.849777] UPDATE: docs/TASKS.md
+[2026-01-10 00:42:35.973370] UPDATE: mobile/src/store/auth.store.ts
+[2026-01-10 00:42:38.693161] UPDATE: mobile/src/navigation/RootNavigator.tsx
+[2026-01-10 00:42:43.908949] UPDATE: mobile/src/screens/waiter/WaiterDashboard.tsx
+[2026-01-10 00:42:48.281239] UPDATE: mobile/src/screens/kitchen/KitchenDashboard.tsx
+[2026-01-10 00:42:51.192771] UPDATE: mobile/src/screens/driver/DriverDashboard.tsx
+[2026-01-10 00:42:59.793048] UPDATE: docs/TASKS.md
+[2026-01-10 00:45:00.545044] UPDATE: scripts/validation/verify_TASK-ENV-01.py
+[2026-01-10 00:45:02.352611] UPDATE: scripts/validation/verify_TASK-MOB-02.py
+[2026-01-10 00:45:03.861023] UPDATE: scripts/validation/verify_all_stabilization.py
+[2026-01-10 00:46:40.853059] UPDATE: docs/manuals/STABILIZATION_REPORT_JAN_2026.md
+[2026-01-10 00:49:46.888942] UPDATE: docs/manuals/MOBILE_TESTING_GUIDE_ANDROID.md
+[2026-01-10 00:53:45.192162] ABORT [FFP-02]: Omissão de código detectada em scripts/diagnosis/debug_emulator.py. Envie o arquivo completo.
+[2026-01-10 00:53:54.908751] UPDATE: docs/reports/INCIDENT_2026_01_10_EMULATOR_BLACK_SCREEN.md
+[2026-01-10 00:53:56.652740] UPDATE: scripts/diagnosis/debug_emulator.py
+[2026-01-10 00:53:59.829204] UPDATE: docs/tasks/details/TASK-MOB-FIX-01/specs.md
+[2026-01-10 01:00:20.869070] ABORT [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_EMULATOR_ZOMBIE_LOCK.md. Envie o arquivo completo.
+[2026-01-10 01:00:28.608572] UPDATE: docs/reports/INCIDENT_2026_01_10_EMULATOR_ZOMBIE_LOCK.md
+[2026-01-10 01:00:30.116265] UPDATE: scripts/diagnosis/fix_emulator_zombie.py
+[2026-01-10 01:03:26.212863] ABORT [FFP-02]: Omissão de código detectada em scripts/diagnosis/emulator_deep_fix.py. Envie o arquivo completo.
+[2026-01-10 01:03:33.636884] UPDATE: docs/reports/INCIDENT_2026_01_10_EMULATOR_GRAPHICS_FAILURE.md
+[2026-01-10 01:03:34.856513] UPDATE: scripts/diagnosis/emulator_deep_fix.py
+[2026-01-10 01:07:30.312818] ABORT [FFP-02]: Omissão de código detectada em scripts/automation/launch_mobile_app.py. Envie o arquivo completo.
+[2026-01-10 01:07:42.153926] UPDATE: scripts/automation/launch_mobile_app.py
+[2026-01-10 01:07:44.524508] UPDATE: docs/manuals/MOBILE_LAUNCH_GUIDE.md
+[2026-01-10 01:12:34.567128] ABORT [FFP-02]: Omissão de código detectada em scripts/diagnosis/fix_mobile_runtime.py. Envie o arquivo completo.
+[2026-01-10 01:12:41.092345] ABORT [FFP-02]: Omissão de código detectada em scripts/diagnosis/fix_mobile_runtime.py. Envie o arquivo completo.
+[2026-01-10 01:12:51.021138] UPDATE: docs/reports/INCIDENT_2026_01_10_MOBILE_RUNTIME_ERROR.md
+[2026-01-10 01:13:21.964291] SKIP: mobile/app.json
+[2026-01-10 01:13:23.856745] UPDATE: scripts/diagnosis/fix_mobile_runtime.py
+[2026-01-10 01:13:52.015373] ABORT [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_RUNTIME_EXPLAINED.md. Envie o arquivo completo.
+[2026-01-10 01:13:58.158111] ABORT [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_RUNTIME_EXPLAINED.md. Envie o arquivo completo.
+[2026-01-10 01:14:12.541009] UPDATE: mobile/app.json
+[2026-01-10 01:14:14.556537] UPDATE: docs/reports/INCIDENT_2026_01_10_RUNTIME_EXPLAINED.md
+[2026-01-10 01:16:40.005449] UPDATE: docs/reports/INCIDENT_2026_01_10_EXPO_PATH_ERROR.md
+[2026-01-10 01:19:15.679873] ABORT [FFP-02]: Omissão de código detectada em scripts/diagnosis/debug_compilation.py. Envie o arquivo completo.
+[2026-01-10 01:19:24.286695] ABORT [FFP-02]: Omissão de código detectada em scripts/diagnosis/debug_compilation.py. Envie o arquivo completo.
+[2026-01-10 01:19:34.257063] UPDATE: docs/reports/INCIDENT_2026_01_10_COMPILATION_FAILED.md
+[2026-01-10 01:19:54.965021] UPDATE: mobile/babel.config.js
+[2026-01-10 01:19:59.949390] UPDATE: mobile/metro.config.js
+[2026-01-10 01:20:07.448860] UPDATE: mobile/src/screens/waiter/WaiterDashboard.tsx
+[2026-01-10 01:20:09.996833] UPDATE: scripts/diagnosis/debug_compilation.py
+[2026-01-10 01:21:26.619967] ABORT [FFP-02]: Omissão de código detectada em scripts/maintenance/fix_mobile_exports.py. Envie o arquivo completo.
+[2026-01-10 01:21:34.745488] UPDATE: docs/reports/INCIDENT_2026_01_10_EXPORT_ERROR_FIXED.md
+[2026-01-10 01:21:57.013438] UPDATE: mobile/package.json
+[2026-01-10 01:22:04.181423] UPDATE: mobile/babel.config.js
+[2026-01-10 01:22:07.756934] UPDATE: mobile/src/screens/waiter/WaiterDashboard.tsx
+[2026-01-10 01:22:10.124737] UPDATE: scripts/maintenance/fix_mobile_exports.py
+[2026-01-10 01:25:12.825529] UPDATE: docs/reports/INCIDENT_2026_01_10_METRO_CONFIG_ERROR.md
+[2026-01-10 01:25:16.689671] UPDATE: mobile/metro.config.js
+[2026-01-10 01:27:44.441669] UPDATE: mobile/app.json
+[2026-01-10 01:27:46.528990] UPDATE: docs/manuals/MOBILE_SUCCESS_REPORT.md
+[2026-01-10 01:29:38.765265] UPDATE: mobile/src/screens/auth/LoginScreen.tsx
+[2026-01-10 01:29:40.909152] UPDATE: mobile/src/screens/waiter/WaiterDashboard.tsx
+[2026-01-10 01:29:49.509539] UPDATE: mobile/src/screens/kitchen/KitchenDashboard.tsx
+[2026-01-10 01:29:58.036674] UPDATE: mobile/src/screens/driver/DriverDashboard.tsx
+[2026-01-10 01:30:03.529623] UPDATE: docs/TASKS.md
+[2026-01-10 01:37:57.129379] ABORT [FFP-02]: Omissão de código detectada em scripts/diagnosis/check_syntax_headers.py. Envie o arquivo completo.
+[2026-01-10 01:38:12.733438] UPDATE: docs/reports/INCIDENT_2026_01_10_SYNTAX_ENCODING.md
+[2026-01-10 01:38:14.881211] UPDATE: scripts/diagnosis/check_syntax_headers.py
+[2026-01-10 01:38:27.396968] UPDATE: frontend/src/lib/api.ts
+[2026-01-10 01:39:22.753162] UPDATE: app/services/ifood_service.py
+[2026-01-10 01:42:45.222109] ABORT [FFP-02]: Omissão de código detectada em frontend/src/lib/api.ts. Envie o arquivo completo.
+[2026-01-10 01:42:53.657884] UPDATE: frontend/src/lib/api.ts
+[2026-01-10 01:43:04.640769] UPDATE: app/services/ifood_service.py
+[2026-01-10 01:45:15.617093] ABORT [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_SYNTAX_ENCODING.md. Envie o arquivo completo.
+[2026-01-10 01:45:42.029788] UPDATE: docs/reports/INCIDENT_2026_01_10_SYNTAX_ENCODING.md
+[2026-01-10 01:45:44.021300] UPDATE: frontend/src/lib/api.ts
+[2026-01-10 01:45:49.181104] UPDATE: app/services/ifood_service.py
+[2026-01-10 01:47:52.816859] ABORT [FFP-02]: Omissão de código detectada em scripts/diagnosis/. Envie o arquivo completo.
+[2026-01-10 01:48:27.189291] UPDATE: scripts/diagnosis/get_local_ip.py
+[2026-01-10 01:49:35.097662] UPDATE: .env
+[2026-01-10 01:50:17.577952] UPDATE: mobile/src/config/env.ts
+[2026-01-10 01:51:29.276615] SKIP: mobile/src/services/api.ts
+[2026-01-10 01:51:41.505714] UPDATE: docs/TASKS.md
+[2026-01-10 01:52:49.590113] UPDATE: docs/reports/INCIDENT_2026_01_10_API_LOGIC_RESTORED.md
+[2026-01-10 01:53:04.485339] UPDATE: mobile/src/services/api.ts
+[2026-01-10 01:59:19.988509] ABORT [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_BOOT_FAILURE.md. Envie o arquivo completo.
+[2026-01-10 01:59:29.237632] UPDATE: docs/reports/INCIDENT_2026_01_10_BOOT_FAILURE.md
+[2026-01-10 01:59:31.293157] UPDATE: scripts/diagnosis/full_system_check.py
+[2026-01-10 01:59:37.033390] UPDATE: frontend/src/lib/api.ts
+[2026-01-10 01:59:39.537232] UPDATE: app/services/ifood_service.py
+[2026-01-10 02:01:04.363772] ABORT [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_FIX_VERIFICATION.md. Envie o arquivo completo.
+[2026-01-10 02:01:13.565364] UPDATE: docs/reports/INCIDENT_2026_01_10_FIX_VERIFICATION.md
+[2026-01-10 02:01:18.188989] UPDATE: frontend/src/lib/api.ts
+[2026-01-10 02:01:21.529124] UPDATE: app/services/ifood_service.py
+[2026-01-10 02:02:45.545427] ABORT [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_FIX_VERIFICATION.md. Envie o arquivo completo.
+[2026-01-10 02:03:09.749585] UPDATE: docs/reports/INCIDENT_2026_01_10_FIX_VERIFICATION.md
+[2026-01-10 02:03:17.085150] UPDATE: scripts/diagnosis/full_system_check.py
+[2026-01-10 02:03:19.721696] UPDATE: frontend/src/lib/api.ts
+[2026-01-10 02:05:06.077232] ABORT [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_BOOT_RECOVERY.md. Envie o arquivo completo.
+[2026-01-10 02:05:14.301469] UPDATE: docs/reports/INCIDENT_2026_01_10_BOOT_RECOVERY.md
+[2026-01-10 02:05:17.277494] UPDATE: frontend/src/lib/api.ts
+[2026-01-10 02:05:19.325233] UPDATE: app/services/ifood_service.py
+[2026-01-10 02:05:21.357190] UPDATE: scripts/diagnosis/full_system_check.py
+[2026-01-10 02:11:00.230961] ABORT [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_CRITICAL_BOOT_FIX.md. Envie o arquivo completo.
+[2026-01-10 02:11:08.313598] UPDATE: docs/reports/INCIDENT_2026_01_10_CRITICAL_BOOT_FIX.md
+[2026-01-10 02:11:51.080558] SKIP: app/database.py
+[2026-01-10 02:11:55.417528] UPDATE: frontend/src/lib/api.ts
+[2026-01-10 02:12:15.685433] UPDATE: scripts/diagnosis/get_local_ip.py
+[2026-01-10 02:12:47.141411] UPDATE: .env
+[2026-01-10 02:17:40.406780] ABORT [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_FINAL_BOOT_RECOVERY.md. Envie o arquivo completo.
+[2026-01-10 02:17:50.193653] UPDATE: docs/reports/INCIDENT_2026_01_10_FINAL_BOOT_RECOVERY.md
+[2026-01-10 02:17:53.225541] UPDATE: frontend/src/lib/api.ts
+[2026-01-10 02:17:55.849739] UPDATE: app/services/ifood_service.py
+[2026-01-10 02:20:01.862190] ABORT [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_EMERGENCY_REPAIR.md. Envie o arquivo completo.
+[2026-01-10 02:20:13.049855] UPDATE: docs/reports/INCIDENT_2026_01_10_EMERGENCY_REPAIR.md
+[2026-01-10 02:20:14.913347] UPDATE: frontend/src/lib/api.ts
+[2026-01-10 02:20:17.829299] UPDATE: app/services/ifood_service.py
+[2026-01-10 02:20:20.953598] UPDATE: scripts/maintenance/repair_boot.py
+[2026-01-10 02:23:32.872575] ABORT [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_BOOT_CRASH_ANALYSIS.md. Envie o arquivo completo.
+[2026-01-10 02:23:41.229673] UPDATE: docs/reports/INCIDENT_2026_01_10_BOOT_CRASH_ANALYSIS.md
+[2026-01-10 02:23:58.477428] UPDATE: scripts/diagnosis/full_system_check.py
+[2026-01-10 02:24:01.885414] UPDATE: frontend/src/lib/api.ts
+[2026-01-10 02:24:05.253578] UPDATE: app/services/ifood_service.py
+[2026-01-10 02:27:23.941952] ABORT [FFP-02]: Omissão de código detectada em scripts/validation/verify_TASK-MAINT-02.py. Envie o arquivo completo.
+[2026-01-10 02:27:30.978028] UPDATE: docs/tasks/details/TASK-MAINT-02/specs.md
+[2026-01-10 02:27:32.957600] UPDATE: scripts/maintenance/system_integrity_check.py
+[2026-01-10 02:27:34.665300] UPDATE: scripts/validation/verify_TASK-MAINT-02.py
+[2026-01-10 02:27:38.941502] UPDATE: docs/TASKS.md
+[2026-01-10 02:29:57.905616] UPDATE: docs/specs/WAITER_SCREEN_SPEC.md
+[2026-01-10 02:29:59.329648] UPDATE: docs/specs/KITCHEN_SCREEN_SPEC.md
+[2026-01-10 02:30:00.633460] UPDATE: docs/specs/DRIVER_SCREEN_SPEC.md
+[2026-01-10 02:30:01.981572] UPDATE: docs/specs/MANAGER_SCREEN_SPEC.md
+[2026-01-10 02:30:03.341805] UPDATE: docs/technical/SYNC_ARCHITECTURE.md
+[2026-01-10 02:30:07.061587] UPDATE: docs/TASKS.md
+[2026-01-10 02:36:44.921926] UPDATE: scripts/automation/open_all_screens.py
+[2026-01-10 14:55:02.314477] ABORT [FFP-02]: Omissão de código detectada em scripts/automation/capture_all_screens.py. Envie o arquivo completo.
+[2026-01-10 14:55:10.628215] UPDATE: docs/tasks/details/TASK-MAINT-03/specs.md
+[2026-01-10 14:55:12.132013] UPDATE: scripts/automation/capture_all_screens.py
+[2026-01-10 14:55:13.511917] UPDATE: scripts/validation/verify_TASK-MAINT-03.py
+[2026-01-10 15:00:35.778855] ABORT [FFP-02]: Omissão de código detectada em scripts/automation/capture_mobile_screens.py. Envie o arquivo completo.
+[2026-01-10 15:00:42.220255] UPDATE: docs/tasks/details/TASK-MAINT-04/specs.md
+[2026-01-10 15:00:43.615957] UPDATE: scripts/automation/capture_mobile_screens.py
+[2026-01-10 15:00:45.368471] UPDATE: scripts/validation/verify_TASK-MAINT-04.py
+[2026-01-10 15:04:41.536450] UPDATE: docs/TASKS.md
+[2026-01-10 15:05:43.795424] SKIP: docs/TASKS.md
+[2026-01-10 15:07:53.661651] UPDATE: docs/tasks/details/TASK-UX-02/specs.md
+[2026-01-10 15:07:55.472139] UPDATE: docs/tasks/details/TASK-UX-03/specs.md
+[2026-01-10 15:07:58.380150] UPDATE: docs/tasks/details/TASK-FEAT-01/specs.md
+[2026-01-10 15:07:59.816076] UPDATE: docs/tasks/details/TASK-FEAT-02/specs.md
+[2026-01-10 15:08:01.020373] UPDATE: docs/tasks/details/TASK-FEAT-03/specs.md
+[2026-01-10 15:08:34.760300] UPDATE: docs/TASKS.md
+[2026-01-10 15:10:24.277143] UPDATE: docs/tasks/details/TASK-INT-01/specs.md
+[2026-01-10 15:10:26.268387] UPDATE: docs/tasks/details/TASK-INT-01/verification_plan.md
+[2026-01-10 15:10:28.224579] UPDATE: docs/tasks/details/TASK-INT-01/rollback_plan.md
+[2026-01-10 15:10:29.717044] UPDATE: docs/tasks/details/TASK-FIN-03/specs.md
+[2026-01-10 15:10:31.180363] UPDATE: docs/tasks/details/TASK-FIN-03/verification_plan.md
+[2026-01-10 15:10:32.797006] UPDATE: docs/tasks/details/TASK-FIN-03/rollback_plan.md
+[2026-01-10 15:10:36.852127] UPDATE: docs/TASKS.md
+[2026-01-10 15:12:26.404812] ABORT [FFP-02]: Omissão de código detectada em frontend/src/lib/api.ts. Envie o arquivo completo.
+[2026-01-10 15:12:52.957651] UPDATE: app/routers/public.py
+[2026-01-10 15:12:57.404695] UPDATE: frontend/src/lib/api.ts
+[2026-01-10 15:12:59.572686] UPDATE: frontend/src/app/[slug]/monitor/page.tsx
+[2026-01-10 15:13:02.428574] UPDATE: frontend/src/components/menu/PublicMonitorView.tsx
+[2026-01-10 15:13:04.280001] UPDATE: scripts/validation/verify_TASK-FEAT-02.py
+[2026-01-10 15:13:25.284987] UPDATE: docs/TASKS.md
+[2026-01-10 15:14:54.239009] ABORT [FFP-02]: Omissão de código detectada em scripts/automation/capture_monitor_screen.py. Envie o arquivo completo.
+[2026-01-10 15:15:02.580734] UPDATE: docs/manuals/PUBLIC_MONITOR_GUIDE.md
+[2026-01-10 15:15:04.008537] UPDATE: scripts/automation/capture_monitor_screen.py
+[2026-01-10 15:15:05.880098] UPDATE: scripts/validation/verify_TASK-MAINT-05.py
+[2026-01-10 15:15:18.924919] UPDATE: docs/TASKS.md
+[2026-01-10 15:18:59.007190] ABORT [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_DEEP_BOOT_FAILURE.md. Envie o arquivo completo.
+[2026-01-10 15:19:06.644929] UPDATE: docs/reports/INCIDENT_2026_01_10_DEEP_BOOT_FAILURE.md
+[2026-01-10 15:19:11.124932] UPDATE: frontend/src/lib/api.ts
+[2026-01-10 15:19:16.844739] UPDATE: app/services/ifood_service.py
+[2026-01-10 15:19:19.348472] UPDATE: scripts/diagnosis/deep_system_audit.py
+[2026-01-10 15:20:27.263575] ABORT [FFP-02]: Omissão de código detectada em scripts/setup/setup_redis.py. Envie o arquivo completo.
+[2026-01-10 15:20:36.922057] UPDATE: docs/tasks/details/TASK-MAINT-05/specs.md
+[2026-01-10 15:20:39.640376] UPDATE: scripts/setup/setup_redis.py
+[2026-01-10 15:20:41.488170] UPDATE: scripts/validation/verify_redis.py
+[2026-01-10 15:21:02.448480] UPDATE: docs/TASKS.md
+[2026-01-10 15:30:01.305777] ABORT [FFP-02]: Omissão de código detectada em scripts/setup/setup_redis.py. Envie o arquivo completo.
+[2026-01-10 15:30:08.984655] ABORT [FFP-05]: Erro de sintaxe no código proposto para scripts/setup/setup_redis.py:   File ".temp_syntax.py", line 2
+    // LAST_MODIFIED: 2026-01-10 15:35:00
+                           ^
+SyntaxError: leading zeros in decimal integer literals are not permitted; use an 0o prefix for octal integers
+
+[2026-01-10 15:30:42.572725] ABORT [FFP-02]: Omissão de código detectada em scripts/setup/setup_redis.py. Envie o arquivo completo.
+[2026-01-10 15:30:50.604182] ABORT [FFP-05]: Erro de sintaxe no código proposto para scripts/setup/setup_redis.py:   File ".temp_syntax.py", line 2
+    // LAST_MODIFIED: 2026-01-10 15:35:00
+                           ^
+SyntaxError: leading zeros in decimal integer literals are not permitted; use an 0o prefix for octal integers
+
+[2026-01-10 15:32:13.221936] ABORT [FFP-02]: Omissão de código detectada em scripts/setup/setup_redis.py. Envie o arquivo completo.
+[2026-01-10 15:32:22.921443] UPDATE: scripts/setup/setup_redis.py
+[2026-01-10 15:35:25.354674] UPDATE: docs/reports/INCIDENT_2026_01_10_DOCKER_PATH_MISSING.md
+[2026-01-10 15:37:36.966212] UPDATE: docs/TASKS.md
+[2026-01-10 15:40:28.928995] SKIP: frontend/src/app/globals.css
+[2026-01-10 15:40:48.253252] SKIP: frontend/src/components/landing/Hero.tsx
+[2026-01-10 15:41:17.353638] SKIP: frontend/src/components/landing/Navbar.tsx
+[2026-01-10 15:41:27.529063] SKIP: frontend/src/app/admin/[slug]/layout.tsx
+[2026-01-10 15:41:31.392762] SKIP: docs/TASKS.md
+[2026-01-10 15:42:39.150097] UPDATE: frontend/src/app/globals.css
+[2026-01-10 15:42:46.013706] UPDATE: frontend/src/components/landing/Hero.tsx
+[2026-01-10 15:42:49.261436] UPDATE: frontend/src/components/landing/Navbar.tsx
+[2026-01-10 15:42:52.173543] UPDATE: frontend/src/app/admin/[slug]/layout.tsx
+[2026-01-10 15:43:54.633954] UPDATE: docs/manuals/REDESIGN_VISUAL_GUIDE.md
+[2026-01-10 15:46:52.200237] ABORT [FFP-02]: Omissão de código detectada em frontend/src/lib/api.ts. Envie o arquivo completo.
+[2026-01-10 15:56:02.941806] ABORT [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_CACHE_AND_SYNTAX.md. Envie o arquivo completo.
+[2026-01-10 15:56:35.363285] ABORT [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_CACHE_AND_SYNTAX.md. Envie o arquivo completo.
+[2026-01-10 15:56:49.206046] UPDATE: docs/reports/INCIDENT_2026_01_10_CACHE_AND_SYNTAX.md
+[2026-01-10 15:57:07.281680] UPDATE: app/core/cache.py
+[2026-01-10 15:57:21.305747] UPDATE: app/services/ifood_service.py
+[2026-01-10 15:57:23.778092] UPDATE: frontend/src/lib/api.ts
+[2026-01-10 15:57:28.273789] UPDATE: scripts/maintenance/repair_boot.py
+[2026-01-10 15:57:31.905786] UPDATE: scripts/maintenance/full_project_auditor.py
+[2026-01-10 16:09:53.646293] ABORT [FFP-02]: Omissão de código detectada em app/main.py. Envie o arquivo completo.
+[2026-01-10 16:12:48.110610] ABORT [FFP-05]: Erro de sintaxe no código proposto para app/core/cache.py:   File ".temp_syntax.py", line 2
+    // LAST_MODIFIED: 2026-01-10 16:15:00
+                           ^
+SyntaxError: leading zeros in decimal integer literals are not permitted; use an 0o prefix for octal integers
+
+[2026-01-10 17:21:29.270200] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML <MesaFlow_Execution>.
+[2026-01-10 17:21:58.242405] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML <MesaFlow_Execution>.
+[2026-01-10 17:23:17.610980] ABORT [FFP-02]: Omissão de código detectada em frontend/src/app/admin/[slug]/dashboard/page.tsx. Envie o arquivo completo.
+[2026-01-10 17:23:39.141139] UPDATE: frontend/src/app/globals.css
+[2026-01-10 17:23:41.292843] UPDATE: frontend/src/components/ui/Logo.tsx
+[2026-01-10 17:23:46.320913] UPDATE: frontend/src/components/landing/Hero.tsx
+[2026-01-10 17:23:49.408745] UPDATE: frontend/src/components/landing/Navbar.tsx
+[2026-01-10 17:23:52.036685] UPDATE: frontend/src/app/admin/[slug]/layout.tsx
+[2026-01-10 17:23:54.484062] UPDATE: frontend/src/app/admin/[slug]/dashboard/page.tsx
+[2026-01-10 17:23:56.556834] UPDATE: scripts/validation/verify_TASK-UX-02.py
+[2026-01-10 17:24:10.103603] SKIP: docs/TASKS.md
+[2026-01-10 17:27:48.691736] ABORT [FFP-01]: RUÍDO DETECTADO: Zero texto permitido fora do envelope XML <MesaFlow_Execution>.
+[2026-01-10 17:30:32.694463] ABORT [FFP-01]: ESTRUTURA INVÁLIDA: O XML não segue a ordem canônica v6.8 (Verifique Execution_Context).
+[2026-01-10 17:31:07.415960] MANUAL_OVERRIDE [FFP-01]: ESTRUTURA INVÁLIDA: O XML contém ruído ou não segue a ordem canônica. Verifique se há texto fora das tags.
+[2026-01-10 17:31:26.765934] ABORT [FFP-02]: Omissão de código detectada em atualizar.py. O arquivo parece incompleto.
+[2026-01-10 17:31:34.147897] MANUAL_OVERRIDE [FFP-01]: ESTRUTURA INVÁLIDA: O XML contém ruído ou não segue a ordem canônica. Verifique se há texto fora das tags.
+[2026-01-10 17:31:39.171704] MANUAL_OVERRIDE [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_FRONTEND_CRASH.md. O arquivo parece incompleto.
+[2026-01-10 17:31:42.003776] MANUAL_OVERRIDE [FFP-02]: Omissão de código detectada em scripts/maintenance/fix_frontend_crash.py. O arquivo parece incompleto.
+[2026-01-10 17:31:47.076810] UPDATE: docs/reports/INCIDENT_2026_01_10_FRONTEND_CRASH.md
+[2026-01-10 17:31:48.692642] UPDATE: scripts/maintenance/fix_frontend_crash.py
+[2026-01-10 17:31:58.388444] UPDATE: frontend/src/app/admin/[slug]/layout.tsx
+[2026-01-10 17:32:58.939599] MANUAL_OVERRIDE [FFP-01]: ESTRUTURA INVÁLIDA: O XML contém ruído ou não segue a ordem canônica. Verifique se há texto fora das tags.
+[2026-01-10 17:33:02.356345] MANUAL_OVERRIDE [FFP-02]: Omissão de código detectada em scripts/setup/fix_google_env.py. O arquivo parece incompleto.
+[2026-01-10 17:33:05.212261] UPDATE: scripts/setup/fix_google_env.py
+[2026-01-10 17:37:57.407520] MANUAL_OVERRIDE [FFP-01]: ESTRUTURA INVÁLIDA: O XML contém ruído ou não segue a ordem canônica. Verifique se há texto fora das tags.
+[2026-01-10 17:37:59.727584] MANUAL_OVERRIDE [FFP-02]: Omissão de código detectada em docs/reports/INCIDENT_2026_01_10_FRONTEND_CRASH_ANALYSIS.md. O arquivo parece incompleto.
+[2026-01-10 17:38:02.735389] MANUAL_OVERRIDE [FFP-02]: Omissão de código detectada em scripts/maintenance/fix_frontend_issues.py. O arquivo parece incompleto.
+[2026-01-10 17:38:05.433026] UPDATE: docs/reports/INCIDENT_2026_01_10_FRONTEND_CRASH_ANALYSIS.md
+[2026-01-10 17:38:07.168849] UPDATE: scripts/maintenance/fix_frontend_issues.py
+[2026-01-10 17:40:42.307853] MANUAL_OVERRIDE [FFP-01]: ESTRUTURA INVÁLIDA: O XML contém ruído ou não segue a ordem canônica. Verifique se há texto fora das tags.
+[2026-01-10 17:40:43.451281] MANUAL_OVERRIDE [FFP-02]: Omissão de código detectada em atualizar.py. O arquivo parece incompleto.
+[2026-01-10 17:40:48.507954] MANUAL_OVERRIDE [FFP-02]: Omissão de código detectada em atualizar.py. O arquivo parece incompleto.
+[2026-01-10 17:40:53.843772] MANUAL_OVERRIDE [FFP-02]: Omissão de código detectada em atualizar.py. O arquivo parece incompleto.
+[2026-01-10 17:40:55.055775] MANUAL_OVERRIDE [FFP-02]: Omissão de código detectada em atualizar.py. O arquivo parece incompleto.
+[2026-01-10 17:41:01.071818] MANUAL_OVERRIDE [FFP-02]: Omissão de código detectada em frontend/src/app/[slug]/menu/MenuClient.tsx. O arquivo parece incompleto.
+[2026-01-10 17:41:05.283677] MANUAL_OVERRIDE [FFP-02]: Omissão de código detectada em frontend/src/app/admin/[slug]/team/page.tsx. O arquivo parece incompleto.
+[2026-01-10 17:41:39.700485] UPDATE: atualizar.py
+[2026-01-10 17:41:59.136420] UPDATE: frontend/src/app/[slug]/menu/MenuClient.tsx
+[2026-01-10 17:42:04.984244] UPDATE: frontend/src/app/admin/[slug]/team/page.tsx
+[2026-01-10 17:45:30.179512] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 17:45:30.180118] WARN [FFP-02]: Possível omissão de código em scripts/automation/comprehensive_ui_test.py.
+[2026-01-10 17:45:32.352755] UPDATE: scripts/automation/comprehensive_ui_test.py
+[2026-01-10 18:00:00.687234] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 18:00:00.687896] WARN [FFP-02]: Possível omissão de código em scripts/automation/comprehensive_ui_test.py.
+[2026-01-10 18:00:09.908417] UPDATE: scripts/automation/comprehensive_ui_test.py
+[2026-01-10 18:02:41.937184] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 18:02:41.937798] WARN [FFP-02]: Possível omissão de código em scripts/automation/comprehensive_ui_test.py.
+[2026-01-10 18:02:47.916149] UPDATE: scripts/automation/comprehensive_ui_test.py
+[2026-01-10 18:05:15.784709] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 18:05:15.785328] WARN [FFP-02]: Possível omissão de código em docs/reports/INCIDENT_2026_01_10_UI_STRESS_ANALYSIS.md.
+[2026-01-10 18:05:15.785723] WARN [FFP-02]: Possível omissão de código em scripts/automation/comprehensive_ui_test_v3.py.
+[2026-01-10 18:05:18.132390] UPDATE: docs/reports/INCIDENT_2026_01_10_UI_STRESS_ANALYSIS.md
+[2026-01-10 18:05:20.791968] UPDATE: scripts/automation/comprehensive_ui_test_v3.py
+[2026-01-10 18:09:29.129565] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 18:09:29.130268] WARN [FFP-02]: Possível omissão de código em scripts/maintenance/fix_delivery_permission.py.
+[2026-01-10 18:09:32.868313] UPDATE: docs/reports/INCIDENT_2026_01_10_DELIVERY_403.md
+[2026-01-10 18:09:35.427720] UPDATE: scripts/maintenance/fix_delivery_permission.py
+[2026-01-10 18:13:48.707434] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 18:13:48.708124] WARN [FFP-02]: Possível omissão de código em docs/reports/INCIDENT_2026_01_10_UI_STRESS_ANALYSIS.md.
+[2026-01-10 18:13:48.708561] WARN [FFP-02]: Possível omissão de código em scripts/automation/comprehensive_ui_test_v3.py.
+[2026-01-10 18:13:51.927930] UPDATE: docs/reports/INCIDENT_2026_01_10_UI_STRESS_ANALYSIS.md
+[2026-01-10 18:13:54.055457] UPDATE: scripts/automation/comprehensive_ui_test_v3.py
+[2026-01-10 18:23:36.929039] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 18:23:36.929828] WARN [FFP-02]: Possível omissão de código em scripts/automation/ultimate_ui_tester.py.
+[2026-01-10 18:23:43.759840] UPDATE: requirements.txt
+[2026-01-10 18:23:45.851435] UPDATE: scripts/automation/ultimate_ui_tester.py
+[2026-01-10 18:28:39.157897] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 18:28:39.158547] WARN [FFP-02]: Possível omissão de código em docs/reports/ULTIMATE_UI_REPORT_ANALYSIS.md.
+[2026-01-10 18:28:39.159069] WARN [FFP-02]: Possível omissão de código em scripts/automation/ultimate_ui_tester.py.
+[2026-01-10 18:28:39.175735] WARN [FFP-02]: Possível omissão de código em scripts/maintenance/seed_ui_states.py.
+[2026-01-10 18:28:42.091637] UPDATE: docs/reports/ULTIMATE_UI_REPORT_ANALYSIS.md
+[2026-01-10 18:28:53.915377] UPDATE: scripts/automation/ultimate_ui_tester.py
+[2026-01-10 18:28:58.295559] UPDATE: scripts/maintenance/seed_ui_states.py
+[2026-01-10 18:30:13.830271] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 18:30:13.830925] WARN [FFP-02]: Possível omissão de código em scripts/maintenance/seed_ui_states.py.
+[2026-01-10 18:30:17.315876] UPDATE: scripts/maintenance/seed_ui_states.py
+[2026-01-10 18:34:50.225676] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 18:34:50.226594] WARN [FFP-02]: Possível omissão de código em scripts/automation/ultimate_ui_tester_v6.py.
+[2026-01-10 18:34:52.851772] UPDATE: docs/reports/INCIDENT_2026_01_10_AUTH_LOOP.md
+[2026-01-10 18:34:54.947117] UPDATE: scripts/automation/ultimate_ui_tester_v6.py
+[2026-01-10 18:37:41.802866] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 18:37:41.803642] BLOCK [FFP-06]: Tentativa de alteração em arquivo protegido sem Override: docs/governance/HANDOVER_PACKAGE.md
+[2026-01-10 18:48:10.243727] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 18:48:10.244358] WARN [FFP-02]: Possível omissão de código em scripts/automation/map_routes.py.
+[2026-01-10 18:48:10.257632] WARN [FFP-02]: Possível omissão de código em scripts/automation/enterprise_ui_explorer.py.
+[2026-01-10 18:48:10.268789] WARN [FFP-02]: Possível omissão de código em scripts/automation/auto_fix_reporter.py.
+[2026-01-10 18:48:14.207572] UPDATE: scripts/automation/map_routes.py
+[2026-01-10 18:48:16.023501] UPDATE: scripts/automation/enterprise_ui_explorer.py
+[2026-01-10 18:48:18.647561] UPDATE: scripts/automation/auto_fix_reporter.py
+[2026-01-10 18:48:20.991252] UPDATE: docs/tasks/TASK-AUTO-02_ENTERPRISE_CRAWLER.md
+[2026-01-10 18:53:32.956978] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 18:53:32.957610] WARN [FFP-02]: Possível omissão de código em scripts/automation/map_routes.py.
+[2026-01-10 18:53:32.961479] WARN [FFP-02]: Possível omissão de código em scripts/automation/enterprise_ui_explorer.py.
+[2026-01-10 18:53:32.966031] WARN [FFP-02]: Possível omissão de código em scripts/automation/auto_fix_reporter.py.
+[2026-01-10 18:53:37.099612] UPDATE: scripts/automation/map_routes.py
+[2026-01-10 18:53:39.051392] UPDATE: scripts/automation/enterprise_ui_explorer.py
+[2026-01-10 18:53:41.570874] UPDATE: scripts/automation/auto_fix_reporter.py
+[2026-01-10 18:53:43.623384] UPDATE: docs/tasks/TASK-AUTO-02_ENTERPRISE_CRAWLER.md
+[2026-01-10 18:54:48.568824] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 18:54:48.569405] WARN [FFP-02]: Possível omissão de código em scripts/automation/enterprise_ui_explorer_v2.py.
+[2026-01-10 18:54:50.939184] UPDATE: scripts/automation/enterprise_ui_explorer_v2.py
+[2026-01-10 18:54:52.686511] UPDATE: docs/reports/INCIDENT_2026_01_10_UI_TIMEOUT_ANALYSIS.md
+[2026-01-10 18:57:27.212233] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 18:57:27.212898] WARN [FFP-02]: Possível omissão de código em scripts/automation/enterprise_ui_explorer_v2.py.
+[2026-01-10 18:57:30.347620] UPDATE: scripts/automation/enterprise_ui_explorer_v2.py
+[2026-01-10 18:57:32.259924] UPDATE: docs/reports/INCIDENT_2026_01_10_UI_TIMEOUT_ANALYSIS.md
+[2026-01-10 18:57:39.303709] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 18:57:39.304331] WARN [FFP-02]: Possível omissão de código em scripts/automation/map_routes.py.
+[2026-01-10 18:57:39.314061] WARN [FFP-02]: Possível omissão de código em scripts/automation/enterprise_ui_explorer_v2.py.
+[2026-01-10 18:57:39.330545] WARN [FFP-02]: Possível omissão de código em scripts/automation/auto_fix_reporter.py.
+[2026-01-10 18:57:42.335466] UPDATE: scripts/automation/map_routes.py
+[2026-01-10 18:57:44.319451] UPDATE: scripts/automation/enterprise_ui_explorer_v2.py
+[2026-01-10 18:57:49.622816] UPDATE: scripts/automation/auto_fix_reporter.py
+[2026-01-10 19:00:01.531426] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 19:00:01.532111] WARN [FFP-02]: Possível omissão de código em docs/reports/INCIDENT_2026_01_10_UI_EXPLORER_LOGS.md.
+[2026-01-10 19:00:01.533048] WARN [FFP-02]: Possível omissão de código em scripts/automation/enterprise_ui_explorer_v3.py.
+[2026-01-10 19:00:05.863434] UPDATE: docs/reports/INCIDENT_2026_01_10_UI_EXPLORER_LOGS.md
+[2026-01-10 19:00:08.799280] UPDATE: scripts/automation/enterprise_ui_explorer_v3.py
+[2026-01-10 19:00:50.055919] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 19:00:50.056496] WARN [FFP-02]: Possível omissão de código em docs/reports/INCIDENT_2026_01_10_UI_EXPLORER_LOGS.md.
+[2026-01-10 19:00:50.056864] WARN [FFP-02]: Possível omissão de código em scripts/automation/enterprise_ui_explorer_v3.py.
+[2026-01-10 19:00:53.131599] UPDATE: docs/reports/INCIDENT_2026_01_10_UI_EXPLORER_LOGS.md
+[2026-01-10 19:00:54.663102] UPDATE: scripts/automation/enterprise_ui_explorer_v3.py
+[2026-01-10 19:05:15.570561] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 19:05:15.571097] WARN [FFP-02]: Possível omissão de código em docs/reports/ULTIMATE_UI_REPORT_V7_ANALYSIS.md.
+[2026-01-10 19:05:15.571457] WARN [FFP-02]: Possível omissão de código em scripts/maintenance/fix_tables_route.py.
+[2026-01-10 19:05:19.335382] UPDATE: docs/reports/ULTIMATE_UI_REPORT_V7_ANALYSIS.md
+[2026-01-10 19:05:21.646674] UPDATE: scripts/maintenance/fix_tables_route.py
+[2026-01-10 19:12:53.364136] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 19:12:53.364659] WARN [FFP-02]: Possível omissão de código em scripts/maintenance/cleanup_context_noise.py.
+[2026-01-10 19:12:56.783655] UPDATE: scripts/maintenance/cleanup_context_noise.py
+[2026-01-10 19:15:16.338285] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 19:15:16.338851] WARN [FFP-02]: Possível omissão de código em scripts/maintenance/cleanup_scripts_noise.py.
+[2026-01-10 19:15:19.763345] UPDATE: scripts/maintenance/cleanup_scripts_noise.py
+[2026-01-10 19:23:39.040869] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 19:23:39.041558] WARN [FFP-02]: Possível omissão de código em scripts/maintenance/standardize_scripts.py.
+[2026-01-10 19:23:40.555200] UPDATE: docs/technical/SCRIPT_INVENTORY.md
+[2026-01-10 19:23:42.390743] UPDATE: scripts/maintenance/standardize_scripts.py
+[2026-01-10 19:54:30.311028] BLOCK [FFP-06]: Tentativa de alteração em arquivo protegido sem Override: docs/governance/HYPEROPTIMUS_PLAN.md
+[2026-01-10 19:58:45.336427] WARN [FFP-02]: Possível omissão de código em frontend/src/app/admin/[slug]/tables/page.tsx.
+[2026-01-10 19:58:45.337047] WARN [FFP-02]: Possível omissão de código em scripts/verification/hyperoptimus_tables_check.py.
+[2026-01-10 20:00:11.082512] UPDATE: frontend/src/app/admin/[slug]/tables/page.tsx
+[2026-01-10 20:00:13.874309] UPDATE: scripts/verification/hyperoptimus_tables_check.py
+[2026-01-10 20:00:16.537980] UPDATE: docs/releases/RELEASE_CANDIDATE_1.1.md
+[2026-01-10 20:14:05.331564] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 20:14:05.332445] BLOCK [FFP-06]: Tentativa de alteração em arquivo protegido sem Override: docs/governance/HYPEROPTIMUS_PLAN_V4.md
+[2026-01-10 20:15:47.942746] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 20:15:47.943475] WARN [FFP-02]: Possível omissão de código em frontend/src/app/admin/[slug]/settings/features/page.tsx.
+[2026-01-10 20:15:47.943861] WARN [FFP-02]: Possível omissão de código em frontend/src/app/admin/register/page.tsx.
+[2026-01-10 20:15:47.944239] WARN [FFP-02]: Possível omissão de código em scripts/automation/enterprise_ui_explorer_v4.py.
+[2026-01-10 20:15:54.438724] UPDATE: frontend/src/app/admin/[slug]/settings/features/page.tsx
+[2026-01-10 20:16:03.314194] UPDATE: frontend/src/app/admin/register/page.tsx
+[2026-01-10 20:16:05.569946] UPDATE: scripts/automation/enterprise_ui_explorer_v4.py
+[2026-01-10 20:18:47.010251] WARN [FFP-02]: Possível omissão de código em scripts/automation/enterprise_ui_explorer_v4.py.
+[2026-01-10 20:18:50.834564] UPDATE: scripts/automation/enterprise_ui_explorer_v4.py
+[2026-01-10 20:35:44.970603] WARN [FFP-01]: Estrutura XML fora do padrão canônico. Prosseguindo mesmo assim.
+[2026-01-10 20:35:44.971303] WARN [FFP-02]: Possível omissão de código em scripts/automation/optimus_visual_tester.py.
+[2026-01-10 20:35:49.126550] UPDATE: scripts/automation/optimus_visual_tester.py
+[2026-01-10 20:35:50.317504] UPDATE: docs/tasks/TASK-AUTO-03_OPTIMUS_VISUAL_TESTER.md
+[2026-01-10 20:41:57.315384] WARN [FFP-02]: Possível omissão de código em scripts/automation/optimus_genome_tester_v8.py.
+[2026-01-10 20:42:00.261600] UPDATE: scripts/automation/optimus_genome_tester_v8.py
+[2026-01-10 20:42:01.773857] UPDATE: docs/tasks/TASK-AUTO-05_GENOME_TESTER.md
+[2026-01-10 20:42:03.317491] UPDATE: docs/reports/V7_TO_V8_UPGRADE_LOG.md
+[2026-01-10 20:44:34.531626] WARN [FFP-02]: Possível omissão de código em scripts/automation/optimus_v8_cognitive_auditor.py.
+[2026-01-10 20:44:37.446303] UPDATE: scripts/automation/optimus_v8_cognitive_auditor.py
+[2026-01-10 20:54:11.663513] WARN [FFP-02]: Possível omissão de código em scripts/automation/optimus_v8_1.py.
+[2026-01-10 20:54:14.129981] UPDATE: scripts/automation/optimus_v8_1.py
+[2026-01-10 20:54:16.217575] UPDATE: docs/tasks/TASK-AUTO-07_OPTIMUS_V8_1.md
+[2026-01-10 20:55:21.490768] WARN [FFP-02]: Possível omissão de código em scripts/automation/optimus_v8_1.py.
+[2026-01-10 20:55:24.194245] UPDATE: scripts/automation/optimus_v8_1.py
+[2026-01-10 20:55:25.641549] UPDATE: docs/tasks/TASK-AUTO-07_OPTIMUS_V8_1.md
+[2026-01-10 20:58:03.243634] WARN [FFP-02]: Possível omissão de código em scripts/automation/optimus_v8_2.py.
+[2026-01-10 20:58:06.813884] UPDATE: scripts/automation/optimus_v8_2.py
+[2026-01-10 20:58:08.797756] UPDATE: docs/tasks/TASK-AUTO-08_OPTIMUS_V8_2.md
+[2026-01-10 21:06:52.919576] WARN [FFP-02]: Possível omissão de código em scripts/automation/optimus_v9_neuro_evolution.py.
+[2026-01-10 21:06:52.935530] BLOCK [FFP-06]: Tentativa de alteração em arquivo protegido sem Override: docs/governance/HYPEROPTIMUS_PLAN.md
+[2026-01-10 21:07:40.005974] WARN [FFP-02]: Possível omissão de código em scripts/automation/optimus_v9_neuro_evolution.py.
+[2026-01-10 21:07:42.286044] UPDATE: scripts/automation/optimus_v9_neuro_evolution.py
+[2026-01-10 21:15:10.208582] BLOCK [FFP-06]: Tentativa de alteração em arquivo protegido sem Override: docs/governance/OPTIMUS_v9_Architecture.md
+[2026-01-10 21:29:15.239760] BLOCK [FFP-06]: Tentativa de alteração em arquivo protegido sem Override: docs/governance/OPTIMUS_v9_Architecture.md
+[2026-01-10 21:35:16.333761] UPDATE: scripts/maintenance/analise_estrutural.py
+[2026-01-10 21:36:34.251299] WARN [FFP-02]: Possível omissão de código em scripts/maintenance/cleanup_final_sweep.py.
+[2026-01-10 21:36:37.381611] UPDATE: scripts/maintenance/cleanup_final_sweep.py

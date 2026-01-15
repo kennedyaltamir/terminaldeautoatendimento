@@ -1,6 +1,8 @@
+// DOMAIN: FRONTEND
+// LAST_MODIFIED: 2026-01-10 16:15:00
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, PendingOrder } from '@/lib/db';
+import { db } from '@/lib/db';
 import { createOrder } from '@/lib/api';
 import { toast } from 'sonner';
 
@@ -27,29 +29,26 @@ export function useOfflineSync() {
     for (const order of pendingOrders) {
       try {
         await createOrder(order.slug, order.payload);
-
         // Sucesso: Remove da fila
         await db.pendingOrders.delete(order.id!);
         successCount++;
-
       } catch (error: any) {
         console.error("Erro na sincronização:", error);
-
-        // Se for erro de validação (400/422), marca como erro para intervenção manual
-        // Se for erro de rede (500 ou fetch fail), mantém como pending para tentar depois
         
-        // Verifica se é um erro de API conhecido (ApiError) ou erro genérico
-        const isValidationError = error.status === 400 || error.status === 422 || 
-                                  (error.message && (error.message.includes("Estoque") || error.message.includes("fechado") || error.message.includes("indisponível")));
-
-        if (isValidationError) {
+        // Se for erro de regra de negócio (400) ou validação (422)
+        // Marcamos como erro para parar o loop de retry automático
+        const isFatalError = error.status === 400 || error.status === 422;
+        
+        if (isFatalError) {
           await db.pendingOrders.update(order.id!, {
             status: 'error',
             errorMessage: error.message || "Erro de validação"
           });
-          toast.error(`Erro ao sincronizar pedido: ${error.message}`);
+          toast.error(`Falha no pedido offline: ${error.message}`, {
+            description: "O pedido foi movido para a lista de erros."
+          });
         } else {
-          // Apenas incrementa retry, mantém pending para próxima tentativa
+          // Erro de rede ou servidor: Incrementa retry e tenta depois
           await db.pendingOrders.update(order.id!, {
             retryCount: (order.retryCount || 0) + 1
           });
@@ -58,38 +57,32 @@ export function useOfflineSync() {
     }
 
     setIsSyncing(false);
-
     if (successCount > 0) {
       toast.success(`${successCount} pedidos sincronizados! ☁️`);
     }
   };
 
+  const clearQueue = async () => {
+    if (confirm("Deseja limpar todos os pedidos pendentes (incluindo erros)?")) {
+      await db.pendingOrders.clear();
+      toast.success("Fila offline limpa.");
+    }
+  };
+
   useEffect(() => {
-    // 1. Event Listeners de Rede
     const handleOnline = () => {
-      toast.info("Conexão restaurada. Sincronizando...");
       syncNow();
     };
-
     window.addEventListener('online', handleOnline);
-
-    // 2. Polling de Segurança (a cada 30s tenta enviar se tiver algo)
-    const interval = setInterval(() => {
-      if (navigator.onLine && pendingCount > 0) {
-        syncNow();
-      }
-    }, 30000);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      clearInterval(interval);
-    };
+    
+    return () => window.removeEventListener('online', handleOnline);
   }, [pendingCount]);
 
   return {
     pendingCount,
     errorCount,
     isSyncing,
-    syncNow
+    syncNow,
+    clearQueue
   };
 }

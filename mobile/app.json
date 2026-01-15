@@ -1,63 +1,27 @@
+
 {
   "expo": {
     "name": "MesaFlow KDS & POS",
     "slug": "terminaldeautoatendimento",
-    "owner": "kennedyaltamir",
     "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "scheme": "mesaflow",
-    "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
-    "backgroundColor": "#0F172A",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0F172A"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/6c399079-8815-4995-ad7d-7b23c6fa1769",
-      "enabled": true,
-      "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 0
-    },
     "runtimeVersion": "1.0.0",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.mesaflow.mobile",
-      "buildNumber": "1",
-      "infoPlist": {
-        "UIBackgroundModes": [
-          "fetch",
-          "remote-notification"
-        ],
-        "NSCameraUsageDescription": "O MesaFlow precisa de acesso à câmera para ler QR Codes de mesa."
-      }
-    },
+    "newArchEnabled": true,
+    "platforms": ["ios", "android", "web"],
+    "assetBundlePatterns": ["**/*"],
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0F172A"
-      },
       "package": "com.mesaflow.mobile",
-      "versionCode": 1,
       "permissions": [
         "VIBRATE",
         "INTERNET",
-        "RECEIVE_BOOT_COMPLETED"
+        "CAMERA"
       ],
       "intentFilters": [
         {
           "action": "VIEW",
-          "autoVerify": true,
-          "data": [
-            {
-              "scheme": "mesaflow"
-            }
-          ],
+          "data": {
+            "scheme": "mesaflow"
+          },
           "category": [
             "BROWSABLE",
             "DEFAULT"
@@ -65,25 +29,13 @@
         }
       ]
     },
-    "web": {
-      "favicon": "./assets/favicon.png",
-      "bundler": "metro"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "6c399079-8815-4995-ad7d-7b23c6fa1769"
+    "ios": {
+      "bundleIdentifier": "com.mesaflow.app",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Necessário para ler QR Codes de mesa."
       }
-    },
-    "plugins": [
-      "expo-notifications",
-      "expo-secure-store",
-      [
-        "@sentry/react-native/expo",
-        {
-          "organization": "mesaflow",
-          "project": "mesaflow-mobile"
-        }
-      ]
-    ]
+    }
   }
 }
+

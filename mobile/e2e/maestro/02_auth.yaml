@@ -1,0 +1,37 @@
+
+appId: com.mesaflow.mobile
+tags:
+    - auth
+---
+# 🔹 CATEGORIA B — AUTENTICAÇÃO (T05-T08)
+
+# T06 - Login Inválido
+- launchApp
+- tapOn: "E-mail"
+- inputText: "errado@teste.com"
+- tapOn: "Senha"
+- inputText: "123"
+- tapOn: "Entrar"
+- assertVisible: "Falha no Login"
+- takeScreenshot: "T06_login_invalido"
+- tapOn: "OK"
+
+# T05 - Login Válido (Garçom)
+- tapOn: "E-mail"
+- clearState
+- inputText: "garcom@mesaflow.com"
+- tapOn: "Senha"
+- inputText: "123456"
+- tapOn: "Entrar como Garçom" 
+- assertVisible: "Mapa de Mesas"
+- takeScreenshot: "T05_login_sucesso"
+
+# T08 - Perfil / Sessão
+- assertVisible: "Olá, Kennedy"
+- takeScreenshot: "T08_perfil_ativo"
+
+# T07 - Logout (Sessão Expirada simulada)
+- tapOn: "point:90%,5%" # Clica no ícone de logout (topo direita)
+- assertVisible: "MesaFlow Mobile"
+- takeScreenshot: "T07_logout_sucesso"
+

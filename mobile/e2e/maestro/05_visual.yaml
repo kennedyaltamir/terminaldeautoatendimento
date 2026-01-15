@@ -1,0 +1,24 @@
+
+appId: com.mesaflow.mobile
+tags:
+    - visual
+---
+# 🔹 CATEGORIA E — QUALIDADE VISUAL (T19-T20)
+
+# T19 - Design System Check
+- launchApp
+- assertVisible: "MesaFlow Mobile"
+# Verifica contraste e elementos chave
+- takeScreenshot: "T19_design_system_login"
+
+# T20 - Stress Visual (Navegação Rápida)
+- tapOn: "Entrar como Cozinha"
+- assertVisible: "Cozinha (KDS)"
+- scroll
+- tapOn: "Sair"
+- tapOn: "Entrar como Entregador"
+- assertVisible: "Entregas"
+- tapOn: "Sair"
+- assertVisible: "MesaFlow Mobile"
+- takeScreenshot: "T20_stress_navigation"
+

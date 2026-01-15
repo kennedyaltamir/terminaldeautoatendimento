@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -8,8 +9,9 @@ import { Card } from '../../ui/components/Card';
 import { colors } from '../../ui/tokens/colors';
 import { spacing } from '../../ui/tokens/spacing';
 import { typography } from '../../ui/tokens/typography';
-import { User, ChevronRight, BellRing, RefreshCw } from 'lucide-react-native';
+import { User, ChevronRight, BellRing } from 'lucide-react-native';
 import { logger } from '../../services/logger.service';
+import { ErrorStateView } from '../../components/ui/ErrorStateView';
 
 const TAG = 'WaiterTablesScreen';
 
@@ -17,23 +19,24 @@ export default function WaiterTablesScreen() {
   const navigation = useNavigation<any>();
   const [tables, setTables] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  
+  const [error, setError] = useState(false);
   const slug = useSessionStore(state => state.slug);
   const { selectTable, setSession, serviceRequests, lastTableUpdate } = useWaiterStore();
 
   const fetchTables = useCallback(async () => {
     if (!slug) return;
+    setError(false);
     try {
       const response = await api.get(`/admin/tables/dashboard`);
       setTables(response.data);
     } catch (e) {
       logger.error(TAG, 'Erro ao carregar mesas', e);
+      setError(true);
     } finally {
       setRefreshing(false);
     }
   }, [slug]);
 
-  // Reage a atualizações manuais, automáticas e via WebSocket (lastTableUpdate)
   useEffect(() => {
     fetchTables();
   }, [fetchTables, lastTableUpdate, serviceRequests]);
@@ -72,7 +75,7 @@ export default function WaiterTablesScreen() {
               { backgroundColor: hasAlert ? colors.status.danger : isOccupied ? colors.status.warning : colors.status.success }
             ]} />
           </View>
-
+          
           {hasAlert ? (
             <View style={styles.alertBox}>
               <BellRing size={16} color="#FFF" />
@@ -93,7 +96,7 @@ export default function WaiterTablesScreen() {
           ) : (
             <Text style={styles.freeText}>LIVRE</Text>
           )}
-          
+
           <View style={styles.cardFooter}>
             <ChevronRight size={16} color={(isOccupied || hasAlert) ? colors.text.secondary : colors.text.muted} />
           </View>
@@ -101,6 +104,16 @@ export default function WaiterTablesScreen() {
       </TouchableOpacity>
     );
   };
+
+  if (error && tables.length === 0) {
+    return (
+      <ErrorStateView 
+        type="UNKNOWN" 
+        message="Não foi possível carregar o mapa de mesas."
+        onRetry={fetchTables}
+      />
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -169,3 +182,4 @@ const styles = StyleSheet.create({
   freeText: { fontSize: 10, fontWeight: typography.weight.black, color: colors.text.muted, letterSpacing: 1 },
   cardFooter: { alignItems: 'flex-end' }
 });
+

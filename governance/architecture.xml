@@ -1,0 +1,18 @@
+
+<Architecture version="1.0">
+    <System_Name>MesaFlow OS</System_Name>
+    <Pattern>Monolito Modular Híbrido</Pattern>
+    <Components>
+        <Backend>Python 3.11 (FastAPI)</Backend>
+        <Frontend>Next.js 14 (App Router)</Frontend>
+        <Mobile>React Native (Expo SDK 54)</Mobile>
+        <Database>PostgreSQL (Neon.tech)</Database>
+        <Cache_Broker>Redis (Upstash/Render)</Cache_Broker>
+    </Components>
+    <Communication_Protocols>
+        <API>RESTful (JSON)</API>
+        <Realtime>WebSockets (Redis Pub/Sub)</Realtime>
+    </Communication_Protocols>
+    <Scaling_Strategy>Horizontal (Stateless API Workers)</Scaling_Strategy>
+</Architecture>
+

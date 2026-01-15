@@ -1,0 +1,126 @@
+
+{
+  "version": "5.1",
+  "last_sync": "2026-01-13T15:15:00Z",
+  "status": "CANONICAL",
+  "inventory": {
+    "automation": [
+      "auto_fix_on_fail.py",
+      "auto_fix_reporter_v4.py",
+      "optimus_v9_1_neuro_evolution.py",
+      "auto_calibrate_qa.py",
+      "gerar_contexto.py"
+    ],
+    "ci_cd": [
+      "ai_pr_guard.js",
+      "quality_gate_bot.js"
+    ],
+    "governance": [
+      "gov_01_xml_presence_audit.py",
+      "gov_02_header_audit.py",
+      "gov_03_schema_validation.py",
+      "gov_04_registry_drift.py",
+      "governance_dashboard.py",
+      "seal_governance_v2.py",
+      "system_integrity_check.py",
+      "verify_governance_structure.py",
+      "governance_integrity_check.py"
+    ],
+    "maintenance": [
+      "analise_estrutural.py",
+      "audit_script_inventory.py",
+      "audit_structure.py",
+      "cleanup_context_noise.py",
+      "cleanup_final_sweep.py",
+      "cleanup_scripts_noise.py",
+      "consolidate_reports.py",
+      "deep_audit_and_clean.py",
+      "diagnose_api_errors.py",
+      "find_heavy_files.py",
+      "organize_optimus_docs.py",
+      "organize_scripts.py",
+      "prepare_handoff.py",
+      "standardize_scripts.py",
+      "sync_registry_mass.py"
+    ],
+    "migrations": [
+      "apply_sql_migrations.py",
+      "apply_rls_migrations.py",
+      "apply_rls_hardening.py",
+      "fix_migration_imports.py",
+      "fix_enum_drift.py",
+      "create_rls_policies.sql",
+      "enable_rls_core_tables.sql",
+      "fix_rls_policies.sql",
+      "setup_secure_role.sql"
+    ],
+    "observability": [
+      "inf_01_healthcheck.py",
+      "render_health_probe.py",
+      "vercel_latency_check.py",
+      "sentry_ingest_test.py",
+      "data_readiness_check.py"
+    ],
+    "security": [
+      "sec_01A_rls_policy_inventory.py",
+      "sec_01B_rls_role_matrix.py",
+      "sec_01C_rls_effective_context.py",
+      "sec_01D_rls_readonly_probe.py",
+      "sec_01_rls_integrity.py",
+      "sec_05_boundary_audit.py",
+      "verify_rls_public.py",
+      "stress_test_guards.py",
+      "provision_secure_role.py"
+    ],
+    "setup": [
+      "env_execution_patch.py",
+      "force_fix_env.py",
+      "mock_production_env.py",
+      "patch_ifood_secret.py",
+      "setup_redis.py",
+      "seed.py",
+      "seed_financial_data.py",
+      "seed_ui_states.py"
+    ],
+    "validation": [
+      "master_readiness_check.py",
+      "verify_TASK-SEC-01.py",
+      "verify_TASK-AI-01.py",
+      "verify_TASK-ESC-01.py",
+      "otimizar.py"
+    ],
+    "verification": [
+      "hyperoptimus_tables_check.py"
+    ],
+    "release": [
+      "auto_rollback.js",
+      "launch.bat"
+    ],
+    "tests_support": [
+      "conftest.py",
+      "e2e_system_flow.py",
+      "e2e_system_flow_v2.py",
+      "test_circuit_breaker.py",
+      "test_ledger_integrity.py"
+    ],
+    "mobile": [
+      "run_human_qa.py",
+      "verify_login_screen_l6.py",
+      "env_production_audit.py",
+      "verify_eas_ready.py",
+      "verify_production_ready.py",
+      "verify_screen_resilience.py",
+      "verify_telemetry.py",
+      "seal_production.py",
+      "check_production_readiness.py"
+    ],
+    "_archive": [
+      "fix_tables_route.py",
+      "restore_evidence.py",
+      "ops_01_cognitive_prune.py",
+      "janitor_l7.py",
+      "sanitize_repo.py"
+    ]
+  }
+}
+

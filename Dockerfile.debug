@@ -1,0 +1,18 @@
+
+# DOMAIN: DEVOPS
+# LAST_MODIFIED: 2026-01-13 06:30:00
+# Imagem ultra-leve apenas para diagnóstico
+FROM alpine:latest
+
+WORKDIR /app
+
+# Copia tudo (respeitando o .dockerignore)
+COPY . .
+
+# Comando para listar os 20 maiores arquivos/pastas e parar o build
+# Isso vai imprimir no terminal o que está ocupando espaço
+RUN echo "=== 🔍 ANÁLISE DE CONTEXTO DOCKER ===" && \
+    du -ah . | sort -rh | head -n 20 && \
+    echo "=====================================" && \
+    exit 1
+

@@ -1,0 +1,230 @@
+[
+  {
+    "file_path": "frontend\\src\\app\\page.tsx",
+    "route_pattern": "/",
+    "test_url": "/",
+    "access_type": "public"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\forgot-password\\page.tsx",
+    "route_pattern": "/admin/forgot-password",
+    "test_url": "/admin/forgot-password",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\login\\page.tsx",
+    "route_pattern": "/admin/login",
+    "test_url": "/admin/login",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\payment\\callback\\page.tsx",
+    "route_pattern": "/admin/payment/callback",
+    "test_url": "/admin/payment/callback",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\register\\page.tsx",
+    "route_pattern": "/admin/register",
+    "test_url": "/admin/register",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\reset-password\\page.tsx",
+    "route_pattern": "/admin/reset-password",
+    "test_url": "/admin/reset-password",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\support\\page.tsx",
+    "route_pattern": "/admin/support",
+    "test_url": "/admin/support",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\audit\\page.tsx",
+    "route_pattern": "/admin/[slug]/audit",
+    "test_url": "/admin/hamburgueria-ze/audit",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\audit\\financial\\page.tsx",
+    "route_pattern": "/admin/[slug]/audit/financial",
+    "test_url": "/admin/hamburgueria-ze/audit/financial",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\counter\\page.tsx",
+    "route_pattern": "/admin/[slug]/counter",
+    "test_url": "/admin/hamburgueria-ze/counter",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\dashboard\\page.tsx",
+    "route_pattern": "/admin/[slug]/dashboard",
+    "test_url": "/admin/hamburgueria-ze/dashboard",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\dashboard\\history\\page.tsx",
+    "route_pattern": "/admin/[slug]/dashboard/history",
+    "test_url": "/admin/hamburgueria-ze/dashboard/history",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\delivery\\page.tsx",
+    "route_pattern": "/admin/[slug]/delivery",
+    "test_url": "/admin/hamburgueria-ze/delivery",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\driver\\page.tsx",
+    "route_pattern": "/admin/[slug]/driver",
+    "test_url": "/admin/hamburgueria-ze/driver",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\expeditor\\page.tsx",
+    "route_pattern": "/admin/[slug]/expeditor",
+    "test_url": "/admin/hamburgueria-ze/expeditor",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\franchise\\page.tsx",
+    "route_pattern": "/admin/[slug]/franchise",
+    "test_url": "/admin/hamburgueria-ze/franchise",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\history\\page.tsx",
+    "route_pattern": "/admin/[slug]/history",
+    "test_url": "/admin/hamburgueria-ze/history",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\inventory\\page.tsx",
+    "route_pattern": "/admin/[slug]/inventory",
+    "test_url": "/admin/hamburgueria-ze/inventory",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\kitchen\\page.tsx",
+    "route_pattern": "/admin/[slug]/kitchen",
+    "test_url": "/admin/hamburgueria-ze/kitchen",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\marketing\\page.tsx",
+    "route_pattern": "/admin/[slug]/marketing",
+    "test_url": "/admin/hamburgueria-ze/marketing",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\menu\\page.tsx",
+    "route_pattern": "/admin/[slug]/menu",
+    "test_url": "/admin/hamburgueria-ze/menu",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\profile\\page.tsx",
+    "route_pattern": "/admin/[slug]/profile",
+    "test_url": "/admin/hamburgueria-ze/profile",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\settings\\page.tsx",
+    "route_pattern": "/admin/[slug]/settings",
+    "test_url": "/admin/hamburgueria-ze/settings",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\settings\\billing\\page.tsx",
+    "route_pattern": "/admin/[slug]/settings/billing",
+    "test_url": "/admin/hamburgueria-ze/settings/billing",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\settings\\features\\page.tsx",
+    "route_pattern": "/admin/[slug]/settings/features",
+    "test_url": "/admin/hamburgueria-ze/settings/features",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\tables\\page.tsx",
+    "route_pattern": "/admin/[slug]/tables",
+    "test_url": "/admin/hamburgueria-ze/tables",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\team\\page.tsx",
+    "route_pattern": "/admin/[slug]/team",
+    "test_url": "/admin/hamburgueria-ze/team",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\waiter\\page.tsx",
+    "route_pattern": "/admin/[slug]/waiter",
+    "test_url": "/admin/hamburgueria-ze/waiter",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\waiter\\orders\\page.tsx",
+    "route_pattern": "/admin/[slug]/waiter/orders",
+    "test_url": "/admin/hamburgueria-ze/waiter/orders",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\waiter\\pos\\quick\\page.tsx",
+    "route_pattern": "/admin/[slug]/waiter/pos/quick",
+    "test_url": "/admin/hamburgueria-ze/waiter/pos/quick",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\admin\\[slug]\\waiter\\pos\\[tableId]\\page.tsx",
+    "route_pattern": "/admin/[slug]/waiter/pos/[tableId]",
+    "test_url": "/admin/hamburgueria-ze/waiter/pos/1",
+    "access_type": "admin"
+  },
+  {
+    "file_path": "frontend\\src\\app\\offline\\page.tsx",
+    "route_pattern": "/offline",
+    "test_url": "/offline",
+    "access_type": "public"
+  },
+  {
+    "file_path": "frontend\\src\\app\\trust\\page.tsx",
+    "route_pattern": "/trust",
+    "test_url": "/trust",
+    "access_type": "public"
+  },
+  {
+    "file_path": "frontend\\src\\app\\trust\\security\\page.tsx",
+    "route_pattern": "/trust/security",
+    "test_url": "/trust/security",
+    "access_type": "public"
+  },
+  {
+    "file_path": "frontend\\src\\app\\trust\\status\\page.tsx",
+    "route_pattern": "/trust/status",
+    "test_url": "/trust/status",
+    "access_type": "public"
+  },
+  {
+    "file_path": "frontend\\src\\app\\[slug]\\kiosk\\page.tsx",
+    "route_pattern": "/[slug]/kiosk",
+    "test_url": "/hamburgueria-ze/kiosk",
+    "access_type": "public"
+  },
+  {
+    "file_path": "frontend\\src\\app\\[slug]\\menu\\page.tsx",
+    "route_pattern": "/[slug]/menu",
+    "test_url": "/hamburgueria-ze/menu",
+    "access_type": "public"
+  },
+  {
+    "file_path": "frontend\\src\\app\\[slug]\\monitor\\page.tsx",
+    "route_pattern": "/[slug]/monitor",
+    "test_url": "/hamburgueria-ze/monitor",
+    "access_type": "public"
+  }
+]

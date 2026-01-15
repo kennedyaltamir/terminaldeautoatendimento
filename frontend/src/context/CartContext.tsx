@@ -1,5 +1,5 @@
-"use client";
 
+"use client";
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { CartItem, Product, Option } from "@/types";
 
@@ -57,14 +57,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clearCart = () => setItems([]);
 
   // Cálculo do total em centavos (Inteiros)
+  // Assumindo que product.price e option.price JÁ VÊM da API em centavos.
   const total = items.reduce((acc, item) => {
-    // Preços já vêm em centavos da API (graças ao Monetary type no backend)
-    // Mas o frontend pode ter recebido dados antigos ou mockados.
-    // Assumindo que a API agora retorna centavos (int).
-    
     const productPrice = Number(item.product.price);
     const optionsTotal = item.selectedOptions.reduce((sum, opt) => sum + Number(opt.price), 0);
-    
     return acc + (productPrice + optionsTotal) * item.quantity;
   }, 0);
 
@@ -76,3 +72,4 @@ export function CartProvider({ children }: { children: ReactNode }) {
 }
 
 export const useCart = () => useContext(CartContext);
+

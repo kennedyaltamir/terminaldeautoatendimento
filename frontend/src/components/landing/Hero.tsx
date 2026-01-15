@@ -1,27 +1,28 @@
 "use client";
+
 import Link from "next/link";
-import { ArrowRight, PlayCircle, CheckCircle2 } from "lucide-react";
+import { ArrowRight, PlayCircle, CheckCircle2, Sparkles } from "lucide-react";
 import Typewriter from "@/components/ui/Typewriter";
 import { useLanguage } from "@/context/LanguageContext";
 import { useState } from "react";
 import DemoModal from "./DemoModal";
+import { motion } from "framer-motion";
 
 export default function Hero() {
   const { t } = useLanguage();
   const [isDemoOpen, setIsDemoOpen] = useState(false);
 
   return (
-    <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden min-h-[90vh] flex items-center">
-      
-      {/* VÍDEO BACKGROUND LOCAL */}
+    <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden min-h-[95vh] flex items-center">
+      {/* VÍDEO BACKGROUND COM OVERLAY GRADIENTE */}
       <div className="absolute inset-0 w-full h-full z-0">
-        <div className="absolute inset-0 bg-gray-900/80 z-10"></div> {/* Overlay Escuro */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/90 via-slate-900/80 to-slate-950 z-10"></div>
         <video 
           autoPlay 
           loop 
           muted 
           playsInline 
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover opacity-60"
           poster="https://images.pexels.com/photos/260922/pexels-photo-260922.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
         >
           <source src="/hero-video.mp4" type="video/mp4" />
@@ -29,45 +30,69 @@ export default function Hero() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 text-center relative z-20">
-        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 mb-8 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full px-4 py-2 mb-8 shadow-2xl"
+        >
+          <Sparkles size={16} className="text-orange-400 animate-pulse" />
+          <span className="text-sm font-bold text-orange-100 tracking-wide uppercase">
+            Onde a tecnologia encontra a hospitalidade
           </span>
-          <span className="text-sm font-medium text-white">{t.hero.badge}</span>
-        </div>
+        </motion.div>
 
-        <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight leading-[1.1] mb-6 drop-shadow-xl">
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="heading-hero text-white mb-8"
+        >
           {t.hero.title_prefix} <br className="hidden md:block" />
           <Typewriter words={t.hero.typewriter} />
-        </h1>
-        
-        <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed mb-10 drop-shadow-md">
+        </motion.h1>
+
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 0.4 }}
+          className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed mb-12 font-medium"
+        >
           {t.hero.subtitle}
-        </p>
-        
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        </motion.p>
+
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: 0.6 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-6"
+        >
           <Link 
             href="/admin/register" 
-            className="w-full sm:w-auto px-8 py-4 bg-orange-600 text-white rounded-xl font-bold text-lg hover:bg-orange-700 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center justify-center gap-2"
+            className="btn-primary text-xl px-10 py-5"
           >
-            {t.hero.cta_primary} <ArrowRight size={20} />
+            {t.hero.cta_primary} <ArrowRight size={24} />
           </Link>
           <button 
             onClick={() => setIsDemoOpen(true)}
-            className="w-full sm:w-auto px-8 py-4 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-xl font-bold text-lg hover:bg-white/20 transition-all flex items-center justify-center gap-2 shadow-sm"
+            className="w-full sm:w-auto px-10 py-5 bg-white/5 backdrop-blur-md text-white border border-white/10 rounded-2xl font-bold text-xl hover:bg-white/10 transition-all flex items-center justify-center gap-3"
           >
-            <PlayCircle size={20} className="text-orange-400" /> {t.hero.cta_secondary}
+            <PlayCircle size={24} className="text-orange-400" /> {t.hero.cta_secondary}
           </button>
-        </div>
+        </motion.div>
 
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-4 md:gap-8 text-sm font-medium text-gray-300">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="mt-20 flex flex-wrap items-center justify-center gap-8 text-sm font-bold text-slate-400 uppercase tracking-widest"
+        >
           {t.hero.stats.map((stat, i) => (
-            <span key={i} className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10">
-              <CheckCircle2 size={16} className="text-green-400"/> {stat}
+            <span key={i} className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/5">
+              <CheckCircle2 size={18} className="text-emerald-500"/> {stat}
             </span>
           ))}
-        </div>
+        </motion.div>
       </div>
 
       <DemoModal isOpen={isDemoOpen} onClose={() => setIsDemoOpen(false)} />
