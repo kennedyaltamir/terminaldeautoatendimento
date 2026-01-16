@@ -1,30 +1,42 @@
 # DOMAIN: DEVOPS_SCRIPTS
-# LAST_MODIFIED: 2026-01-15 02:30:00
+# LAST_MODIFIED: 2026-01-15 15:20:00
 import os
+import sys
 
-def fix_env():
-    print("🔧 Corrigindo encoding do arquivo .env...")
-    if not os.path.exists(".env"):
+def fix_env_file():
+    """
+    Detecta se o arquivo .env está em encoding ANSI/Windows-1252 
+    e o converte para UTF-8 puro para evitar erros de codec.
+    """
+    env_path = ".env"
+    if not os.path.exists(env_path):
         print("❌ Arquivo .env não encontrado.")
         return
 
+    print(f"🔧 Analisando integridade de encoding do arquivo {env_path}...")
+    
     try:
-        # Lê o arquivo tentando detectar encoding problemático
-        with open(".env", "rb") as f:
+        # Tenta ler como UTF-8
+        with open(env_path, "rb") as f:
             content = f.read()
         
-        # Decodifica ignorando erros e recodifica em UTF-8 limpo
-        # Isso remove bytes como 0xe7 se não estiverem em UTF-8
-        decoded = content.decode("utf-8", errors="replace")
-        
-        # Se houver 'ç' literal, garante que seja UTF-8
-        with open(".env", "w", encoding="utf-8") as f:
-            f.write(decoded)
+        try:
+            content.decode("utf-8")
+            print("✅ O arquivo já está em UTF-8 válido.")
+        except UnicodeDecodeError:
+            print("⚠️  Detectado encoding incompatível (provavelmente Windows-1252). Convertendo...")
+            # Tenta decodificar como Windows-1252 (onde 0xe7 é 'ç')
+            decoded_content = content.decode("cp1252", errors="replace")
             
-        print("✅ Arquivo .env salvo como UTF-8 puro.")
+            # Salva como UTF-8 limpo
+            with open(env_path, "w", encoding="utf-8") as f:
+                f.write(decoded_content)
+            print("✨ Arquivo .env convertido para UTF-8 com sucesso.")
+
     except Exception as e:
-        print(f"❌ Erro ao processar .env: {e}")
+        print(f"💥 Erro fatal ao processar arquivo: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    fix_env()
+    fix_env_file()
 

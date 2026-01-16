@@ -2878,3 +2878,15 @@ O sistema MesaFlow OS atingiu a maturidade L6. Todos os gates técnicos foram va
 - O usuário gerou o arquivo `SEAL_OF_APPROVAL.json`, mas optou por não aplicar as atualizações nos documentos mestres (`MASTER_PROJECT_SPECIFICATION.md`, `registry.xml` e `README.md`) durante o rito do `atualizar.py`.
 - Para que o sistema seja formalmente considerado "Sealed" (Selado), estes arquivos devem refletir a versão 5.0 e o status de prontidão absoluta.
 - O script `absolute_readiness_report.py` é o validador final que deve ser executado após a sincronia total.
+
+--- ENTRY: 2026-01-15 15:26:05 ---
+- O erro `UnicodeDecodeError: 'utf-8' codec can't decode byte 0xe7` indica que o Python está tentando ler uma string (provavelmente a `DATABASE_URL` ou credenciais do iFood) que contém o caractere `ç` (byte `0xe7` em Windows-1252/Latin-1) mas espera UTF-8.
+- A falha ocorre no momento da conexão do `psycopg2`, sugerindo que caracteres especiais no nome de usuário, senha ou no próprio caminho do sistema (ex: "Conceição") estão corrompendo o DSN.
+- O `IfoodService` também falha pelo mesmo motivo, reforçando que o problema está na leitura do arquivo `.env` ou nas variáveis de ambiente do Windows.
+- Solução: Forçar a sanitização da URL do banco e garantir que o arquivo `.env` seja lido/salvo estritamente como UTF-8.
+
+--- ENTRY: 2026-01-15 15:33:22 ---
+- O usuário deseja limpar a fila de pedidos da cozinha para o tenant "hamburgueria-ze".
+- No MesaFlow OS, os pedidos são exibidos no KDS/Counter baseados no status (pending, accepted, preparing, ready).
+- Para "limpar" a tela, a ação mais eficiente e segura em ambiente de desenvolvimento/teste é a deleção dos registros de pedidos e seus itens associados para este tenant específico.
+- Devido às restrições de integridade referencial (Foreign Keys), devemos remover os `order_items` antes dos `orders`.
