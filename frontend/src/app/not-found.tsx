@@ -39,4 +39,4 @@ export default function NotFound() {
       <p className="mt-8 text-xs text-gray-400 font-mono">ERROR_CODE: PAGE_NOT_FOUND_IN_KITCHEN</p>
     </div>
   );
-}
+} 

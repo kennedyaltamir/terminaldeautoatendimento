@@ -1,0 +1,20 @@
+[
+  {
+    "timestamp": "2026-01-18T11:24:41.663819",
+    "files": 618,
+    "worst_confidence": 0.2,
+    "confidence_delta": 0.0
+  },
+  {
+    "timestamp": "2026-01-18T11:25:06.866119",
+    "files": 618,
+    "worst_confidence": 0.2,
+    "confidence_delta": 0.0
+  },
+  {
+    "timestamp": "2026-01-18T11:28:41.076993",
+    "files": 618,
+    "worst_confidence": 0.2,
+    "confidence_delta": 0.0
+  }
+]

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-01-18T09:26:37.174018",
+  "timestamp": "2026-01-18T11:28:31.284672",
   "verdict": "SYSTEM_OPERATIONAL",
   "summary": {
     "total_pages": 39,
@@ -12,7 +12,7 @@
       "status": 200,
       "score": 100,
       "elements": {
-        "buttons": 19,
+        "buttons": 22,
         "links": 26,
         "inputs": 5
       },

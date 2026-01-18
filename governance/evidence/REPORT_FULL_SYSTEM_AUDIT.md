@@ -1,11 +1,11 @@
 # 🕵️ Relatório de Auditoria Sistêmica v4.1
-**Data:** 2026-01-18T09:26:37.174018
+**Data:** 2026-01-18T11:28:31.284672
 **Veredito:** `SYSTEM_OPERATIONAL`
 
 ## 1. Matriz de Saúde
 | Rota | Score | Status | Elementos | Problemas |
 | :--- | :---: | :---: | :---: | :--- |
-| `/` | 100 | ✅ 200 | 50 | - |
+| `/` | 100 | ✅ 200 | 53 | - |
 | `/[slug]/checkout` | 100 | ✅ 200 | 6 | - |
 | `/[slug]/kiosk` | 100 | ✅ 200 | 14 | - |
 | `/[slug]/menu` | 100 | ✅ 200 | 6 | - |

@@ -1,3 +1,7 @@
+// DOMAIN: MOBILE
+// LAST_MODIFIED: 2026-01-18 10:00:00
+"use client";
+
 import React from 'react';
 import { View, StyleSheet, Text, SafeAreaView } from 'react-native';
 import { useAuthStore } from '../../store/auth.store';
@@ -16,7 +20,8 @@ export default function HomeScreen() {
       <View style={styles.content}>
         <View style={styles.welcomeSection}>
           <Text style={styles.greeting}>Olá,</Text>
-          <Text style={styles.userName}>{user?.email || 'Operador'}</Text>
+          {/* FIX: Alterado de user?.email para user?.name conforme interface User do Mobile */}
+          <Text style={styles.userName}>{user?.name || 'Operador'}</Text>
         </View>
 
         <Card style={styles.statusCard}>
@@ -91,3 +96,4 @@ const styles = StyleSheet.create({
     marginTop: 'auto',
   }
 });
+

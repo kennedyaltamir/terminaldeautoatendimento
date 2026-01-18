@@ -1,235 +1,30 @@
-// DOMAIN: FRONTEND
-// LAST_MODIFIED: 2026-01-16 20:05:00
-export interface AuditLog {
-  id: number;
-  user_name: string;
-  user_role: string;
-  action: string;
-  resource: string;
-  resource_id: string;
-  details: any;
-  ip_address: string;
-  created_at: string;
+/**
+ * MesaFlow OS - Global Type Registry (Barrel File)
+ * Fragmentado para reduzir o Blast Radius (v6.0.0)
+ * 
+ * Este arquivo centraliza as exportações para manter compatibilidade 
+ * com imports do tipo: import { Order } from '@/types'
+ */
+
+export * from './auth';
+export * from './company';
+export * from './menu';
+export * from './orders';
+export * from './tables';
+export * from './marketing';
+
+/**
+ * Tipos Utilitários Globais
+ * Padronizados para o Protocolo SGCS/1.4
+ */
+export interface ApiResponse<T> {
+  data: T;
+  message?: string;
+  status: number;
 }
 
-export interface Company {
-  name: string;
-  slug: string;
-  is_active: boolean;
-  logo_url?: string | null;
-  primary_color: string;
-  banner_url?: string | null;
-  background_color?: string | null;
-  text_color?: string | null;
-  accent_color?: string | null;
-  opens_at?: string | null;
-  closes_at?: string | null;
-  owner_email?: string;
-  pix_key?: string | null;
-  loyalty_percentage?: number;
-  segment?: 'gastro' | 'event' | 'hotel' | 'corp';
-  plan_tier: 'free' | 'pro' | 'enterprise';
-  stripe_subscription_id?: string | null;
-  subscription_status?: string | null;
-  fixed_delivery_fee?: number;
-  cnpj?: string | null;
-  inscricao_estadual?: string | null;
-  fiscal_token?: string | null;
-  csc_token?: string | null;
-  csc_id?: string | null;
-  whatsapp_number?: string | null;
-  whatsapp_api_url?: string | null;
-  whatsapp_instance?: string | null;
-  whatsapp_token?: string | null;
-  ifood_merchant_id?: string | null;
-  payment_provider?: 'mercadopago' | 'efi' | 'stripe' | 'pagarme' | 'none';
-  payment_credentials?: any;
-  kiosk_password_set?: boolean;
-  kiosk_password?: string;
+export interface PaginationParams {
+  page: number;
+  limit: number;
+  total: number;
 }
-
-export interface Option {
-  id: number;
-  name: string;
-  price: number;
-  is_available: boolean;
-}
-
-export interface OptionGroup {
-  id: number;
-  name: string;
-  min_selection: number;
-  max_selection: number;
-  options: Option[];
-}
-
-export interface Ingredient {
-  id: number;
-  name: string;
-  unit: 'kg' | 'g' | 'l' | 'ml' | 'un';
-  current_stock: number;
-  min_stock_alert: number;
-  cost_per_unit: number;
-}
-
-export interface RecipeItem {
-  id?: number;
-  ingredient_id: number;
-  quantity_required: number;
-  ingredient?: Ingredient;
-}
-
-export interface Product {
-  id: number;
-  name: string;
-  description: string | null;
-  price: number;
-  image_url: string | null;
-  is_available: boolean;
-  track_stock: boolean;
-  stock_quantity: number;
-  station: 'kitchen' | 'bar' | 'dessert' | 'other';
-  tags: string[];
-  short_code?: string;
-  external_id?: string;
-  option_groups: OptionGroup[];
-  recommendations?: Product[];
-  recipe_items?: RecipeItem[];
-}
-
-export interface Category {
-  id: number;
-  name: string;
-  products: Product[];
-}
-
-export interface MenuResponse {
-  company: Company;
-  categories: Category[];
-}
-
-export interface CartItem {
-  product: Product;
-  quantity: number;
-  notes?: string;
-  selectedOptions: Option[];
-}
-
-export interface OrderItemOptionResponse {
-  name: string;
-  price: number;
-}
-
-export interface OrderItemResponse {
-  id: number;
-  quantity: number;
-  notes: string | null;
-  product: {
-    id: number;
-    name: string;
-    image_url: string | null;
-    price: number;
-    station: 'kitchen' | 'bar' | 'dessert' | 'other';
-  };
-  selected_options: OrderItemOptionResponse[];
-}
-
-export interface Order {
-  id: string;
-  table?: { table_number: number };
-  order_type: 'dine_in' | 'delivery' | 'takeout';
-  origin?: 'mesaflow' | 'ifood' | 'rappi';
-  customer_name: string | null;
-  customer_phone: string | null;
-  delivery_address: string | null;
-  delivery_lat: number | null;
-  delivery_lng: number | null;
-  driver_id: number | null;
-  external_order_id: string | null;
-  total_amount: number;
-  status: string;
-  payment_method: string;
-  payment_status: string;
-  created_at: string;
-  items: OrderItemResponse[];
-  mp_qr_code?: string;
-  mp_qr_code_base64?: string;
-  fiscal_status?: string;
-  nfe_url_pdf?: string;
-  feedback?: FeedbackResponse;
-}
-
-export interface Table {
-  id: number;
-  table_number: number;
-  qr_token: string;
-  is_active: boolean;
-  position_x: number;
-  position_y: number;
-}
-
-export interface TableDashboard extends Table {
-  status: 'free' | 'occupied' | 'alert';
-  active_session?: {
-    id: number;
-    customer_name: string;
-    total_spent: number;
-    start_time: string;
-    access_pin: string;
-  } | null;
-  service_request?: string | null;
-}
-
-export interface TableSession {
-  id: number;
-  customer_name: string;
-  is_active: boolean;
-  created_at: string;
-  orders: Order[];
-  total_spent: number;
-  access_pin: string;
-}
-
-export interface Employee {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  is_active: boolean;
-}
-
-export interface Promotion {
-  id: string;
-  name: string;
-  code: string | null;
-  discount_type: 'percentage' | 'fixed' | 'shipping';
-  discount_value: number;
-  min_order_value: number;
-  usage_limit: number | null;
-  current_usage: number;
-  is_active: boolean;
-}
-
-export interface CouponValidationResponse {
-  valid: boolean;
-  discount_amount: number;
-  final_total: number;
-  message: string;
-  promotion_id?: string;
-}
-
-export interface FeedbackResponse {
-  score: number;
-  comment?: string | null;
-  created_at: string;
-}
-
-export interface ServiceRequest {
-  id: number;
-  table_number: number;
-  service_type: string;
-  notes?: string;
-  status: string;
-  created_at: string;
-}
-
