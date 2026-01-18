@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Registry version="5.0" authority="MesaFlow Great Filter">
+    <Meta>
+        <Status>SEALED</Status>
+        <CertifiedAt>2026-01-18T08:19:38.772882</CertifiedAt>
+        <SurvivorCount>90</SurvivorCount>
+    </Meta>
+    <Scripts>
+        <Script id="CANON-6269" name="01_varredura.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-5616" name="02_auditoria_markdown.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-5669" name="03_normal_roteamento.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-3308" name="03_normalizacao_roteamento.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-7825" name="04_ghosts_arquivamento.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-9185" name="05_calculo_metricas.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-3170" name="06_relatorios_markdown_html.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-6843" name="07_historico_ci.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-4557" name="08_templates_automaticos.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-6766" name="09_alertas_priorizacao.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-4228" name="10_melhoria_continua.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-7487" name="abrirtelas.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-6880" name="analise_estrutural.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-2248" name="audit_mobile_l4.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-6690" name="audit_structure.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-3547" name="auto_fix_on_fail.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-2753" name="auto_fix_reporter_v4.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-0479" name="backup_diff_audit.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-3227" name="bkp_02_snapshot_integrity.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-3176" name="canonical_migration.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-6677" name="check_production_readiness.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-4885" name="check_services.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-2222" name="cleanup_context_noise.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-8637" name="cleanup_doctelas.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-4281" name="cleanup_final_sweep.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-0005" name="cleanup_ghosts.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-5787" name="cleanup_obsolete_docs.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-0237" name="cleanup_obsolete_scripts.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-3360" name="cleanup_scripts_noise.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-1708" name="clear_kitchen_orders.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-0307" name="collect_markdowns.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-8697" name="comprehensive_system_audit.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-6127" name="concat_doctelas.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-8138" name="count_frontend_pages.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-4415" name="deep_audit_and_clean.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-1289" name="deep_flow_diagnostic.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-9863" name="deep_root_clean.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-0828" name="diagnose_and_fix_driver.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-4905" name="diagnose_api_errors.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-3149" name="diagnose_tables_data.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-1676" name="discover_schema.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-8702" name="doc_cleanup_l7.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-3902" name="env_production_audit.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-8906" name="exibir_arvore.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-0039" name="final_legacy_cleanup.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-4236" name="final_sanitization.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-9904" name="find_heavy_files.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-2532" name="fix_canonical_tree.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-4957" name="fix_kiosk_column.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-1452" name="fix_product_modal_crash.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-5337" name="fix_registry_drift_comprehensive.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-1836" name="generate_doctelas.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-5884" name="generate_dynamic_doctelas.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-3508" name="generate_full_index.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-0961" name="generate_master_md_summary.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-8583" name="generate_script_index.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-8841" name="generate_static_ui_inventory.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-5642" name="generate_ui_docs.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-9928" name="gov_01_xml_presence_audit.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-2625" name="gov_03_schema_validation.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-6295" name="governance_dashboard.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-5364" name="import_sanity_check.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-3644" name="inspect_ui_issues.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-7529" name="inv_01_zero_config.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-6432" name="inv_02_readiness_summary.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-4938" name="inv_03_auditor_simulation.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-4618" name="janitor_governance.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-6927" name="janitor_l7.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-4844" name="kernel_reset.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-5053" name="list_all_interactive_elements.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-2892" name="list_frontend_pages.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-0638" name="mesa_scripts_bundle.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-4881" name="migrate_governance_structure.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-4525" name="mobile_build_audit.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-3385" name="ops_01_cognitive_prune.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-0266" name="organize_governance.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-8204" name="organize_optimus_docs.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-8622" name="organize_scripts.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-6321" name="prepare_handoff.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-4365" name="production_lock_mobile.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-1106" name="provision_secure_role.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-1470" name="restore_evidence.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-4634" name="seal_canonic_scripts.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-1508" name="system_integrity_check.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-5695" name="systemic_deep_scan.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-5567" name="systemic_truth_engine.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-9926" name="test_kiosk_lock_flow.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-7409" name="test_kiosk_lock_flow_v2.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-1609" name="ui_sanity_check.py" status="SUCCESS" blocking="false" />
+        <Script id="CANON-5669" name="ultimate_systemic_auditor.py" status="SUCCESS" blocking="false" />
+    </Scripts>
+</Registry>
