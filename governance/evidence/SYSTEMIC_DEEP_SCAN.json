@@ -1,0 +1,9 @@
+{
+  "timestamp": "2026-01-18T09:10:00",
+  "stats": {
+    "files_scanned": 148,
+    "critical": 0,
+    "warnings": 0
+  },
+  "issues": []
+}

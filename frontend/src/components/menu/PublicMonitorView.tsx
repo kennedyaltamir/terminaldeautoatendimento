@@ -1,11 +1,11 @@
 // DOMAIN: FRONTEND
-// LAST_MODIFIED: 2026-01-10 15:20:00
+// LAST_MODIFIED: 2026-01-18 09:45:00
 "use client";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { getPublicMonitorOrders } from "@/lib/api";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, ChefHat, CheckCircle2, Volume2 } from "lucide-react";
+import { Clock, ChefHat, CheckCircle2 } from "lucide-react";
 
 interface MonitorOrder {
   id: string;
@@ -16,7 +16,7 @@ interface MonitorOrder {
 
 export default function PublicMonitorView({ slug }: { slug: string }) {
   const [orders, setOrders] = useState<MonitorOrder[]>([]);
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState<string>(""); // Inicializa vazio para evitar mismatch SSR
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const fetchOrders = useCallback(async () => {
@@ -30,7 +30,14 @@ export default function PublicMonitorView({ slug }: { slug: string }) {
 
   useEffect(() => {
     fetchOrders();
-    const timer = setInterval(() => setTime(new Date()), 1000);
+    
+    // Define o tempo apenas no cliente para evitar erro de hidratação
+    setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    
+    const timer = setInterval(() => {
+        setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    }, 1000);
+    
     return () => clearInterval(timer);
   }, [fetchOrders]);
 
@@ -59,9 +66,12 @@ export default function PublicMonitorView({ slug }: { slug: string }) {
           <h1 className="text-4xl font-black tracking-tighter uppercase">Acompanhe seu Pedido</h1>
         </div>
         <div className="text-right">
-          <p className="text-5xl font-mono font-bold text-gray-400">
-            {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </p>
+          {/* Renderiza apenas se time estiver definido (Client-Side) */}
+          {time && (
+            <p className="text-5xl font-mono font-bold text-gray-400">
+              {time}
+            </p>
+          )}
         </div>
       </header>
 
@@ -135,3 +145,4 @@ export default function PublicMonitorView({ slug }: { slug: string }) {
     </div>
   );
 }
+

@@ -1,5 +1,5 @@
 # DOMAIN: BACKEND
-# LAST_MODIFIED: 2026-01-14 19:40:00
+# LAST_MODIFIED: 2026-01-18 08:45:00
 import os
 import json
 import time
@@ -29,6 +29,7 @@ from app.routers import (
     payments, webhooks, admin_payment, admin as admin_orders,
     webhooks_ifood
 )
+
 # Configuração Sentry (Produção)
 sentry_dsn = os.getenv("SENTRY_DSN_BACKEND")
 environment = os.getenv("ENVIRONMENT", "production")
@@ -43,6 +44,7 @@ if sentry_dsn:
     logger.info(f"Sentry inicializado no ambiente: {environment}")
 else:
     logger.warning("SENTRY_DSN_BACKEND não configurado. Observabilidade reduzida.")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Iniciando MesaFlow API...")
@@ -52,10 +54,11 @@ async def lifespan(app: FastAPI):
     yield
     logger.info("Encerrando MesaFlow API...")
     await manager.shutdown()
+
 app = FastAPI(
     title="MesaFlow Enterprise API",
     description=api_description,
-    version="3.3.7",
+    version="3.3.8",
     openapi_tags=tags_metadata,
     lifespan=lifespan,
     docs_url="/docs",
@@ -66,8 +69,10 @@ app = FastAPI(
         "email": "api@mesaflow.com.br",
     }
 )
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 # Middleware de Segurança (Enterprise Hardening - TASK-GTM-07)
 @app.middleware("http")
 async def security_headers_middleware(request: Request, call_next):
@@ -86,11 +91,13 @@ async def security_headers_middleware(request: Request, call_next):
     response.headers["Content-Security-Policy"] = csp_policy
     response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(), payment=()"
     return response
+
 # Middleware de Contexto para Sentry e Logs
 @app.middleware("http")
 async def add_process_context(request: Request, call_next):
     if request.url.path.endswith(("/health", "/docs", "/openapi.json", "/favicon.ico")):
         return await call_next(request)
+    
     try:
         await CircuitBreaker.check_health()
     except Exception as e:
@@ -99,10 +106,12 @@ async def add_process_context(request: Request, call_next):
             status_code=503,
             media_type="application/json"
         )
+        
     start_time = time.time()
     try:
         response = await call_next(request)
         process_time = time.time() - start_time
+        
         log_data = {
             "method": request.method,
             "path": request.url.path,
@@ -110,28 +119,33 @@ async def add_process_context(request: Request, call_next):
             "duration": f"{process_time:.4f}s",
             "client_ip": request.client.host if request.client else "unknown"
         }
+        
         if response.status_code >= 400:
             logger.warning(f"Request Failed: {json.dumps(log_data)}")
             if response.status_code >= 500:
                 CircuitBreaker.record_error()
-            elif response.status_code >= 400 and response.status_code not in [401, 403]:
+            elif response.status_code >= 400 and response.status_code not in [401, 403, 404]:
                 CircuitBreaker.record_error()
         else:
             logger.info(f"Request Processed: {json.dumps(log_data)}")
             CircuitBreaker.record_success()
+            
         return response
     except Exception as e:
         CircuitBreaker.record_error()
         logger.error(f"💥 UNHANDLED_EXCEPTION: {str(e)}")
         raise e
+
+# Configuração CORS Permissiva para Desenvolvimento
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://192.168.0.150:3000",
     "https://mesaflow.com.br",
     "https://*.vercel.app",
-    "*"
+    "*" # Em dev, permitir tudo para evitar bloqueio de IP dinâmico
 ]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -139,19 +153,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 # --- HEALTH CHECK ---
 @app.get("/health", tags=["Infrastructure"], include_in_schema=False)
 @app.get("/api/health", tags=["Infrastructure"], include_in_schema=False)
 async def health_check():
-    # FIX: Removido Depends(get_db) para evitar erro 500 quando DB cai.
-    # O health check deve reportar "unhealthy" (200 OK) ao invés de crashar.
     health_status = {
         "status": "healthy",
         "timestamp": time.time(),
         "services": {"database": "down", "redis": "down"}
     }
     try:
-        # Cria sessão manual segura
         db = SessionLocal()
         try:
             db.execute(text("SELECT 1"))
@@ -162,6 +174,7 @@ async def health_check():
         health_status["status"] = "unhealthy"
         health_status["services"]["database"] = f"error: {str(e)}"
         logger.error(f"Health Check DB Failed: {e}")
+        
     if manager.use_redis and manager.redis_client:
         try:
             await manager.redis_client.ping()
@@ -169,10 +182,15 @@ async def health_check():
         except Exception as e:
             health_status["services"]["redis"] = "down"
             logger.error(f"Health Check Redis Failed: {e}")
+            
     return health_status
+
 # --- INCLUSÃO DE ROTAS ---
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
-app.include_router(public.router, prefix="/api", tags=["Public API"])
+
+# FIX: Prefixo /api/public para alinhar com o Frontend
+app.include_router(public.router, prefix="/api/public", tags=["Public API"])
+
 app.include_router(upload.router, prefix="/api/upload", tags=["Media & Uploads"])
 app.include_router(admin_features.router, prefix="/api/admin/features", tags=["Admin - Features"])
 app.include_router(admin_orders.router, prefix="/api/admin", tags=["Admin - Orders"])
@@ -197,6 +215,7 @@ app.include_router(admin_history.router, prefix="/api/admin", tags=["Admin - His
 app.include_router(webhooks.router, prefix="/api/webhooks", tags=["Inbound Webhooks"])
 app.include_router(webhooks_ifood.router, prefix="/api/webhooks", tags=["Inbound Webhooks"])
 app.include_router(payments.router, prefix="/api/payments", tags=["Inbound Webhooks"])
+
 @app.websocket("/ws/{company_slug}")
 async def websocket_endpoint(websocket: WebSocket, company_slug: str):
     await manager.connect(websocket, company_slug)
@@ -211,7 +230,8 @@ async def websocket_endpoint(websocket: WebSocket, company_slug: str):
     except Exception as e:
         logger.error(f"WebSocket Error: {e}")
         manager.disconnect(websocket, company_slug)
+
 @app.get("/", include_in_schema=False)
 def root():
-    return {"message": "MesaFlow Enterprise API v3.3.7 🚀", "docs": "/docs"}
+    return {"message": "MesaFlow Enterprise API v3.3.8 🚀", "docs": "/docs"}
 

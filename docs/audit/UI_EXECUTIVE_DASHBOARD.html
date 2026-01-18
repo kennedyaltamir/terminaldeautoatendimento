@@ -1,0 +1,1135 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>MesaFlow UI Audit Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .heatmap-5 { background-color: #16a34a; } /* 100% */
+        .heatmap-4 { background-color: #22c55e; } /* 80% */
+        .heatmap-3 { background-color: #eab308; } /* 60% */
+        .heatmap-2 { background-color: #f97316; } /* 40% */
+        .heatmap-1 { background-color: #ef4444; } /* 20% */
+        .heatmap-0 { background-color: #475569; } /* 0% */
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 font-sans p-8">
+    <div class="max-w-7xl mx-auto">
+        <header class="flex justify-between items-end mb-12 border-b border-slate-800 pb-8">
+            <div>
+                <h1 class="text-4xl font-black text-white tracking-tighter">UI AUDIT <span class="text-orange-500">DASHBOARD</span></h1>
+                <p class="text-slate-500 mt-2 font-mono uppercase text-xs tracking-widest">MesaFlow OS v5.1 • 18/01/2026 08:26</p>
+            </div>
+            <div class="text-right">
+                <div class="text-5xl font-black text-orange-500">95.53%</div>
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">Cobertura Ponderada</div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800">
+                <p class="text-slate-500 text-xs font-bold uppercase mb-1">Total de Telas</p>
+                <p class="text-3xl font-black text-white">89</p>
+            </div>
+            <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800">
+                <p class="text-slate-500 text-xs font-bold uppercase mb-1">Críticos OK</p>
+                <p class="text-3xl font-black text-green-500">32/33</p>
+            </div>
+            <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800">
+                <p class="text-slate-500 text-xs font-bold uppercase mb-1">Score Médio</p>
+                <p class="text-3xl font-black text-blue-500">91.91%</p>
+            </div>
+            <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800">
+                <p class="text-slate-500 text-xs font-bold uppercase mb-1">Status CI</p>
+                <p class="text-xl font-black text-green-500">PASS</p>
+            </div>
+        </div>
+
+        <div class="bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-800 text-slate-400 uppercase text-[10px] font-black tracking-widest">
+                    <tr>
+                        <th class="p-4">Prioridade</th>
+                        <th class="p-4">Tela</th>
+                        <th class="p-4">Plataforma</th>
+                        <th class="p-4">Score</th>
+                        <th class="p-4">Heatmap de Seções</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800">
+                    
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">AdminDashboardHistoryPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">AdminDashboardPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">AdminKitchenPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">AdminLoginPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">AdminPaymentCallbackPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">AdminWaiterOrdersPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">AdminWaiterPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">AdminWaiterPosPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">CheckoutPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">DashboardPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">DriverPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">KitchenPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">LoginPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">PaymentCallbackPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">WaiterOrdersPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">WaiterPosPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">WaiterTablesPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">AuthLoginScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">DriverDashboardScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">DriverdashboardScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">KitchenDashboardScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">KitchendashboardScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">LoginScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">PaymentScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">WaitercallsScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">WaiterDashboardScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">WaiterdashboardScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">WaiterOrderentryScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">WaiterOrderreviewScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">WaiterPaymentScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">WaiterPrinterdebugScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">WaitertablesScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-red-500">🔴 ALTA</td>
+            <td class="p-4 font-bold text-white">AdminDriverPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminAuditFinancialPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminForgotPasswordPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminMenuPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminRegisterPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminResetPasswordPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminSettingsBillingPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminSettingsFeaturesPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminSettingsPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AuditPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">CounterPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">DeliveryPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">ExpeditorPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">FeaturesBetaPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">FinancialAuditPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">ForgotPasswordPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">FranchisePage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">InventoryPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">KioskAttractPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">LandingPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">MarketingPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">OfflinePage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">ProfilePage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">PublicMonitorPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">QuickPosPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">RegisterPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">ResetPasswordPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">SettingsPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">SupportPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">TablesPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">TeamPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">TrustCenterPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">TrustSecurityPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">TrustStatusPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">HomeScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">LoadingScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">OrderEntryScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">OrderReviewScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">OrdersScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">PrinterDebugScreen</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">mobile</td>
+            <td class="p-4 font-black">100%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminAuditPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminBillingPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminCounterPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminDeliveryPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminExpeditorPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminFeaturesPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminFinancialPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminFranchisePage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminHistoryPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminInventoryPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminMarketingPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminOrdersPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminProfilePage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminSupportPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminTablesPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">AdminTeamPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+        <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="p-4 font-bold text-yellow-500">🟡 MÉDIA</td>
+            <td class="p-4 font-bold text-white">ClientMenuPage</td>
+            <td class="p-4 uppercase text-xs font-mono text-slate-500">web</td>
+            <td class="p-4 font-black">60%</td>
+            <td class="p-4">
+                <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div><div class="w-4 h-4 rounded-sm heatmap-5"></div>
+                </div>
+            </td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

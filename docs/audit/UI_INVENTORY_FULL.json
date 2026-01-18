@@ -1,0 +1,532 @@
+{
+  "meta": {
+    "timestamp": "2026-01-16T07:50:02.749Z",
+    "version": "MesaFlow OS v5.0",
+    "generator": "Optimus UI Scanner"
+  },
+  "web": [
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/hamburgueria-ze/monitor/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/hamburgueria-ze/monitor/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/hamburgueria-ze/menu/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/hamburgueria-ze/menu/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/hamburgueria-ze/kiosk/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/hamburgueria-ze/kiosk/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/trust/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/trust/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/trust/status/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/trust/status/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/trust/security/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/trust/security/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/offline/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/offline/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/waiter/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/waiter/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/waiter/pos/1/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/waiter/pos/1/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/waiter/pos/quick/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/waiter/pos/quick/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/waiter/orders/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/waiter/orders/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/team/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/team/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/tables/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/tables/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/settings/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/settings/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/settings/features/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/settings/features/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/settings/billing/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/settings/billing/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/profile/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/profile/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/menu/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/menu/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/marketing/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/marketing/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/kitchen/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/kitchen/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/inventory/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/inventory/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/history/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/history/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/franchise/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/franchise/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/expeditor/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/expeditor/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/driver/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/driver/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/delivery/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/delivery/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/dashboard/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/dashboard/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/dashboard/history/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/dashboard/history/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/counter/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/counter/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/audit/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/audit/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/hamburgueria-ze/audit/financial/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/hamburgueria-ze/audit/financial/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/support/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/support/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/reset-password/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/reset-password/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/register/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/register/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/payment/callback/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/payment/callback/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/login/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/login/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "tela": "ERRO",
+      "rota": "frontend/src/app/admin/forgot-password/page.tsx",
+      "erro": "page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000frontend/src/app/admin/forgot-password/page.tsx\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    }
+  ],
+  "mobile": [
+    {
+      "tela": "WaiterTablesScreen",
+      "rota": "mobile\\src\\screens\\waiter\\WaiterTablesScreen.tsx",
+      "layout": [
+        "Native Stack",
+        "SafeAreaView"
+      ],
+      "elementos": [
+        {
+          "tipo": "botao",
+          "nome": "handleTableSelect(item)\r\n      >\r\n        <Card style=[\r\n          styles.tableCard, \r\n          isOccupied && styles.tableOccupied,\r\n          hasAlert && styles.tableAlert\r\n        ]>\r\n          <View style=styles.cardHeader>\r\n            <Text style=[styles.tableNumber, (isOccupied || hasAlert) && styles.textWhite]>\r\n              #item.table_number\r\n            </Text>\r\n            <View style=[\r\n              styles.statusDot, \r\n               backgroundColor: hasAlert ? colors.status.danger : isOccupied ? colors.status.warning : colors.status.success \r\n            ] />\r\n          </View>\r\n          \r\n          hasAlert ? (\r\n            <View style=styles.alertBox>\r\n              <BellRing size=16 color=#FFF />\r\n              <Text style=styles.alertText>CHAMADO</Text>\r\n            </View>\r\n          ) : isOccupied ? (\r\n            <View style=styles.sessionInfo>\r\n              <View style=styles.infoRow>\r\n                <User size=12 color=colors.text.secondary />\r\n                <Text style=styles.customerName numberOfLines=1>\r\n                  item.active_session?.customer_name\r\n                </Text>\r\n              </View>\r\n              <Text style=styles.totalSpent>\r\n                R$ Number(item.active_session?.total_spent).toFixed(2)\r\n              </Text>\r\n            </View>\r\n          ) : (\r\n            <Text style=styles.freeText>LIVRE</Text>\r\n          )\r\n\r\n          <View style=styles.cardFooter>\r\n            <ChevronRight size=16 color=(isOccupied || hasAlert) ? colors.text.secondary : colors.text.muted />\r\n          </View>\r\n        </Card>",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "navigation.navigate(WaiterCalls)\r\n          style=styles.callBadge\r\n        >\r\n          <BellRing size=24 color=serviceRequests.length > 0 ? colors.status.danger : colors.text.muted />\r\n          serviceRequests.length > 0 && (\r\n            <View style=styles.badgeCount>\r\n              <Text style=styles.badgeText>serviceRequests.length</Text>\r\n            </View>\r\n          )",
+          "acao": "onPress"
+        }
+      ],
+      "fluxo": [
+        "Go to -> OrderEntry",
+        "Go to -> WaiterCalls"
+      ],
+      "estados_codigo": [
+        "tables",
+        "refreshing",
+        "error"
+      ]
+    },
+    {
+      "tela": "WaiterDashboard",
+      "rota": "mobile\\src\\screens\\waiter\\WaiterDashboard.tsx",
+      "layout": [
+        "Native Stack",
+        "SafeAreaView"
+      ],
+      "elementos": [
+        {
+          "tipo": "botao",
+          "nome": "<View style=styles.tableHeader>\r\n        <Text style=styles.tableNumber>#item.number</Text>\r\n        <View style=[styles.statusDot,  backgroundColor: item.status === free ? colors.status.success : item.status === alert ? colors.status.danger : colors.primary ] />\r\n      </View>\r\n      item.customer ? (\r\n        <View style=styles.tableInfo>\r\n          <Text style=styles.customerName numberOfLines=1>item.customer</Text>\r\n          <Text style=styles.totalAmount>item.total</Text>\r\n          <View style=styles.timeContainer>\r\n            <Clock size=12 color=colors.text.muted />\r\n            <Text style=styles.timeText>item.time</Text>\r\n          </View>\r\n        </View>\r\n      ) : (\r\n        <View style=styles.freeContainer>\r\n          <Text style=styles.freeText>LIVRE</Text>\r\n        </View>\r\n      )",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "<LogOut color=colors.status.danger size=22 />",
+          "acao": "onPress"
+        }
+      ],
+      "fluxo": [],
+      "estados_codigo": []
+    },
+    {
+      "tela": "WaiterCallsScreen",
+      "rota": "mobile\\src\\screens\\waiter\\WaiterCallsScreen.tsx",
+      "layout": [
+        "Native Stack",
+        "SafeAreaView"
+      ],
+      "elementos": [
+        {
+          "tipo": "botao",
+          "nome": "navigation.goBack() style=styles.backBtn>\n          <ChevronLeft color=colors.text.primary />",
+          "acao": "onPress"
+        }
+      ],
+      "fluxo": [],
+      "estados_codigo": []
+    },
+    {
+      "tela": "PrinterDebugScreen",
+      "rota": "mobile\\src\\screens\\waiter\\PrinterDebugScreen.tsx",
+      "layout": [
+        "Native Stack",
+        "SafeAreaView"
+      ],
+      "elementos": [
+        {
+          "tipo": "botao",
+          "nome": "navigation.goBack() style=styles.backBtn>\n          <ChevronLeft color=colors.text.primary />",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "isScanning ? <ActivityIndicator size=small color=colors.primary /> : <RefreshCw size=20 color=colors.primary />",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "setSelectedId(item.id)>\n              <Card style=[styles.deviceCard, selectedId === item.id && styles.deviceSelected]>\n                <Printer size=24 color=selectedId === item.id ? colors.primary : colors.text.muted />\n                <View style= flex: 1 >\n                  <Text style=styles.deviceName>item.name</Text>\n                  <Text style=styles.deviceAddress>item.address</Text>\n                </View>\n              </Card>",
+          "acao": "onPress"
+        }
+      ],
+      "fluxo": [],
+      "estados_codigo": [
+        "devices",
+        "isScanning",
+        "selectedId"
+      ]
+    },
+    {
+      "tela": "PaymentScreen",
+      "rota": "mobile\\src\\screens\\waiter\\PaymentScreen.tsx",
+      "layout": [
+        "Native Stack",
+        "SafeAreaView"
+      ],
+      "elementos": [
+        {
+          "tipo": "botao",
+          "nome": "navigation.goBack() style=styles.backBtn>\n          <ChevronLeft color=colors.text.primary />",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "<Copy size=20 color=colors.primary />\n            <Text style=styles.actionText>Copiar Código</Text>",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "<Share2 size=20 color=colors.primary />\n            <Text style=styles.actionText>Compartilhar</Text>",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "navigation.goBack() style=styles.cancelBtn>\n            <Text style=styles.cancelText>Voltar</Text>",
+          "acao": "onPress"
+        }
+      ],
+      "fluxo": [
+        "Go to -> WaiterTables"
+      ],
+      "estados_codigo": []
+    },
+    {
+      "tela": "OrderReviewScreen",
+      "rota": "mobile\\src\\screens\\waiter\\OrderReviewScreen.tsx",
+      "layout": [
+        "Native Stack",
+        "SafeAreaView"
+      ],
+      "elementos": [
+        {
+          "tipo": "botao",
+          "nome": "updateQuantity(item.productId, -1) style=styles.counterBtn>\n            <Text style=styles.counterSymbol>-</Text>",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "updateQuantity(item.productId, 1) style=styles.counterBtn>\n            <Text style=styles.counterSymbol>+</Text>",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "navigation.goBack() style=styles.backBtn>\n          <ChevronLeft color=colors.text.primary />",
+          "acao": "onPress"
+        }
+      ],
+      "fluxo": [
+        "Go to -> WaiterTables"
+      ],
+      "estados_codigo": [
+        "showSuccess",
+        "isOfflineMode"
+      ]
+    },
+    {
+      "tela": "OrderEntryScreen",
+      "rota": "mobile\\src\\screens\\waiter\\OrderEntryScreen.tsx",
+      "layout": [
+        "Native Stack",
+        "SafeAreaView"
+      ],
+      "elementos": [
+        {
+          "tipo": "botao",
+          "nome": "updateQuantity(item.id, -1) style=styles.counterBtn>\n              <Minus size=16 color=colors.primary />",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "updateQuantity(item.id, 1) style=styles.counterBtn>\n              <Plus size=16 color=colors.primary />",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "addToCart( id: item.id, name: item.name, price: Number(item.price) )\n            style=styles.addBtn\n          >\n            <Plus size=20 color=#FFF />",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "navigation.goBack() style=styles.backBtn>\n          <ChevronLeft color=colors.text.primary />",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "setActiveCategory(item.id)\n              style=[styles.categoryTab, activeCategory === item.id && styles.categoryTabActive]\n            >\n              <Text style=[styles.categoryText, activeCategory === item.id && styles.categoryTextActive]>\n                item.name\n              </Text>",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "navigation.navigate(OrderReview)\n        >\n          <View style=styles.cartInfo>\n            <View style=styles.cartBadge>\n              <Text style=styles.cartBadgeText>cart.length</Text>\n            </View>\n            <Text style=styles.cartTotal>R$ getCartTotal().toFixed(2)</Text>\n          </View>\n          <View style=styles.cartAction>\n            <Text style=styles.cartActionText>Revisar Pedido</Text>\n            <ShoppingCart size=18 color=#FFF />\n          </View>",
+          "acao": "onPress"
+        }
+      ],
+      "fluxo": [
+        "Go to -> OrderReview"
+      ],
+      "estados_codigo": [
+        "menu",
+        "loading",
+        "search",
+        "activeCategory"
+      ]
+    },
+    {
+      "tela": "OrdersScreen",
+      "rota": "mobile\\src\\screens\\orders\\OrdersScreen.tsx",
+      "layout": [
+        "Native Stack",
+        "SafeAreaView"
+      ],
+      "elementos": [
+        {
+          "tipo": "botao",
+          "nome": "[\r\n              styles.silentToggle, \r\n              isSilentMode && styles.silentToggleActive,\r\n              pressed &&  opacity: 0.7 \r\n            ]\r\n          >\r\n            isSilentMode ? (\r\n              <BellOff size=20 color=colors.status.danger />\r\n            ) : (\r\n              <Bell size=20 color=colors.text.secondary />\r\n            )",
+          "acao": "onPress"
+        }
+      ],
+      "fluxo": [],
+      "estados_codigo": []
+    },
+    {
+      "tela": "KitchenDashboard",
+      "rota": "mobile\\src\\screens\\kitchen\\KitchenDashboard.tsx",
+      "layout": [
+        "Native Stack",
+        "SafeAreaView"
+      ],
+      "elementos": [
+        {
+          "tipo": "botao",
+          "nome": "slug && advanceStatus(item.id, item.status, slug)\r\n      >\r\n        <CheckCircle2 color=#fff size=20 />\r\n        <Text style=styles.btnText>AVANÇAR STATUS</Text>",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "<LogOut color=colors.status.danger size=22 />",
+          "acao": "onPress"
+        }
+      ],
+      "fluxo": [],
+      "estados_codigo": []
+    },
+    {
+      "tela": "DriverDashboard",
+      "rota": "mobile\\src\\screens\\driver\\DriverDashboard.tsx",
+      "layout": [
+        "Native Stack",
+        "SafeAreaView"
+      ],
+      "elementos": [
+        {
+          "tipo": "botao",
+          "nome": "<Phone size=20 color=COLORS.primary />",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "openMap(item.delivery_address)\r\n        >\r\n          <Navigation size=20 color=#fff />\r\n          <Text style=styles.primaryBtnText>\r\n            item.status === ready ? INICIAR ROTA : ABRIR MAPA\r\n          </Text>",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "<RefreshCw color=#fff size=24 />",
+          "acao": "onPress"
+        },
+        {
+          "tipo": "botao",
+          "nome": "<LogOut color=#ef4444 size=24 />",
+          "acao": "onPress"
+        }
+      ],
+      "fluxo": [],
+      "estados_codigo": [
+        "error"
+      ]
+    },
+    {
+      "tela": "LoadingScreen",
+      "rota": "mobile\\src\\screens\\common\\LoadingScreen.tsx",
+      "layout": [
+        "Native Stack",
+        "SafeAreaView"
+      ],
+      "elementos": [],
+      "fluxo": [],
+      "estados_codigo": []
+    },
+    {
+      "tela": "LoginScreen",
+      "rota": "mobile\\src\\screens\\auth\\LoginScreen.tsx",
+      "layout": [
+        "Native Stack",
+        "SafeAreaView"
+      ],
+      "elementos": [
+        {
+          "tipo": "botao",
+          "nome": "isSubmitting ? <ActivityIndicator color=#fff /> : <Text style=styles.buttonText>Entrar</Text>",
+          "acao": "onPress"
+        }
+      ],
+      "fluxo": [],
+      "estados_codigo": [
+        "email",
+        "password",
+        "isSubmitting",
+        "errorMessage"
+      ]
+    },
+    {
+      "tela": "HomeScreen",
+      "rota": "mobile\\src\\screens\\app\\HomeScreen.tsx",
+      "layout": [
+        "Native Stack",
+        "SafeAreaView"
+      ],
+      "elementos": [],
+      "fluxo": [],
+      "estados_codigo": []
+    }
+  ]
+}

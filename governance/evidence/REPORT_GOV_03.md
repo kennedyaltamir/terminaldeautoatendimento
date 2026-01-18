@@ -6,6 +6,8 @@
 | `architecture.xml` | ✅ VALID | `Well-formed XML` |
 | `business_rules.xml` | ✅ VALID | `Well-formed XML` |
 | `deployment_contract.xml` | ✅ VALID | `Well-formed XML` |
+| `MesaFlow_Optimization_Layer.xml` | ✅ VALID | `Well-formed XML` |
+| `registry.xml` | ✅ VALID | `Well-formed XML` |
 | `security_model.xml` | ✅ VALID | `Well-formed XML` |
 
 ## Veredito

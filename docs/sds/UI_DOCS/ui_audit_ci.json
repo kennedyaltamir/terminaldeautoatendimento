@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-01-16T06:45:23.842775",
+  "metrics": {
+    "coverage": 0.0,
+    "weighted_coverage": 35.714285714285715,
+    "critical_fails": 8,
+    "broken_flows": 0,
+    "ghosts": 0,
+    "critical_total": 8,
+    "total": 68
+  },
+  "status": "FAIL"
+}

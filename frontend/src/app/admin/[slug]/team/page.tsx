@@ -27,28 +27,36 @@ export default function TeamPage({ params }: { params: { slug: string } }) {
   const [activeTab, setActiveTab] = useState<RoleFilter>('all');
   const [searchTerm, setSearchTerm] = useState("");
   
-  // FIX: Definir valores padrão para evitar envio de undefined
   const { register, handleSubmit, reset } = useForm({
     defaultValues: {
       name: "",
       email: "",
       password: "",
-      role: "cashier" // Valor padrão seguro
+      role: "cashier"
     }
   });
 
   const fetchEmployees = async () => {
     try {
       const token = getToken();
+      if (!token) {
+        // Se não tiver token, não tenta buscar para evitar 401/CORS
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch(`${API_URL}/admin/employees`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
       if (res.ok) {
         const data = await res.json();
         setEmployees(data);
+      } else {
+        console.error("Erro ao buscar funcionários:", res.status);
       }
     } catch (error) {
-      console.error(error);
+      console.error("Erro de rede:", error);
     } finally {
       setLoading(false);
     }
@@ -278,3 +286,4 @@ export default function TeamPage({ params }: { params: { slug: string } }) {
     </div>
   );
 }
+

@@ -1,0 +1,16 @@
+{
+  "summary": {
+    "CRITICAL": 1,
+    "MEDIUM": 0,
+    "LOW": 0
+  },
+  "findings": [
+    {
+      "file": "scripts\\automation\\test_kiosk_lock_flow.py",
+      "category": "TESTE",
+      "severity": "CRITICAL",
+      "message": "Uso proibido de asyncio.run() em script de teste.",
+      "doc_ref": "N/A"
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+// DOMAIN: FRONTEND
+// LAST_MODIFIED: 2026-01-16 16:50:00
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,7 +9,7 @@ import { getCompanySettings, updateCompanySettings, getWebhooks } from "@/lib/ap
 import { settingsSchema, SettingsSchema } from "@/lib/validations/settings";
 import { 
   Save, Loader2, Store, Smartphone, CreditCard, Zap, Clock, Wifi, Palette, 
-  MessageSquare, Globe, Key, Bike, Printer, FileText, Eye, EyeOff, Webhook
+  MessageSquare, Globe, Key, Bike, Printer, FileText, Eye, EyeOff, Webhook, Monitor
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import AuthInput from "@/components/ui/AuthInput";
@@ -18,11 +20,13 @@ import PrinterSettings from "@/components/admin/PrinterSettings";
 import FiscalSection from "./FiscalSection";
 import WebhookManager from "@/components/admin/WebhookManager";
 import WhatsappStatus from "@/components/admin/WhatsappStatus";
+import KioskSection from "./KioskSection"; // Import do componente Kiosk
 import { Company } from "@/types";
 
 export default function SettingsPage({ params }: { params: { slug: string } }) {
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"general" | "marketing" | "finance" | "fiscal" | "printer" | "integrations" | "billing">("general");
+  // Adicionado "kiosk" ao tipo do estado
+  const [activeTab, setActiveTab] = useState<"general" | "marketing" | "finance" | "fiscal" | "printer" | "integrations" | "billing" | "kiosk">("general");
   const [companyData, setCompanyData] = useState<Company | null>(null);
   const [webhooks, setWebhooks] = useState<any[]>([]);
   const [showToken, setShowToken] = useState(false);
@@ -50,7 +54,6 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
       setCompanyData(data);
       setWebhooks(webhooksData);
       
-      // Preenche o formulário com dados existentes
       reset({
         name: data.name,
         logo_url: data.logo_url,
@@ -72,7 +75,6 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
         whatsapp_api_url: data.whatsapp_api_url,
         whatsapp_instance: data.whatsapp_instance,
         whatsapp_token: data.whatsapp_token,
-        // Campos fiscais são gerenciados pelo FiscalSection, mas mantemos no reset para consistência
         cnpj: data.cnpj,
         inscricao_estadual: data.inscricao_estadual,
         fiscal_token: data.fiscal_token,
@@ -92,17 +94,15 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const onSubmit = async (data: SettingsSchema) => {
     try {
-      // Limpa strings vazias para null
       const payload = Object.fromEntries(
         Object.entries(data).map(([k, v]) => [k, v === "" ? null : v])
       );
       
       await updateCompanySettings(payload as Partial<Company>);
       toast.success("Configurações salvas!");
-      // Recarrega dados para garantir sincronia
       const updatedData = await getCompanySettings();
       setCompanyData(updatedData);
-      reset(data); // Reseta o estado dirty
+      reset(data);
     } catch (e: any) {
       toast.error(e.message || "Erro ao salvar");
     }
@@ -110,10 +110,12 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   if (loading || !companyData) return <div className="flex h-screen items-center justify-center bg-gray-900 text-white"><Loader2 className="animate-spin" /></div>;
 
+  // Adicionado a aba "Modo Totem" na lista
   const tabs = [
     { id: "general", label: "Geral & Marca", icon: Store },
     { id: "marketing", label: "Marketing", icon: Smartphone },
     { id: "finance", label: "Financeiro", icon: CreditCard },
+    { id: "kiosk", label: "Modo Totem", icon: Monitor }, // <--- NOVO ITEM
     { id: "fiscal", label: "Fiscal", icon: FileText },
     { id: "printer", label: "Impressão", icon: Printer },
     { id: "integrations", label: "Integrações", icon: Webhook },
@@ -129,8 +131,8 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
           <h1 className="text-3xl font-bold text-white">Configurações</h1>
           <p className="text-gray-400 text-sm mt-1">Gerencie a aparência, operação e integrações do seu negócio.</p>
         </div>
-        {/* Botão de Salvar Global (Apenas para abas que usam o formulário principal) */}
-        {activeTab !== "billing" && activeTab !== "fiscal" && activeTab !== "printer" && (
+        {/* Botão Salvar Global (Escondido em abas com save próprio) */}
+        {activeTab !== "billing" && activeTab !== "fiscal" && activeTab !== "printer" && activeTab !== "kiosk" && (
           <button 
             onClick={handleSubmit(onSubmit)} 
             disabled={isSubmitting || !isDirty} 
@@ -268,6 +270,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
           {activeTab === "billing" && <BillingSection company={companyData} />}
           {activeTab === "fiscal" && <FiscalSection company={companyData} />}
           {activeTab === "printer" && <PrinterSettings />}
+          {activeTab === "kiosk" && <KioskSection company={companyData} />} {/* RENDERIZAÇÃO DO KIOSK */}
           
         </div>
       </div>

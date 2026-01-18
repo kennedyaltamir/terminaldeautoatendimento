@@ -9,7 +9,7 @@ Este documento define os indicadores (KPIs) para medir a eficácia da governanç
 | :--- | :---: | :---: | :---: |
 | **DoD Compliance** | 100% | 100% | ✅ |
 | **Kernel Score Stability** | ≥ 95 | 80 | ⚠️ |
-| **Verification Success** | > 90% | 96.53% | ✅ |
+| **Verification Success** | > 90% | 100.0% | ✅ |
 
 ## 2. Indicadores de Dívida Técnica
 
@@ -20,5 +20,5 @@ Este documento define os indicadores (KPIs) para medir a eficácia da governanç
 | **Documentation Drift** | < 5% | 0% | ✅ |
 
 ---
-**Última Atualização Automática:** 2026-01-14 23:26:09
+**Última Atualização Automática:** 2026-01-18 08:44:15
 *Revisão Mensal Obrigatória pelo Architect Kernel.*

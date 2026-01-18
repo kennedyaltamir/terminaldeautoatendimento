@@ -1,7 +1,7 @@
-"use client";
 
-import { useState, useEffect } from "react";
-import { X, Users, CheckCircle2, Calculator, DollarSign } from "lucide-react";
+"use client";
+import { useState } from "react";
+import { X, CheckCircle2, Calculator, DollarSign } from "lucide-react";
 import { Order } from "@/types";
 
 interface SplitBillModalProps {
@@ -10,15 +10,24 @@ interface SplitBillModalProps {
   orders: Order[];
   totalAmount: number;
   primaryColor: string;
-  onPayPartial?: (amount: number) => void; // Callback para pagamento
+  onPayPartial?: (amount: number) => void;
+  // Props opcionais para compatibilidade com chamadas legadas ou futuras
+  slug?: string;
+  tableId?: number;
 }
 
-export default function SplitBillModal({ isOpen, onClose, orders, totalAmount, primaryColor, onPayPartial }: SplitBillModalProps) {
+export default function SplitBillModal({ 
+  isOpen, 
+  onClose, 
+  orders, 
+  totalAmount, 
+  primaryColor, 
+  onPayPartial 
+}: SplitBillModalProps) {
   const [mode, setMode] = useState<"equal" | "items">("equal");
   const [peopleCount, setPeopleCount] = useState(2);
-  const [selectedItems, setSelectedItems] = useState<string[]>([]); // IDs dos itens selecionados (orderId-itemIndex)
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
-  // Flatten items for selection mode
   const allItems = orders.flatMap(order => 
     order.items.map((item, idx) => ({
       ...item,
@@ -61,14 +70,13 @@ export default function SplitBillModal({ isOpen, onClose, orders, totalAmount, p
   return (
     <div className="fixed inset-0 z-[90] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
       <div className="bg-white w-full sm:max-w-md sm:rounded-xl rounded-t-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-
         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
           <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
             <Calculator size={20} className="text-gray-500"/> Dividir Conta
           </h3>
           <button onClick={onClose} className="bg-gray-200 p-2 rounded-full hover:bg-gray-300 transition-colors"><X size={20}/></button>
         </div>
-
+        
         <div className="p-4 flex gap-2 bg-white border-b border-gray-100">
           <button 
             onClick={() => setMode("equal")}
@@ -105,7 +113,6 @@ export default function SplitBillModal({ isOpen, onClose, orders, totalAmount, p
                   +
                 </button>
               </div>
-
               <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                 <p className="text-gray-500 text-sm mb-1">Cada um paga</p>
                 <p className="text-4xl font-black text-green-600">R$ {myShare.toFixed(2)}</p>
@@ -152,8 +159,8 @@ export default function SplitBillModal({ isOpen, onClose, orders, totalAmount, p
             {onPayPartial ? <><DollarSign size={18} /> Pagar Agora</> : "Confirmar Valor"}
           </button>
         </div>
-
       </div>
     </div>
   );
 }
+

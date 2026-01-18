@@ -1,7 +1,20 @@
 // DOMAIN: FRONTEND
-// LAST_MODIFIED: 2026-01-15 16:15:00
+// LAST_MODIFIED: 2026-01-16 20:05:00
+export interface AuditLog {
+  id: number;
+  user_name: string;
+  user_role: string;
+  action: string;
+  resource: string;
+  resource_id: string;
+  details: any;
+  ip_address: string;
+  created_at: string;
+}
+
 export interface Company {
   name: string;
+  slug: string;
   is_active: boolean;
   logo_url?: string | null;
   primary_color: string;
@@ -31,6 +44,8 @@ export interface Company {
   ifood_merchant_id?: string | null;
   payment_provider?: 'mercadopago' | 'efi' | 'stripe' | 'pagarme' | 'none';
   payment_credentials?: any;
+  kiosk_password_set?: boolean;
+  kiosk_password?: string;
 }
 
 export interface Option {
@@ -119,45 +134,29 @@ export interface OrderItemResponse {
   selected_options: OrderItemOptionResponse[];
 }
 
-export interface OrderFeedback {
-  score: number;
-  comment: string | null;
-  created_at: string;
-}
-
 export interface Order {
   id: string;
-  table?: {
-    table_number: number;
-  };
+  table?: { table_number: number };
   order_type: 'dine_in' | 'delivery' | 'takeout';
   origin?: 'mesaflow' | 'ifood' | 'rappi';
-  external_order_id?: string;
-  delivery_address?: string;
-  delivery_lat?: number;
-  delivery_lng?: number;
-  customer_phone?: string;
-  subtotal?: number;
-  discount_amount?: number;
-  cashback_earned?: number;
   customer_name: string | null;
+  customer_phone: string | null;
+  delivery_address: string | null;
+  delivery_lat: number | null;
+  delivery_lng: number | null;
+  driver_id: number | null;
+  external_order_id: string | null;
   total_amount: number;
-  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivering' | 'delivered' | 'canceled';
-  payment_method: 'pix' | 'card' | 'cash' | 'online';
-  payment_status: 'pending' | 'paid' | 'failed';
+  status: string;
+  payment_method: string;
+  payment_status: string;
   created_at: string;
-  finished_at?: string;
   items: OrderItemResponse[];
   mp_qr_code?: string;
   mp_qr_code_base64?: string;
-  driver_id?: number;
-  delivery_code?: string;
-  delivery_fee?: number;
-  service_fee?: number;
-  fiscal_status?: 'pending' | 'processing' | 'emitted' | 'error' | 'canceled';
+  fiscal_status?: string;
   nfe_url_pdf?: string;
-  nfe_url_xml?: string;
-  feedback?: OrderFeedback | null; 
+  feedback?: FeedbackResponse;
 }
 
 export interface Table {
@@ -165,15 +164,20 @@ export interface Table {
   table_number: number;
   qr_token: string;
   is_active: boolean;
+  position_x: number;
+  position_y: number;
 }
 
-export interface ServiceRequest {
-  id: number;
-  table_number: number;
-  service_type: 'help' | 'cleaning' | 'bill' | 'other';
-  notes?: string;
-  status: string;
-  created_at: string;
+export interface TableDashboard extends Table {
+  status: 'free' | 'occupied' | 'alert';
+  active_session?: {
+    id: number;
+    customer_name: string;
+    total_spent: number;
+    start_time: string;
+    access_pin: string;
+  } | null;
+  service_request?: string | null;
 }
 
 export interface TableSession {
@@ -184,5 +188,48 @@ export interface TableSession {
   orders: Order[];
   total_spent: number;
   access_pin: string;
+}
+
+export interface Employee {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  is_active: boolean;
+}
+
+export interface Promotion {
+  id: string;
+  name: string;
+  code: string | null;
+  discount_type: 'percentage' | 'fixed' | 'shipping';
+  discount_value: number;
+  min_order_value: number;
+  usage_limit: number | null;
+  current_usage: number;
+  is_active: boolean;
+}
+
+export interface CouponValidationResponse {
+  valid: boolean;
+  discount_amount: number;
+  final_total: number;
+  message: string;
+  promotion_id?: string;
+}
+
+export interface FeedbackResponse {
+  score: number;
+  comment?: string | null;
+  created_at: string;
+}
+
+export interface ServiceRequest {
+  id: number;
+  table_number: number;
+  service_type: string;
+  notes?: string;
+  status: string;
+  created_at: string;
 }
 

@@ -1,10 +1,10 @@
 ## Resumo Executivo
-- **Arquivos com Interação:** 52
-- **Total de Elementos:** 223
+- **Arquivos com Interação:** 54
+- **Total de Elementos:** 184
 ---
 
 # 🖱️ Inventário Completo de Elementos Interativos
-**Data:** nt.times_result(user=0.046875, system=0.03125, children_user=0.0, children_system=0.0, elapsed=0.0)
+**Data:** nt.times_result(user=0.015625, system=0.015625, children_user=0.0, children_system=0.0, elapsed=0.0)
 
 Este documento lista todos os pontos de interação detectados estaticamente no código.
 Use-o para validar se todos os botões, links e inputs estão mapeados e funcionais.
@@ -45,7 +45,7 @@ Use-o para validar se todos os botões, links e inputs estão mapeados e funcion
 ## 📄 `app\admin\[slug]\layout.tsx`
 | Linha | Tipo | Snippet (Código) |
 | :---: | :--- | :--- |
-| 108 | **Link** | `&lt;Link href={'/admin/${slug}/dashboard'}&gt;` |
+| 112 | **Link** | `&lt;Link href={'/admin/${slug}/dashboard'}&gt;` |
 
 ## 📄 `app\admin\[slug]\audit\financial\page.tsx`
 | Linha | Tipo | Snippet (Código) |
@@ -55,23 +55,16 @@ Use-o para validar se todos os botões, links e inputs estão mapeados e funcion
 ## 📄 `app\admin\[slug]\counter\page.tsx`
 | Linha | Tipo | Snippet (Código) |
 | :---: | :--- | :--- |
-| 172 | **Button** | `&lt;button onClick={clearCart} className="text-xs text-red-400 hover:text-red-300 font-bold uppercase"&gt;Limpar&lt;/button&gt;` |
-| 191 | **Button** | `&lt;button onClick={() =&gt; removeFromCart(idx)} className="text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"&gt;&lt;Trash2 s...` |
-| 217 | **Button** | `&lt;button onClick={() =&gt; handleCheckout('cash')} disabled={processing} className="bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg flex flex-co...` |
-| 220 | **Button** | `&lt;button onClick={() =&gt; handleCheckout('card')} disabled={processing} className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg flex flex-col ...` |
-| 223 | **Button** | `&lt;button onClick={() =&gt; handleCheckout('pix')} disabled={processing} className="bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg flex flex-c...` |
+| 150 | **Button** | `&lt;button onClick={() =&gt; removeFromCart(i)} className="text-gray-600 hover:text-red-500 p-2"&gt;` |
+| 162 | **Button** | `&lt;button onClick={() =&gt; handleCheckout('cash')} disabled={submitting \|\| cart.length === 0} className="flex flex-col items-center gap-1 p-3 bg-gray-800 ...` |
+| 165 | **Button** | `&lt;button onClick={() =&gt; handleCheckout('card')} disabled={submitting \|\| cart.length === 0} className="flex flex-col items-center gap-1 p-3 bg-gray-800 ...` |
+| 168 | **Button** | `&lt;button onClick={() =&gt; handleCheckout('pix')} disabled={submitting \|\| cart.length === 0} className="flex flex-col items-center gap-1 p-3 bg-gray-800 r...` |
 
 ## 📄 `app\admin\[slug]\dashboard\page.tsx`
 | Linha | Tipo | Snippet (Código) |
 | :---: | :--- | :--- |
 | 112 | **Button** | `&lt;button onClick={fetchMetrics} className="mt-4 text-orange-500 hover:underline"&gt;Tentar novamente&lt;/button&gt;` |
 | 159 | **Button** | `&lt;button onClick={handleExport} className="bg-white dark:bg-gray-800 hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-700 dark:text-white px-4 py-2 ...` |
-
-## 📄 `app\admin\[slug]\driver\page.tsx`
-| Linha | Tipo | Snippet (Código) |
-| :---: | :--- | :--- |
-| 186 | **Button** | `&lt;button onClick={fetchMyOrders} className="p-2 bg-blue-700 rounded-full hover:bg-blue-800" title="Atualizar"&gt;&lt;RefreshCw size={20}/&gt;&lt;/button&gt;` |
-| 187 | **Button** | `&lt;button onClick={handleLogout} className="p-2 bg-red-500/20 rounded-full hover:bg-red-500/40" title="Sair"&gt;&lt;LogOut size={20}/&gt;&lt;/button&gt;` |
 
 ## 📄 `app\admin\[slug]\franchise\page.tsx`
 | Linha | Tipo | Snippet (Código) |
@@ -166,24 +159,16 @@ Use-o para validar se todos os botões, links e inputs estão mapeados e funcion
 ## 📄 `app\admin\[slug]\settings\page.tsx`
 | Linha | Tipo | Snippet (Código) |
 | :---: | :--- | :--- |
-| 255 | **Button** | `&lt;button onClick={handleSubmit(onSubmit)} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold te...` |
+| 257 | **Button** | `&lt;button onClick={handleSubmit(onSubmit)} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold te...` |
 
 ## 📄 `app\admin\[slug]\tables\page.tsx`
 | Linha | Tipo | Snippet (Código) |
 | :---: | :--- | :--- |
-| 206 | **Button** | `&lt;button onClick={() =&gt; fetchTables()} className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-xl transition-colors" title="Atualizar"&gt;` |
-| 209 | **Button** | `&lt;button onClick={() =&gt; setIsCreateModalOpen(true)} className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl flex items-center gap-...` |
-| 212 | **Button** | `&lt;button onClick={() =&gt; window.print()} className="bg-white text-gray-900 px-4 py-2 rounded-xl flex items-center gap-2 font-bold transition-colors hove...` |
-| 223 | **Button** | `&lt;button onClick={() =&gt; setIsCreateModalOpen(true)} className="mt-4 text-orange-500 font-bold hover:underline"&gt;Criar a primeira mesa&lt;/button&gt;` |
-| 273 | **Input** | `&lt;input type="number" className="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-3 text-white outline-none focus:ring-2 focus:ring-orange-500" p...` |
-| 274 | **Button** | `&lt;button onClick={handleCreate} className="bg-orange-600 text-white px-6 rounded-lg font-bold hover:bg-orange-700"&gt;Criar&lt;/button&gt;` |
-| 280 | **Input** | `&lt;input type="number" className="w-24 bg-gray-900 border border-gray-700 rounded-lg p-3 text-white outline-none focus:ring-2 focus:ring-orange-500" pla...` |
-| 282 | **Input** | `&lt;input type="number" className="w-24 bg-gray-900 border border-gray-700 rounded-lg p-3 text-white outline-none focus:ring-2 focus:ring-orange-500" pla...` |
-| 283 | **Button** | `&lt;button onClick={handleBulkCreate} className="flex-1 bg-gray-700 text-white px-4 py-3 rounded-lg font-bold hover:bg-gray-600"&gt;Gerar&lt;/button&gt;` |
-| 304 | **Button** | `&lt;button onClick={handleOpenTable} className="bg-green-600 text-white px-4 rounded-lg font-bold hover:bg-green-700"&gt;Abrir&lt;/button&gt;` |
-| 320 | **Button** | `&lt;button onClick={() =&gt; handleCloseTable('cash')} className="bg-gray-800 hover:bg-green-600 text-gray-300 hover:text-white p-3 rounded-lg font-bold tra...` |
-| 323 | **Button** | `&lt;button onClick={() =&gt; handleCloseTable('card')} className="bg-gray-800 hover:bg-blue-600 text-gray-300 hover:text-white p-3 rounded-lg font-bold tran...` |
-| 331 | **Button** | `&lt;button onClick={() =&gt; handleDelete(selectedTable.id)} className="text-red-400 hover:text-red-300 text-xs font-bold flex items-center gap-1 hover:bg-r...` |
+| 159 | **Button** | `&lt;button onClick={handleCreateTable} disabled={submitting} className="w-full bg-orange-600 text-white py-3 rounded-xl font-bold"&gt;` |
+| 177 | **Button** | `&lt;button onClick={handleOpenTable} disabled={submitting} className="bg-green-600 text-white px-4 rounded-lg font-bold"&gt;Abrir&lt;/button&gt;` |
+| 184 | **Button** | `&lt;button onClick={() =&gt; handleCloseTable('cash')} disabled={submitting} className="bg-gray-800 text-white p-3 rounded-lg font-bold"&gt;Dinheiro&lt;/button&gt;` |
+| 185 | **Button** | `&lt;button onClick={() =&gt; handleCloseTable('card')} disabled={submitting} className="bg-gray-800 text-white p-3 rounded-lg font-bold"&gt;Cartão&lt;/button&gt;` |
+| 189 | **Button** | `&lt;button onClick={() =&gt; handleDelete(selectedTable.id)} className="text-red-400 text-xs font-bold flex items-center gap-1"&gt;` |
 
 ## 📄 `app\admin\[slug]\team\page.tsx`
 | Linha | Tipo | Snippet (Código) |
@@ -208,32 +193,20 @@ Use-o para validar se todos os botões, links e inputs estão mapeados e funcion
 ## 📄 `app\admin\[slug]\waiter\pos\quick\page.tsx`
 | Linha | Tipo | Snippet (Código) |
 | :---: | :--- | :--- |
-| 108 | **Button** | `&lt;button onClick={() =&gt; router.back()} className="p-2 hover:bg-white/20 rounded-full"&gt;&lt;ChevronLeft /&gt;&lt;/button&gt;` |
-| 161 | **Input** | `&lt;input type="text" placeholder="Buscar produto..." className="w-full bg-gray-100 border-none rounded-lg pl-10 pr-4 py-3 text-sm outline-none" value={s...` |
-| 192 | **Button** | `&lt;button key={cat.id} onClick={() =&gt; setActiveCategory(cat.id)} className={'whitespace-nowrap px-4 py-3 rounded-lg text-sm font-bold ${activeCategory =...` |
-| 222 | **Button** | `&lt;button onClick={() =&gt; setIsCartOpen(true)} className="flex-1 bg-gray-200 text-gray-800 py-3.5 rounded-xl font-bold flex items-center justify-center g...` |
-| 240 | **Button** | `&lt;button onClick={() =&gt; setIsCartOpen(false)}&gt;&lt;X /&gt;&lt;/button&gt;` |
-| 246 | **Button** | `&lt;div className="flex items-center gap-3"&gt;&lt;span className="font-bold text-lg"&gt;x{item.quantity}&lt;/span&gt;&lt;button onClick={() =&gt; removeFromCart(idx)} classN...` |
-| 250 | **Button** | `&lt;div className="p-4 border-t"&gt;&lt;button onClick={() =&gt; setIsCartOpen(false)} className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold"&gt;Voltar&lt;...` |
+| 90 | **Button** | `&lt;button onClick={() =&gt; router.back()} className="p-2 hover:bg-gray-800 rounded-full"&gt;` |
+| 136 | **Button** | `&lt;button onClick={() =&gt; setCart([])} className="text-[10px] font-black text-red-500 uppercase"&gt;Limpar&lt;/button&gt;` |
+| 145 | **Button** | `&lt;button onClick={() =&gt; setCart(prev =&gt; prev.filter((_, idx) =&gt; idx !== i))} className="text-gray-500 hover:text-red-500 p-2"&gt;` |
+| 160 | **Button** | `&lt;button onClick={() =&gt; handleCheckout('cash')} disabled={submitting \|\| cart.length === 0} className="flex flex-col items-center gap-1 p-3 bg-gray-800 ...` |
+| 164 | **Button** | `&lt;button onClick={() =&gt; handleCheckout('card')} disabled={submitting \|\| cart.length === 0} className="flex flex-col items-center gap-1 p-3 bg-gray-800 ...` |
+| 168 | **Button** | `&lt;button onClick={() =&gt; handleCheckout('pix')} disabled={submitting \|\| cart.length === 0} className="flex flex-col items-center gap-1 p-3 bg-gray-800 h...` |
 
 ## 📄 `app\admin\[slug]\waiter\pos\[tableId]\page.tsx`
 | Linha | Tipo | Snippet (Código) |
 | :---: | :--- | :--- |
-| 196 | **Button** | `&lt;button onClick={() =&gt; router.back()} className="p-2 hover:bg-gray-800 rounded-full"&gt;&lt;ChevronLeft /&gt;&lt;/button&gt;` |
-| 201 | **Button** | `&lt;button onClick={() =&gt; setIsTransferOpen(true)} className="bg-orange-600 p-2 rounded-full hover:bg-orange-500 text-white" title="Transferir Mesa"&gt;&lt;Arr...` |
-| 202 | **Button** | `&lt;button onClick={() =&gt; setIsSplitOpen(true)} className="bg-blue-600 p-2 rounded-full hover:bg-blue-500 text-white" title="Dividir Conta"&gt;&lt;Calculator s...` |
-| 203 | **Button** | `&lt;button onClick={() =&gt; { setPartialAmount(null); setIsPaymentOpen(true); }} className="bg-green-600 p-2 rounded-full hover:bg-green-500 text-white sha...` |
-| 204 | **Button** | `&lt;button onClick={() =&gt; setIsAuditOpen(true)} className="bg-gray-700 p-2 rounded-full hover:bg-gray-600 text-blue-400" title="Ver Comanda"&gt;&lt;Eye size={2...` |
-| 205 | **Button** | `&lt;button onClick={handlePrintBill} className="bg-gray-700 p-2 rounded-full hover:bg-gray-600" title="Imprimir Parcial"&gt;&lt;Printer size={20} /&gt;&lt;/button&gt;` |
-| 215 | **Input** | `&lt;input type="text" placeholder="Nome do Cliente" className="flex-1 bg-white border border-orange-300 rounded px-3 py-2 text-sm outline-none" value={cu...` |
-| 219 | **Input** | `&lt;input type="tel" placeholder="Telefone (Busca Saldo)" className="flex-1 bg-white border border-orange-300 rounded px-3 py-2 text-sm outline-none" val...` |
-| 227 | **Button** | `&lt;button onClick={handleOpenTable} className="bg-orange-600 text-white px-4 py-2 rounded font-bold text-sm w-full"&gt;Abrir Mesa&lt;/button&gt;` |
-| 231 | **Input** | `&lt;div className="p-2 bg-white border-b border-gray-200 print:hidden"&gt;&lt;div className="relative"&gt;&lt;Search className="absolute left-3 top-1/2 -translate-y-...` |
-| 232 | **Button** | `{topProducts.length &gt; 0 && &lt;div className="bg-gray-50 border-b border-gray-200 p-2 overflow-x-auto no-scrollbar shrink-0 print:hidden"&gt;&lt;p className="t...` |
-| 233 | **Button** | `&lt;div className="bg-white border-b border-gray-200 overflow-x-auto no-scrollbar shrink-0 print:hidden"&gt;&lt;div className="flex p-2 gap-2"&gt;&lt;button onClick=...` |
-| 234 | **Button** | `&lt;div className="flex-1 overflow-y-auto p-2 grid grid-cols-2 gap-2 content-start print:hidden"&gt;{filteredProducts.map(product =&gt; (&lt;button key={product.i...` |
-| 235 | **Button** | `&lt;div className="bg-white border-t border-gray-200 p-4 safe-area-bottom shadow-[0_-4px_10px_rgba(0,0,0,0.1)] print:hidden"&gt;&lt;div className="flex justify...` |
-| 236 | **Button** | `{isCartOpen && (&lt;div className="fixed inset-0 z-50 bg-black/50 flex justify-end print:hidden"&gt;&lt;div className="w-full max-w-md bg-white h-full flex fle...` |
+| 103 | **Button** | `&lt;button onClick={() =&gt; router.back()} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"&gt;` |
+| 114 | **Button** | `&lt;button onClick={() =&gt; setIsAuditOpen(true)} className="p-3 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-600 dark:text-gray-400" title="Conferir ...` |
+| 117 | **Button** | `&lt;button onClick={() =&gt; setIsPaymentOpen(true)} className="p-3 bg-orange-600 text-white rounded-xl shadow-lg shadow-orange-900/20" title="Fechar Conta"...` |
+| 167 | **Button** | `&lt;button onClick={() =&gt; setCart(prev =&gt; prev.filter((_, idx) =&gt; idx !== i))} className="text-gray-400 hover:text-red-500 p-2"&gt;` |
 
 ## 📄 `app\trust\layout.tsx`
 | Linha | Tipo | Snippet (Código) |
@@ -255,24 +228,17 @@ Use-o para validar se todos os botões, links e inputs estão mapeados e funcion
 | :---: | :--- | :--- |
 | 67 | **Anchor** | `&lt;a href="/privacy" className="text-orange-600 font-bold text-sm hover:underline"&gt;Ler Política de Privacidade&lt;/a&gt;` |
 
+## 📄 `app\[slug]\checkout\CheckoutClient.tsx`
+| Linha | Tipo | Snippet (Código) |
+| :---: | :--- | :--- |
+| 117 | **Button** | `&lt;button onClick={() =&gt; router.back()}&gt;&lt;ArrowLeft /&gt;&lt;/button&gt;` |
+
 ## 📄 `app\[slug]\menu\MenuClient.tsx`
 | Linha | Tipo | Snippet (Código) |
 | :---: | :--- | :--- |
-| 475 | **Button** | `&lt;button type="button" onClick={() =&gt; setIsComandaOpen(true)} className="text-xs font-bold bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-1...` |
-| 624 | **Button** | `&lt;button type="button" onClick={() =&gt; setIsCartOpen(true)} className="text-white px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2 activ...` |
-| 670 | **Button** | `&lt;button type="button" onClick={() =&gt; setIsCartOpen(false)} className="text-gray-400"&gt;&lt;X size={24}/&gt;&lt;/button&gt;` |
-| 675 | **Clickable Div/Span** | `&lt;div className="cursor-pointer flex-1" onClick={() =&gt; handleEditCartItem(idx)}&gt;` |
-| 685 | **Button** | `&lt;button type="button" onClick={() =&gt; removeFromCart(idx)} className="text-red-500 text-xs mt-1 hover:underline"&gt;Remover&lt;/button&gt;` |
-| 695 | **Input** | `&lt;input type="text" className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500 text-gray-900" pla...` |
-| 703 | **Input** | `&lt;input type="tel" className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500 text-gray-900" plac...` |
-| 707 | **Textarea** | `&lt;textarea className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500 text-gray-900" placeholder=...` |
-| 715 | **Input** | `&lt;input type="tel" className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500 text-gray-900" plac...` |
-| 771 | **Button** | `&lt;button type="button" onClick={() =&gt; setPaymentMethod("online")} className={'flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${p...` |
-| 775 | **Button** | `&lt;button type="button" onClick={() =&gt; setPaymentMethod("card")} className={'flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${pay...` |
-| 779 | **Button** | `&lt;button type="button" onClick={() =&gt; setPaymentMethod("card")} className={'flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${pay...` |
-| 783 | **Button** | `&lt;button type="button" onClick={() =&gt; setPaymentMethod("pix")} className={'flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paym...` |
-| 786 | **Button** | `&lt;button type="button" onClick={() =&gt; setPaymentMethod("cash")} className={'flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${pay...` |
-| 811 | **Button** | `&lt;button type="button" onClick={() =&gt; setIsCartOpen(false)} className="flex-1 border border-gray-300 py-3 rounded-lg font-medium text-gray-700"&gt;Voltar&lt;...` |
+| 139 | **Button** | `&lt;button onClick={() =&gt; setIsServiceOpen(true)} className="p-3 bg-gray-100 dark:bg-gray-800 rounded-2xl text-gray-600 dark:text-gray-400 active:scale-9...` |
+| 209 | **Button** | `&lt;button onClick={() =&gt; setIsCartOpen(false)} className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full"&gt;&lt;X size={24}/&gt;&lt;/button&gt;` |
+| 218 | **Button** | `&lt;button onClick={() =&gt; removeFromCart(i)} className="text-red-500 p-2"&gt;&lt;Trash2 size={20}/&gt;&lt;/button&gt;` |
 
 ## 📄 `components\admin\RecipeModal.tsx`
 | Linha | Tipo | Snippet (Código) |
@@ -289,6 +255,22 @@ Use-o para validar se todos os botões, links e inputs estão mapeados e funcion
 | Linha | Tipo | Snippet (Código) |
 | :---: | :--- | :--- |
 | 80 | **Button** | `&lt;button onClick={onClose} className="p-2 hover:bg-gray-800 rounded-full text-gray-400 hover:text-white transition-colors"&gt;` |
+
+## 📄 `components\kiosk\KioskFullscreenToggle.tsx`
+| Linha | Tipo | Snippet (Código) |
+| :---: | :--- | :--- |
+| 49 | **Clickable Div/Span** | `&lt;div className="fixed top-0 left-0 w-20 h-20 z-[9999]" onClick={() =&gt; handleTap(1)} /&gt;` |
+| 50 | **Clickable Div/Span** | `&lt;div className="fixed top-0 right-0 w-20 h-20 z-[9999]" onClick={() =&gt; handleTap(2)} /&gt;` |
+| 51 | **Clickable Div/Span** | `&lt;div className="fixed bottom-0 right-0 w-20 h-20 z-[9999]" onClick={() =&gt; handleTap(3)} /&gt;` |
+| 52 | **Clickable Div/Span** | `&lt;div className="fixed bottom-0 left-0 w-20 h-20 z-[9999]" onClick={() =&gt; handleTap(4)} /&gt;` |
+
+## 📄 `components\kiosk\KioskStealthTrigger.tsx`
+| Linha | Tipo | Snippet (Código) |
+| :---: | :--- | :--- |
+| 55 | **Clickable Div/Span** | `&lt;div className="fixed top-0 left-0 w-20 h-20 z-[9999]" onClick={() =&gt; handleTap(1)} /&gt;` |
+| 57 | **Clickable Div/Span** | `&lt;div className="fixed top-0 right-0 w-20 h-20 z-[9999]" onClick={() =&gt; handleTap(2)} /&gt;` |
+| 59 | **Clickable Div/Span** | `&lt;div className="fixed bottom-0 right-0 w-20 h-20 z-[9999]" onClick={() =&gt; handleTap(3)} /&gt;` |
+| 61 | **Clickable Div/Span** | `&lt;div className="fixed bottom-0 left-0 w-20 h-20 z-[9999]" onClick={() =&gt; handleTap(4)} /&gt;` |
 
 ## 📄 `components\landing\DemoModal.tsx`
 | Linha | Tipo | Snippet (Código) |
@@ -364,27 +346,19 @@ Use-o para validar se todos os botões, links e inputs estão mapeados e funcion
 ## 📄 `components\menu\MenuClient.tsx`
 | Linha | Tipo | Snippet (Código) |
 | :---: | :--- | :--- |
-| 473 | **Button** | `&lt;button onClick={() =&gt; setIsComandaOpen(true)} className="text-xs font-bold bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-gray...` |
-| 612 | **Button** | `&lt;button onClick={() =&gt; setIsCartOpen(true)} className="text-white px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2 active:scale-95 tra...` |
-| 657 | **Button** | `&lt;button onClick={() =&gt; setIsCartOpen(false)} className="text-gray-400"&gt;&lt;X size={24}/&gt;&lt;/button&gt;` |
-| 663 | **Clickable Div/Span** | `&lt;div className="cursor-pointer flex-1" onClick={() =&gt; handleEditCartItem(idx)}&gt;` |
-| 673 | **Button** | `&lt;button onClick={() =&gt; removeFromCart(idx)} className="text-red-500 text-xs mt-1 hover:underline"&gt;Remover&lt;/button&gt;` |
-| 683 | **Input** | `&lt;input type="text" className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500 text-gray-900" pla...` |
-| 691 | **Input** | `&lt;input type="tel" className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500 text-gray-900" plac...` |
-| 695 | **Textarea** | `&lt;textarea className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500 text-gray-900" placeholder=...` |
-| 703 | **Input** | `&lt;input type="tel" className="w-full border border-gray-200 p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-orange-500 text-gray-900" plac...` |
-| 758 | **Button** | `&lt;button onClick={() =&gt; setPaymentMethod("online")} className={'flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod =...` |
-| 762 | **Button** | `&lt;button onClick={() =&gt; setPaymentMethod("card")} className={'flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod ===...` |
-| 766 | **Button** | `&lt;button onClick={() =&gt; setPaymentMethod("card")} className={'flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod ===...` |
-| 770 | **Button** | `&lt;button onClick={() =&gt; setPaymentMethod("pix")} className={'flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod === ...` |
-| 773 | **Button** | `&lt;button onClick={() =&gt; setPaymentMethod("cash")} className={'flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${paymentMethod ===...` |
-| 798 | **Button** | `&lt;button onClick={() =&gt; setIsCartOpen(false)} className="flex-1 border border-gray-300 py-3 rounded-lg font-medium text-gray-700"&gt;Voltar&lt;/button&gt;` |
+| 139 | **Button** | `&lt;button onClick={() =&gt; setIsServiceOpen(true)} className="p-3 bg-gray-100 dark:bg-gray-800 rounded-2xl text-gray-600 dark:text-gray-400 active:scale-9...` |
+| 209 | **Button** | `&lt;button onClick={() =&gt; setIsCartOpen(false)} className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full"&gt;&lt;X size={24}/&gt;&lt;/button&gt;` |
+| 218 | **Button** | `&lt;button onClick={() =&gt; removeFromCart(i)} className="text-red-500 p-2"&gt;&lt;Trash2 size={20}/&gt;&lt;/button&gt;` |
 
 ## 📄 `components\menu\OrderStatusView.tsx`
 | Linha | Tipo | Snippet (Código) |
 | :---: | :--- | :--- |
-| 132 | **Input** | `&lt;input readOnly value={order.mp_qr_code} className="flex-1 bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-600 truncate" /&gt;` |
-| 133 | **Button** | `&lt;button onClick={copyToClipboard} className="bg-gray-900 text-white p-2 rounded-lg hover:bg-gray-800"&gt;&lt;Copy size={16} /&gt;&lt;/button&gt;` |
+| 123 | **Button** | `&lt;button onClick={onNewOrder} className="w-full py-5 rounded-2xl font-black uppercase text-xs tracking-widest text-white shadow-xl shadow-orange-900/20...` |
+
+## 📄 `components\menu\ProductModal.tsx`
+| Linha | Tipo | Snippet (Código) |
+| :---: | :--- | :--- |
+| 63 | **Button** | `&lt;button onClick={onClose} className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full backdrop-blur-md hover:bg-black/70 transition-colo...` |
 
 ## 📄 `components\menu\ServiceModal.tsx`
 | Linha | Tipo | Snippet (Código) |
@@ -394,7 +368,7 @@ Use-o para validar se todos os botões, links e inputs estão mapeados e funcion
 ## 📄 `components\menu\SplitBillModal.tsx`
 | Linha | Tipo | Snippet (Código) |
 | :---: | :--- | :--- |
-| 69 | **Button** | `&lt;button onClick={onClose} className="bg-gray-200 p-2 rounded-full hover:bg-gray-300 transition-colors"&gt;&lt;X size={20}/&gt;&lt;/button&gt;` |
+| 77 | **Button** | `&lt;button onClick={onClose} className="bg-gray-200 p-2 rounded-full hover:bg-gray-300 transition-colors"&gt;&lt;X size={20}/&gt;&lt;/button&gt;` |
 
 ## 📄 `components\menu\UpsellModal.tsx`
 | Linha | Tipo | Snippet (Código) |
@@ -416,11 +390,6 @@ Use-o para validar se todos os botões, links e inputs estão mapeados e funcion
 | Linha | Tipo | Snippet (Código) |
 | :---: | :--- | :--- |
 | 30 | **Button** | `&lt;button onClick={onClose} className="text-gray-400 hover:text-white transition-colors"&gt;` |
-
-## 📄 `components\waiter\BillAuditModal.tsx`
-| Linha | Tipo | Snippet (Código) |
-| :---: | :--- | :--- |
-| 117 | **Button** | `&lt;button onClick={onClose} className="text-orange-500 font-bold underline"&gt;Tentar novamente&lt;/button&gt;` |
 
 ## 📄 `components\waiter\ChangeCalculator.tsx`
 | Linha | Tipo | Snippet (Código) |

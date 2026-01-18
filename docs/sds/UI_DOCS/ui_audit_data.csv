@@ -1,0 +1,69 @@
+﻿Plataforma;Tela;Status;Criticidade;Caminho Doc;Caminho Fonte
+Web;AdminDashboardPage;🚨 CRÍTICO (FALHA);ALTA;../../../doctelas/web/AdminDashboardPage.md;frontend\src\app\admin\[slug]\dashboard\page.tsx
+Web;CounterPage;🚨 CRÍTICO (FALHA);ALTA;../../../doctelas/web/CounterPage.md;frontend\src\app\admin\[slug]\counter\page.tsx
+Web;KitchenPage;🚨 CRÍTICO (FALHA);ALTA;../../../doctelas/web/KitchenPage.md;frontend\src\app\admin\[slug]\kitchen\page.tsx
+Mobile;DriverDashboard;🚨 CRÍTICO (FALHA);ALTA;../../../doctelas/mobile/DriverDashboard.md;mobile\src\screens\driver\DriverDashboard.tsx
+Mobile;LoginScreen;🚨 CRÍTICO (FALHA);ALTA;../../../doctelas/mobile/LoginScreen.md;mobile\src\screens\auth\LoginScreen.tsx
+Mobile;OrderEntryScreen;🚨 CRÍTICO (FALHA);ALTA;../../../doctelas/mobile/OrderEntryScreen.md;mobile\src\screens\waiter\OrderEntryScreen.tsx
+Mobile;PaymentScreen;🚨 CRÍTICO (FALHA);ALTA;../../../doctelas/mobile/PaymentScreen.md;mobile\src\screens\waiter\PaymentScreen.tsx
+Mobile;WaiterDashboard;🚨 CRÍTICO (FALHA);ALTA;../../../doctelas/mobile/WaiterDashboard.md;mobile\src\screens\waiter\WaiterDashboard.tsx
+Web;AdminAuditPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminAuditPage.md;frontend\src\app\admin\[slug]\audit\page.tsx
+Web;AdminBillingPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminBillingPage.md;frontend\src\app\admin\[slug]\settings\billing\page.tsx
+Web;AdminCounterPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminCounterPage.md;frontend\src\app\admin\[slug]\counter\page.tsx
+Web;AdminDeliveryPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminDeliveryPage.md;frontend\src\app\admin\[slug]\delivery\page.tsx
+Web;AdminDriverPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminDriverPage.md;frontend\src\app\admin\[slug]\driver\page.tsx
+Web;AdminExpeditorPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminExpeditorPage.md;frontend\src\app\admin\[slug]\expeditor\page.tsx
+Web;AdminFeaturesPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminFeaturesPage.md;frontend\src\app\admin\[slug]\settings\features\page.tsx
+Web;AdminFinancialPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminFinancialPage.md;frontend\src\app\admin\[slug]\audit\financial\page.tsx
+Web;AdminForgotPasswordPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminForgotPasswordPage.md;frontend\src\app\admin\forgot-password\page.tsx
+Web;AdminFranchisePage;⚠️ Parcial;Normal;../../../doctelas/web/AdminFranchisePage.md;frontend\src\app\admin\[slug]\franchise\page.tsx
+Web;AdminHistoryPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminHistoryPage.md;frontend\src\app\admin\[slug]\dashboard\history\page.tsx
+Web;AdminInventoryPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminInventoryPage.md;frontend\src\app\admin\[slug]\inventory\page.tsx
+Web;AdminKitchenPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminKitchenPage.md;frontend\src\app\admin\[slug]\kitchen\page.tsx
+Web;AdminLoginPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminLoginPage.md;frontend\src\app\admin\login\page.tsx
+Web;AdminMarketingPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminMarketingPage.md;frontend\src\app\admin\[slug]\marketing\page.tsx
+Web;AdminMenuPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminMenuPage.md;frontend\src\app\admin\[slug]\menu\page.tsx
+Web;AdminOrdersPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminOrdersPage.md;frontend\src\app\admin\[slug]\waiter\orders\page.tsx
+Web;AdminProfilePage;⚠️ Parcial;Normal;../../../doctelas/web/AdminProfilePage.md;frontend\src\app\admin\[slug]\profile\page.tsx
+Web;AdminRegisterPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminRegisterPage.md;frontend\src\app\admin\register\page.tsx
+Web;AdminResetPasswordPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminResetPasswordPage.md;frontend\src\app\admin\reset-password\page.tsx
+Web;AdminSettingsPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminSettingsPage.md;frontend\src\app\admin\[slug]\settings\page.tsx
+Web;AdminSupportPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminSupportPage.md;frontend\src\app\admin\support\page.tsx
+Web;AdminTablesPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminTablesPage.md;frontend\src\app\admin\[slug]\tables\page.tsx
+Web;AdminTeamPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminTeamPage.md;frontend\src\app\admin\[slug]\team\page.tsx
+Web;AdminWaiterPage;⚠️ Parcial;Normal;../../../doctelas/web/AdminWaiterPage.md;frontend\src\app\admin\[slug]\waiter\page.tsx
+Web;AuditPage;⚠️ Parcial;Normal;../../../doctelas/web/AuditPage.md;frontend\src\app\admin\[slug]\audit\page.tsx
+Web;ClientMenuPage;⚠️ Parcial;Normal;../../../doctelas/web/ClientMenuPage.md;frontend\src\app\[slug]\menu\page.tsx
+Web;DashboardPage;⚠️ Parcial;Normal;../../../doctelas/web/DashboardPage.md;frontend\src\app\admin\[slug]\dashboard\page.tsx
+Web;DeliveryPage;⚠️ Parcial;Normal;../../../doctelas/web/DeliveryPage.md;frontend\src\app\admin\[slug]\delivery\page.tsx
+Web;DriverPage;⚠️ Parcial;Normal;../../../doctelas/web/DriverPage.md;frontend\src\app\admin\[slug]\driver\page.tsx
+Web;ExpeditorPage;⚠️ Parcial;Normal;../../../doctelas/web/ExpeditorPage.md;frontend\src\app\admin\[slug]\expeditor\page.tsx
+Web;FranchisePage;⚠️ Parcial;Normal;../../../doctelas/web/FranchisePage.md;frontend\src\app\admin\[slug]\franchise\page.tsx
+Web;InventoryPage;⚠️ Parcial;Normal;../../../doctelas/web/InventoryPage.md;frontend\src\app\admin\[slug]\inventory\page.tsx
+Web;KioskAttractScreen;⚠️ Parcial;Normal;../../../doctelas/web/KioskAttractScreen.md;frontend\src\app\[slug]\kiosk\page.tsx
+Web;LandingPage;⚠️ Parcial;Normal;../../../doctelas/web/LandingPage.md;frontend\src\app\page.tsx
+Web;LandingPagePage;⚠️ Parcial;Normal;../../../doctelas/web/LandingPagePage.md;frontend\src\app\page.tsx
+Web;LoginPage;⚠️ Parcial;Normal;../../../doctelas/web/LoginPage.md;frontend\src\app\admin\login\page.tsx
+Web;MarketingPage;⚠️ Parcial;Normal;../../../doctelas/web/MarketingPage.md;frontend\src\app\admin\[slug]\marketing\page.tsx
+Web;OfflinePage;⚠️ Parcial;Normal;../../../doctelas/web/OfflinePage.md;frontend\src\app\offline\page.tsx
+Web;OrdersPage;⚠️ Parcial;Normal;../../../doctelas/web/OrdersPage.md;frontend\src\app\admin\[slug]\waiter\orders\page.tsx
+Web;ProfilePage;⚠️ Parcial;Normal;../../../doctelas/web/ProfilePage.md;frontend\src\app\admin\[slug]\profile\page.tsx
+Web;PublicMonitorPage;⚠️ Parcial;Normal;../../../doctelas/web/PublicMonitorPage.md;frontend\src\app\[slug]\monitor\page.tsx
+Web;QuickPosPage;⚠️ Parcial;Normal;../../../doctelas/web/QuickPosPage.md;frontend\src\app\admin\[slug]\waiter\pos\quick\page.tsx
+Web;RegisterPage;⚠️ Parcial;Normal;../../../doctelas/web/RegisterPage.md;frontend\src\app\admin\register\page.tsx
+Web;SettingsPage;⚠️ Parcial;Normal;../../../doctelas/web/SettingsPage.md;frontend\src\app\admin\[slug]\settings\page.tsx
+Web;SupportPage;⚠️ Parcial;Normal;../../../doctelas/web/SupportPage.md;frontend\src\app\admin\support\page.tsx
+Web;TablesPage;⚠️ Parcial;Normal;../../../doctelas/web/TablesPage.md;frontend\src\app\admin\[slug]\tables\page.tsx
+Web;TeamPage;⚠️ Parcial;Normal;../../../doctelas/web/TeamPage.md;frontend\src\app\admin\[slug]\team\page.tsx
+Web;TrustCenterPage;⚠️ Parcial;Normal;../../../doctelas/web/TrustCenterPage.md;frontend\src\app\trust\page.tsx
+Web;WaiterPage;⚠️ Parcial;Normal;../../../doctelas/web/WaiterPage.md;frontend\src\app\admin\[slug]\waiter\page.tsx
+Web;WaiterPosPage;⚠️ Parcial;Normal;../../../doctelas/web/WaiterPosPage.md;frontend\src\app\admin\[slug]\waiter\pos\[tableId]\page.tsx
+Web;[tableid]Page;⚠️ Parcial;Normal;../../../doctelas/web/[tableid]Page.md;frontend\src\app\admin\[slug]\waiter\pos\[tableId]\page.tsx
+Mobile;HomeScreen;⚠️ Parcial;Normal;../../../doctelas/mobile/HomeScreen.md;mobile\src\screens\app\HomeScreen.tsx
+Mobile;KitchenDashboard;⚠️ Parcial;Normal;../../../doctelas/mobile/KitchenDashboard.md;mobile\src\screens\kitchen\KitchenDashboard.tsx
+Mobile;LoadingScreen;⚠️ Parcial;Normal;../../../doctelas/mobile/LoadingScreen.md;mobile\src\screens\common\LoadingScreen.tsx
+Mobile;OrderReviewScreen;⚠️ Parcial;Normal;../../../doctelas/mobile/OrderReviewScreen.md;mobile\src\screens\waiter\OrderReviewScreen.tsx
+Mobile;OrdersScreen;⚠️ Parcial;Normal;../../../doctelas/mobile/OrdersScreen.md;mobile\src\screens\orders\OrdersScreen.tsx
+Mobile;PrinterDebugScreen;⚠️ Parcial;Normal;../../../doctelas/mobile/PrinterDebugScreen.md;mobile\src\screens\waiter\PrinterDebugScreen.tsx
+Mobile;WaiterCallsScreen;⚠️ Parcial;Normal;../../../doctelas/mobile/WaiterCallsScreen.md;mobile\src\screens\waiter\WaiterCallsScreen.tsx
+Mobile;WaiterTablesScreen;⚠️ Parcial;Normal;../../../doctelas/mobile/WaiterTablesScreen.md;mobile\src\screens\waiter\WaiterTablesScreen.tsx

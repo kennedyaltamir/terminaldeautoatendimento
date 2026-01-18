@@ -1,7 +1,5 @@
-
 # DOMAIN: BACKEND
-# LAST_MODIFIED: 2026-01-13 12:15:00
-
+# LAST_MODIFIED: 2026-01-16 13:15:00
 from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional, Any
 from datetime import time, datetime
@@ -9,7 +7,7 @@ from app.schemas.core import Monetary, OptionalMonetary
 
 class CompanyPublic(BaseModel):
     name: str
-    slug: str  # <--- CAMPO ADICIONADO
+    slug: str
     is_active: bool
     logo_url: Optional[str] = None
     primary_color: str = "#ea580c"
@@ -48,6 +46,8 @@ class CompanyAdminSettings(CompanyPublic):
     whatsapp_instance: Optional[str] = None
     whatsapp_token: Optional[str] = None
     ifood_merchant_id: Optional[str] = None
+    # Kiosk Settings
+    kiosk_password_set: bool = False # Retorna true se houver senha configurada, sem retornar o hash
     model_config = ConfigDict(from_attributes=True)
 
 class CompanyUpdate(BaseModel):
@@ -79,4 +79,9 @@ class CompanyUpdate(BaseModel):
     fixed_delivery_fee: OptionalMonetary = None
     ifood_merchant_id: Optional[str] = None
     ifood_token: Optional[str] = None
+    # Kiosk Update
+    kiosk_password: Optional[str] = None # Plain text para update
+
+class KioskValidationRequest(BaseModel):
+    password: str
 

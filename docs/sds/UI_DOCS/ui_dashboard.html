@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MesaFlow UI Governance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'base' });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .mermaid { display: flex; justify-content: center; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans p-6">
+    <div class="max-w-7xl mx-auto space-y-6">
+        <header class="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div>
+                <h1 class="text-2xl font-black text-slate-900">MesaFlow UI Governance <span class="text-orange-600">v3.4</span></h1>
+                <p class="text-slate-500 text-sm">Actionable Intelligence • 16/01/2026 06:45</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="exportFilteredCSV()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2">
+                    Exportar CSV
+                </button>
+            </div>
+        </header>
+
+        <!-- KPIs -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <p class="text-xs font-bold text-slate-400 uppercase">Cobertura Ponderada</p>
+                <p class="text-4xl font-black text-yellow-500">35.7%</p>
+                <p class="text-xs text-slate-400 mt-1">Simples: 0.0%</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <p class="text-xs font-bold text-slate-400 uppercase">Falhas Críticas</p>
+                <p class="text-4xl font-black text-red-500">8</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <p class="text-xs font-bold text-slate-400 uppercase">Fantasmas (Ghosts)</p>
+                <p class="text-4xl font-black text-slate-400">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <p class="text-xs font-bold text-slate-400 uppercase">Fluxos Quebrados</p>
+                <p class="text-4xl font-black text-orange-500">0</p>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="font-bold text-lg mb-4">Tendência de Qualidade</h2>
+                <canvas id="trendChart" height="100"></canvas>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="font-bold text-lg mb-4">Distribuição de Status</h2>
+                <canvas id="statusChart" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Filters & Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-100 bg-slate-50 flex flex-wrap gap-4 items-center">
+                <input type="text" id="search" placeholder="Buscar tela..." class="px-4 py-2 rounded-lg border border-slate-300 text-sm w-64" onkeyup="applyFilters()">
+                
+                <select id="filterPlatform" class="px-4 py-2 rounded-lg border border-slate-300 text-sm" onchange="applyFilters()">
+                    <option value="all">Todas Plataformas</option>
+                    <option value="Web">Web</option>
+                    <option value="Mobile">Mobile</option>
+                </select>
+
+                <select id="filterStatus" class="px-4 py-2 rounded-lg border border-slate-300 text-sm" onchange="applyFilters()">
+                    <option value="all">Todos Status</option>
+                    <option value="CRÍTICO">🚨 Crítico</option>
+                    <option value="GHOST">👻 Ghost</option>
+                    <option value="Completo">✅ Completo</option>
+                    <option value="Parcial">⚠️ Parcial</option>
+                </select>
+                
+                <label class="flex items-center gap-2 text-sm font-bold text-slate-600 cursor-pointer">
+                    <input type="checkbox" id="filterCritical" onchange="applyFilters()" class="w-4 h-4 rounded text-orange-600">
+                    Apenas Críticos
+                </label>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm" id="uiTable">
+                    <thead class="bg-slate-100 text-slate-500 uppercase font-bold text-xs">
+                        <tr>
+                            <th class="p-4">Plataforma</th>
+                            <th class="p-4">Tela</th>
+                            <th class="p-4">Status</th>
+                            <th class="p-4">Criticidade</th>
+                            <th class="p-4">Código Fonte</th>
+                            <th class="p-4">Melhorias</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100" id="tableBody">
+                        <!-- JS Populated -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Mermaid -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <h2 class="text-xl font-bold mb-4">Mapa de Navegação</h2>
+            <div class="mermaid">
+                graph TD
+    classDef web fill:#e0f2fe,stroke:#0284c7,stroke-width:2px;
+    classDef mobile fill:#fef3c7,stroke:#d97706,stroke-width:2px;
+    classDef critical stroke:#ef4444,stroke-width:4px;
+    classDef ghost stroke:#9ca3af,stroke-dasharray: 5 5,fill:#f3f4f6;
+    AdminDashboardPage["❌ AdminDashboardPage"]:::web,critical
+    CounterPage["❌ CounterPage"]:::web,critical
+    KitchenPage["❌ KitchenPage"]:::web,critical
+    DriverDashboard["❌ DriverDashboard"]:::mobile,critical
+    LoginScreen["❌ LoginScreen"]:::mobile,critical
+    OrderEntryScreen["❌ OrderEntryScreen"]:::mobile,critical
+    PaymentScreen["❌ PaymentScreen"]:::mobile,critical
+    WaiterDashboard["❌ WaiterDashboard"]:::mobile,critical
+    AdminAuditPage["⚠️ AdminAuditPage"]:::web
+    AdminBillingPage["⚠️ AdminBillingPage"]:::web
+    AdminCounterPage["⚠️ AdminCounterPage"]:::web
+    AdminDeliveryPage["⚠️ AdminDeliveryPage"]:::web
+    AdminDriverPage["⚠️ AdminDriverPage"]:::web
+    AdminExpeditorPage["⚠️ AdminExpeditorPage"]:::web
+    AdminFeaturesPage["⚠️ AdminFeaturesPage"]:::web
+    AdminFinancialPage["⚠️ AdminFinancialPage"]:::web
+    AdminForgotPasswordPage["⚠️ AdminForgotPasswordPage"]:::web
+    AdminFranchisePage["⚠️ AdminFranchisePage"]:::web
+    AdminHistoryPage["⚠️ AdminHistoryPage"]:::web
+    AdminInventoryPage["⚠️ AdminInventoryPage"]:::web
+    AdminKitchenPage["⚠️ AdminKitchenPage"]:::web
+    AdminLoginPage["⚠️ AdminLoginPage"]:::web
+    AdminMarketingPage["⚠️ AdminMarketingPage"]:::web
+    AdminMenuPage["⚠️ AdminMenuPage"]:::web
+    AdminOrdersPage["⚠️ AdminOrdersPage"]:::web
+    AdminProfilePage["⚠️ AdminProfilePage"]:::web
+    AdminRegisterPage["⚠️ AdminRegisterPage"]:::web
+    AdminResetPasswordPage["⚠️ AdminResetPasswordPage"]:::web
+    AdminSettingsPage["⚠️ AdminSettingsPage"]:::web
+    AdminSupportPage["⚠️ AdminSupportPage"]:::web
+    AdminTablesPage["⚠️ AdminTablesPage"]:::web
+    AdminTeamPage["⚠️ AdminTeamPage"]:::web
+    AdminWaiterPage["⚠️ AdminWaiterPage"]:::web
+    AuditPage["⚠️ AuditPage"]:::web
+    ClientMenuPage["⚠️ ClientMenuPage"]:::web
+    DashboardPage["⚠️ DashboardPage"]:::web
+    DeliveryPage["⚠️ DeliveryPage"]:::web
+    DriverPage["⚠️ DriverPage"]:::web
+    ExpeditorPage["⚠️ ExpeditorPage"]:::web
+    FranchisePage["⚠️ FranchisePage"]:::web
+    InventoryPage["⚠️ InventoryPage"]:::web
+    KioskAttractScreen["⚠️ KioskAttractScreen"]:::web
+    LandingPage["⚠️ LandingPage"]:::web
+    LandingPagePage["⚠️ LandingPagePage"]:::web
+    LoginPage["⚠️ LoginPage"]:::web
+    MarketingPage["⚠️ MarketingPage"]:::web
+    OfflinePage["⚠️ OfflinePage"]:::web
+    OrdersPage["⚠️ OrdersPage"]:::web
+    ProfilePage["⚠️ ProfilePage"]:::web
+    PublicMonitorPage["⚠️ PublicMonitorPage"]:::web
+    QuickPosPage["⚠️ QuickPosPage"]:::web
+    RegisterPage["⚠️ RegisterPage"]:::web
+    SettingsPage["⚠️ SettingsPage"]:::web
+    SupportPage["⚠️ SupportPage"]:::web
+    TablesPage["⚠️ TablesPage"]:::web
+    TeamPage["⚠️ TeamPage"]:::web
+    TrustCenterPage["⚠️ TrustCenterPage"]:::web
+    WaiterPage["⚠️ WaiterPage"]:::web
+    WaiterPosPage["⚠️ WaiterPosPage"]:::web
+    [tableid]Page["⚠️ [tableid]Page"]:::web
+    HomeScreen["⚠️ HomeScreen"]:::mobile
+    KitchenDashboard["⚠️ KitchenDashboard"]:::mobile
+    LoadingScreen["⚠️ LoadingScreen"]:::mobile
+    OrderReviewScreen["⚠️ OrderReviewScreen"]:::mobile
+    OrdersScreen["⚠️ OrdersScreen"]:::mobile
+    PrinterDebugScreen["⚠️ PrinterDebugScreen"]:::mobile
+    WaiterCallsScreen["⚠️ WaiterCallsScreen"]:::mobile
+    WaiterTablesScreen["⚠️ WaiterTablesScreen"]:::mobile
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const screens = [{"name": "AdminDashboardPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminDashboardPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\dashboard\\page.tsx", "status": "\ud83d\udea8 CR\u00cdTICO (FALHA)", "score": -50, "weight": 3, "is_critical": true, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "CounterPage", "platform": "Web", "doc_path": "../../../doctelas/web/CounterPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\counter\\page.tsx", "status": "\ud83d\udea8 CR\u00cdTICO (FALHA)", "score": -50, "weight": 3, "is_critical": true, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "KitchenPage", "platform": "Web", "doc_path": "../../../doctelas/web/KitchenPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\kitchen\\page.tsx", "status": "\ud83d\udea8 CR\u00cdTICO (FALHA)", "score": -50, "weight": 3, "is_critical": true, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "DriverDashboard", "platform": "Mobile", "doc_path": "../../../doctelas/mobile/DriverDashboard.md", "source_path": "mobile\\src\\screens\\driver\\DriverDashboard.tsx", "status": "\ud83d\udea8 CR\u00cdTICO (FALHA)", "score": -50, "weight": 3, "is_critical": true, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "LoginScreen", "platform": "Mobile", "doc_path": "../../../doctelas/mobile/LoginScreen.md", "source_path": "mobile\\src\\screens\\auth\\LoginScreen.tsx", "status": "\ud83d\udea8 CR\u00cdTICO (FALHA)", "score": -50, "weight": 3, "is_critical": true, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "OrderEntryScreen", "platform": "Mobile", "doc_path": "../../../doctelas/mobile/OrderEntryScreen.md", "source_path": "mobile\\src\\screens\\waiter\\OrderEntryScreen.tsx", "status": "\ud83d\udea8 CR\u00cdTICO (FALHA)", "score": -50, "weight": 3, "is_critical": true, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "PaymentScreen", "platform": "Mobile", "doc_path": "../../../doctelas/mobile/PaymentScreen.md", "source_path": "mobile\\src\\screens\\waiter\\PaymentScreen.tsx", "status": "\ud83d\udea8 CR\u00cdTICO (FALHA)", "score": -50, "weight": 3, "is_critical": true, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "WaiterDashboard", "platform": "Mobile", "doc_path": "../../../doctelas/mobile/WaiterDashboard.md", "source_path": "mobile\\src\\screens\\waiter\\WaiterDashboard.tsx", "status": "\ud83d\udea8 CR\u00cdTICO (FALHA)", "score": -50, "weight": 3, "is_critical": true, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminAuditPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminAuditPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\audit\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminBillingPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminBillingPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\settings\\billing\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminCounterPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminCounterPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\counter\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminDeliveryPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminDeliveryPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\delivery\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminDriverPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminDriverPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\driver\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminExpeditorPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminExpeditorPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\expeditor\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminFeaturesPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminFeaturesPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\settings\\features\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminFinancialPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminFinancialPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\audit\\financial\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminForgotPasswordPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminForgotPasswordPage.md", "source_path": "frontend\\src\\app\\admin\\forgot-password\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminFranchisePage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminFranchisePage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\franchise\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminHistoryPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminHistoryPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\dashboard\\history\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminInventoryPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminInventoryPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\inventory\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminKitchenPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminKitchenPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\kitchen\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminLoginPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminLoginPage.md", "source_path": "frontend\\src\\app\\admin\\login\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminMarketingPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminMarketingPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\marketing\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminMenuPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminMenuPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\menu\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminOrdersPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminOrdersPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\waiter\\orders\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminProfilePage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminProfilePage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\profile\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminRegisterPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminRegisterPage.md", "source_path": "frontend\\src\\app\\admin\\register\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminResetPasswordPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminResetPasswordPage.md", "source_path": "frontend\\src\\app\\admin\\reset-password\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminSettingsPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminSettingsPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\settings\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminSupportPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminSupportPage.md", "source_path": "frontend\\src\\app\\admin\\support\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminTablesPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminTablesPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\tables\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminTeamPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminTeamPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\team\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AdminWaiterPage", "platform": "Web", "doc_path": "../../../doctelas/web/AdminWaiterPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\waiter\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "AuditPage", "platform": "Web", "doc_path": "../../../doctelas/web/AuditPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\audit\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "ClientMenuPage", "platform": "Web", "doc_path": "../../../doctelas/web/ClientMenuPage.md", "source_path": "frontend\\src\\app\\[slug]\\menu\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "DashboardPage", "platform": "Web", "doc_path": "../../../doctelas/web/DashboardPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\dashboard\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "DeliveryPage", "platform": "Web", "doc_path": "../../../doctelas/web/DeliveryPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\delivery\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "DriverPage", "platform": "Web", "doc_path": "../../../doctelas/web/DriverPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\driver\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "ExpeditorPage", "platform": "Web", "doc_path": "../../../doctelas/web/ExpeditorPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\expeditor\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "FranchisePage", "platform": "Web", "doc_path": "../../../doctelas/web/FranchisePage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\franchise\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "InventoryPage", "platform": "Web", "doc_path": "../../../doctelas/web/InventoryPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\inventory\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "KioskAttractScreen", "platform": "Web", "doc_path": "../../../doctelas/web/KioskAttractScreen.md", "source_path": "frontend\\src\\app\\[slug]\\kiosk\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "LandingPage", "platform": "Web", "doc_path": "../../../doctelas/web/LandingPage.md", "source_path": "frontend\\src\\app\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "LandingPagePage", "platform": "Web", "doc_path": "../../../doctelas/web/LandingPagePage.md", "source_path": "frontend\\src\\app\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "LoginPage", "platform": "Web", "doc_path": "../../../doctelas/web/LoginPage.md", "source_path": "frontend\\src\\app\\admin\\login\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "MarketingPage", "platform": "Web", "doc_path": "../../../doctelas/web/MarketingPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\marketing\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "OfflinePage", "platform": "Web", "doc_path": "../../../doctelas/web/OfflinePage.md", "source_path": "frontend\\src\\app\\offline\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "OrdersPage", "platform": "Web", "doc_path": "../../../doctelas/web/OrdersPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\waiter\\orders\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "ProfilePage", "platform": "Web", "doc_path": "../../../doctelas/web/ProfilePage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\profile\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "PublicMonitorPage", "platform": "Web", "doc_path": "../../../doctelas/web/PublicMonitorPage.md", "source_path": "frontend\\src\\app\\[slug]\\monitor\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "QuickPosPage", "platform": "Web", "doc_path": "../../../doctelas/web/QuickPosPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\waiter\\pos\\quick\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "RegisterPage", "platform": "Web", "doc_path": "../../../doctelas/web/RegisterPage.md", "source_path": "frontend\\src\\app\\admin\\register\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "SettingsPage", "platform": "Web", "doc_path": "../../../doctelas/web/SettingsPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\settings\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "SupportPage", "platform": "Web", "doc_path": "../../../doctelas/web/SupportPage.md", "source_path": "frontend\\src\\app\\admin\\support\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "TablesPage", "platform": "Web", "doc_path": "../../../doctelas/web/TablesPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\tables\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "TeamPage", "platform": "Web", "doc_path": "../../../doctelas/web/TeamPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\team\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "TrustCenterPage", "platform": "Web", "doc_path": "../../../doctelas/web/TrustCenterPage.md", "source_path": "frontend\\src\\app\\trust\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "WaiterPage", "platform": "Web", "doc_path": "../../../doctelas/web/WaiterPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\waiter\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "WaiterPosPage", "platform": "Web", "doc_path": "../../../doctelas/web/WaiterPosPage.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\waiter\\pos\\[tableId]\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "[tableid]Page", "platform": "Web", "doc_path": "../../../doctelas/web/[tableid]Page.md", "source_path": "frontend\\src\\app\\admin\\[slug]\\waiter\\pos\\[tableId]\\page.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "HomeScreen", "platform": "Mobile", "doc_path": "../../../doctelas/mobile/HomeScreen.md", "source_path": "mobile\\src\\screens\\app\\HomeScreen.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "KitchenDashboard", "platform": "Mobile", "doc_path": "../../../doctelas/mobile/KitchenDashboard.md", "source_path": "mobile\\src\\screens\\kitchen\\KitchenDashboard.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "LoadingScreen", "platform": "Mobile", "doc_path": "../../../doctelas/mobile/LoadingScreen.md", "source_path": "mobile\\src\\screens\\common\\LoadingScreen.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "OrderReviewScreen", "platform": "Mobile", "doc_path": "../../../doctelas/mobile/OrderReviewScreen.md", "source_path": "mobile\\src\\screens\\waiter\\OrderReviewScreen.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "OrdersScreen", "platform": "Mobile", "doc_path": "../../../doctelas/mobile/OrdersScreen.md", "source_path": "mobile\\src\\screens\\orders\\OrdersScreen.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "PrinterDebugScreen", "platform": "Mobile", "doc_path": "../../../doctelas/mobile/PrinterDebugScreen.md", "source_path": "mobile\\src\\screens\\waiter\\PrinterDebugScreen.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "WaiterCallsScreen", "platform": "Mobile", "doc_path": "../../../doctelas/mobile/WaiterCallsScreen.md", "source_path": "mobile\\src\\screens\\waiter\\WaiterCallsScreen.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}, {"name": "WaiterTablesScreen", "platform": "Mobile", "doc_path": "../../../doctelas/mobile/WaiterTablesScreen.md", "source_path": "mobile\\src\\screens\\waiter\\WaiterTablesScreen.tsx", "status": "\u26a0\ufe0f Parcial", "score": 50, "weight": 1, "is_critical": false, "improvements": [], "flows": [], "physical_exists": true, "broken_flows": [], "valid_flows": []}];
+        const historyData = [{"date": "2026-01-16", "timestamp": 1768556723.840587, "coverage": 0.0, "weighted_coverage": 35.714285714285715, "critical_fails": 8, "ghosts": 0, "broken_flows": 0}];
+        let currentFilteredData = [...screens];
+
+        // 1. Render Charts
+        const ctxTrend = document.getElementById('trendChart').getContext('2d');
+        new Chart(ctxTrend, {
+            type: 'line',
+            data: {
+                labels: historyData.map(h => h.date),
+                datasets: [
+                    {
+                        label: 'Cobertura Ponderada (%)',
+                        data: historyData.map(h => h.weighted_coverage),
+                        borderColor: '#10b981',
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Falhas Críticas',
+                        data: historyData.map(h => h.critical_fails),
+                        borderColor: '#ef4444',
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Fantasmas',
+                        data: historyData.map(h => h.ghosts),
+                        borderColor: '#94a3b8',
+                        borderDash: [5, 5],
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: { responsive: true }
+        });
+
+        const statusCounts = {
+            'Completo': screens.filter(s => s.status.includes('Completo')).length,
+            'Parcial': screens.filter(s => s.status.includes('Parcial')).length,
+            'Crítico': screens.filter(s => s.status.includes('CRÍTICO')).length,
+            'Ghost': screens.filter(s => s.status.includes('GHOST')).length,
+            'Incompleto': screens.filter(s => s.status.includes('Incompleto')).length
+        };
+
+        const ctxStatus = document.getElementById('statusChart').getContext('2d');
+        new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusCounts),
+                datasets: [{
+                    data: Object.values(statusCounts),
+                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#94a3b8', '#ef4444']
+                }]
+            }
+        });
+
+        // 2. Render Table
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = data.map(s => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-4"><span class="px-2 py-1 rounded-full text-xs font-bold ${ 'Web': 'bg-blue-100 text-blue-700', 'Mobile': 'bg-orange-100 text-orange-700' }[s.platform]">${s.platform}</span></td>
+                    <td class="p-4 font-bold text-slate-900"><a href="${s.doc_path}" class="hover:underline">${s.name}</a></td>
+                    <td class="p-4">${s.status}</td>
+                    <td class="p-4">${ s.is_critical ? '<span class="text-red-600 font-bold">ALTA</span>' : 'Normal' }</td>
+                    <td class="p-4 font-mono text-xs text-slate-500">${s.source_path}</td>
+                    <td class="p-4 text-xs">${ s.improvements.slice(0,2).join('<br>') }</td>
+                </tr>
+            `).join('');
+        }
+
+        // 3. Filters
+        function applyFilters() {
+            const search = document.getElementById('search').value.toLowerCase();
+            const platform = document.getElementById('filterPlatform').value;
+            const status = document.getElementById('filterStatus').value;
+            const criticalOnly = document.getElementById('filterCritical').checked;
+
+            currentFilteredData = screens.filter(s => {
+                const matchSearch = s.name.toLowerCase().includes(search);
+                const matchPlatform = platform === 'all' || s.platform === platform;
+                const matchStatus = status === 'all' || s.status.includes(status);
+                const matchCritical = !criticalOnly || s.is_critical;
+                return matchSearch && matchPlatform && matchStatus && matchCritical;
+            });
+            renderTable(currentFilteredData);
+        }
+
+        // 4. Export CSV (Client-Side)
+        function exportFilteredCSV() {
+            const headers = ["Plataforma", "Tela", "Status", "Criticidade", "Caminho Fonte", "Melhorias"];
+            const rows = currentFilteredData.map(s => [
+                s.platform,
+                s.name,
+                s.status,
+                s.is_critical ? "ALTA" : "Normal",
+                s.source_path,
+                s.improvements.join(" | ").replace(/\n/g, " ")
+            ]);
+
+            const csvContent = [
+                headers.join(";"),
+                ...rows.map(e => e.join(";"))
+            ].join("\n");
+
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "ui_audit_export.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Init
+        renderTable(screens);
+    </script>
+</body>
+</html>

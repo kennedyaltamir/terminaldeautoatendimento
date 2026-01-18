@@ -18,7 +18,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Carregar do LocalStorage na montagem
   useEffect(() => {
     const savedCart = localStorage.getItem("mesaflow_cart");
     if (savedCart) {
@@ -31,7 +30,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setIsLoaded(true);
   }, []);
 
-  // Salvar no LocalStorage sempre que mudar
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem("mesaflow_cart", JSON.stringify(items));
@@ -56,8 +54,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => setItems([]);
 
-  // Cálculo do total em centavos (Inteiros)
-  // Assumindo que product.price e option.price JÁ VÊM da API em centavos.
   const total = items.reduce((acc, item) => {
     const productPrice = Number(item.product.price);
     const optionsTotal = item.selectedOptions.reduce((sum, opt) => sum + Number(opt.price), 0);

@@ -48,12 +48,12 @@ IGNORE_PATTERNS = {
     "atualizar.log", "copy", ".temp_diff", "ignorar", "backups",
     "kernel_journal.jsonl", "structure_audit.txt", "estrutura_atual.txt",
     ".png", ".jpg", ".jpeg", ".gif", ".ico", ".svg", ".webp", ".mp4", ".webm",
-        ".mp3", ".wav", ".mp4", ".mov", ".jar","scripts"
+        ".mp3", ".wav", ".mp4", ".mov", ".jar", ".probe",
 
     ".pdf", ".zip", ".tar", ".gz", ".rar", ".7z", ".exe", ".dll", ".so",
     ".apk", ".aab", ".keystore", ".jks", ".ttf", ".otf", ".woff", ".woff2",
     "cpp.o", ".dir", ".mako", ".template", ".keep", ".ps1", ".sh",
-    ".bak", ".tmp", ".log", ".patch", ".class", ".java",".bin" ".lock"
+    ".bak", ".tmp", ".log", ".patch", ".class", ".java",".bin", ".lock"
 }
 
 IGNORE_PATHS = [

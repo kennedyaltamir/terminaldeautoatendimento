@@ -1,0 +1,555 @@
+{
+  "platforms": [
+    "web",
+    "mobile"
+  ],
+  "critical_patterns": [
+    "Dashboard",
+    "Checkout",
+    "Payment",
+    "Login",
+    "Kitchen",
+    "Waiter",
+    "Driver"
+  ],
+  "screens": {
+    "web": [
+      {
+        "file_name": "AdminAuditFinancialPage.md",
+        "relative_path": "web\\AdminAuditFinancialPage.md",
+        "is_critical": false,
+        "last_modified": 1768569366.6492937
+      },
+      {
+        "file_name": "AdminAuditPage.md",
+        "relative_path": "web\\AdminAuditPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.150536
+      },
+      {
+        "file_name": "AdminBillingPage.md",
+        "relative_path": "web\\AdminBillingPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1779587
+      },
+      {
+        "file_name": "AdminCounterPage.md",
+        "relative_path": "web\\AdminCounterPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.150536
+      },
+      {
+        "file_name": "AdminDashboardHistoryPage.md",
+        "relative_path": "web\\AdminDashboardHistoryPage.md",
+        "is_critical": true,
+        "last_modified": 1768570070.5769625
+      },
+      {
+        "file_name": "AdminDashboardPage.md",
+        "relative_path": "web\\AdminDashboardPage.md",
+        "is_critical": true,
+        "last_modified": 1768734799.151537
+      },
+      {
+        "file_name": "AdminDeliveryPage.md",
+        "relative_path": "web\\AdminDeliveryPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1525369
+      },
+      {
+        "file_name": "AdminDriverPage.md",
+        "relative_path": "web\\AdminDriverPage.md",
+        "is_critical": true,
+        "last_modified": 1768734799.1525369
+      },
+      {
+        "file_name": "AdminExpeditorPage.md",
+        "relative_path": "web\\AdminExpeditorPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1535378
+      },
+      {
+        "file_name": "AdminFeaturesPage.md",
+        "relative_path": "web\\AdminFeaturesPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1789584
+      },
+      {
+        "file_name": "AdminFinancialPage.md",
+        "relative_path": "web\\AdminFinancialPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1868098
+      },
+      {
+        "file_name": "AdminForgotPasswordPage.md",
+        "relative_path": "web\\AdminForgotPasswordPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1466763
+      },
+      {
+        "file_name": "AdminFranchisePage.md",
+        "relative_path": "web\\AdminFranchisePage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1535378
+      },
+      {
+        "file_name": "AdminHistoryPage.md",
+        "relative_path": "web\\AdminHistoryPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1868098
+      },
+      {
+        "file_name": "AdminInventoryPage.md",
+        "relative_path": "web\\AdminInventoryPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1555376
+      },
+      {
+        "file_name": "AdminKitchenPage.md",
+        "relative_path": "web\\AdminKitchenPage.md",
+        "is_critical": true,
+        "last_modified": 1768734799.1555376
+      },
+      {
+        "file_name": "AdminLoginPage.md",
+        "relative_path": "web\\AdminLoginPage.md",
+        "is_critical": true,
+        "last_modified": 1768734799.147677
+      },
+      {
+        "file_name": "AdminMarketingPage.md",
+        "relative_path": "web\\AdminMarketingPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1565366
+      },
+      {
+        "file_name": "AdminMenuPage.md",
+        "relative_path": "web\\AdminMenuPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1625373
+      },
+      {
+        "file_name": "AdminOrdersPage.md",
+        "relative_path": "web\\AdminOrdersPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1659596
+      },
+      {
+        "file_name": "AdminPaymentCallbackPage.md",
+        "relative_path": "web\\AdminPaymentCallbackPage.md",
+        "is_critical": true,
+        "last_modified": 1768568432.2366877
+      },
+      {
+        "file_name": "AdminProfilePage.md",
+        "relative_path": "web\\AdminProfilePage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.163536
+      },
+      {
+        "file_name": "AdminRegisterPage.md",
+        "relative_path": "web\\AdminRegisterPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1482587
+      },
+      {
+        "file_name": "AdminResetPasswordPage.md",
+        "relative_path": "web\\AdminResetPasswordPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1482587
+      },
+      {
+        "file_name": "AdminSettingsBillingPage.md",
+        "relative_path": "web\\AdminSettingsBillingPage.md",
+        "is_critical": false,
+        "last_modified": 1768570124.9374945
+      },
+      {
+        "file_name": "AdminSettingsFeaturesPage.md",
+        "relative_path": "web\\AdminSettingsFeaturesPage.md",
+        "is_critical": false,
+        "last_modified": 1768569393.092725
+      },
+      {
+        "file_name": "AdminSettingsPage.md",
+        "relative_path": "web\\AdminSettingsPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.163536
+      },
+      {
+        "file_name": "AdminSupportPage.md",
+        "relative_path": "web\\AdminSupportPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1495368
+      },
+      {
+        "file_name": "AdminTablesPage.md",
+        "relative_path": "web\\AdminTablesPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1645367
+      },
+      {
+        "file_name": "AdminTeamPage.md",
+        "relative_path": "web\\AdminTeamPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1649382
+      },
+      {
+        "file_name": "AdminWaiterOrdersPage.md",
+        "relative_path": "web\\AdminWaiterOrdersPage.md",
+        "is_critical": true,
+        "last_modified": 1768568596.8694773
+      },
+      {
+        "file_name": "AdminWaiterPage.md",
+        "relative_path": "web\\AdminWaiterPage.md",
+        "is_critical": true,
+        "last_modified": 1768734799.1659596
+      },
+      {
+        "file_name": "AdminWaiterPosPage.md",
+        "relative_path": "web\\AdminWaiterPosPage.md",
+        "is_critical": true,
+        "last_modified": 1768570084.9970198
+      },
+      {
+        "file_name": "AuditPage.md",
+        "relative_path": "web\\AuditPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.0019083
+      },
+      {
+        "file_name": "CheckoutPage.md",
+        "relative_path": "web\\CheckoutPage.md",
+        "is_critical": true,
+        "last_modified": 1768734799.1209452
+      },
+      {
+        "file_name": "ClientMenuPage.md",
+        "relative_path": "web\\ClientMenuPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1289456
+      },
+      {
+        "file_name": "CounterPage.md",
+        "relative_path": "web\\CounterPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.002915
+      },
+      {
+        "file_name": "DashboardPage.md",
+        "relative_path": "web\\DashboardPage.md",
+        "is_critical": true,
+        "last_modified": 1768734799.002915
+      },
+      {
+        "file_name": "DeliveryPage.md",
+        "relative_path": "web\\DeliveryPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.002915
+      },
+      {
+        "file_name": "DriverPage.md",
+        "relative_path": "web\\DriverPage.md",
+        "is_critical": true,
+        "last_modified": 1768734799.0039144
+      },
+      {
+        "file_name": "ExpeditorPage.md",
+        "relative_path": "web\\ExpeditorPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.0039144
+      },
+      {
+        "file_name": "FeaturesBetaPage.md",
+        "relative_path": "web\\FeaturesBetaPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.0082836
+      },
+      {
+        "file_name": "FinancialAuditPage.md",
+        "relative_path": "web\\FinancialAuditPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.0092876
+      },
+      {
+        "file_name": "ForgotPasswordPage.md",
+        "relative_path": "web\\ForgotPasswordPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.0011728
+      },
+      {
+        "file_name": "FranchisePage.md",
+        "relative_path": "web\\FranchisePage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.0039144
+      },
+      {
+        "file_name": "InventoryPage.md",
+        "relative_path": "web\\InventoryPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.004914
+      },
+      {
+        "file_name": "KioskAttractScreen.md",
+        "relative_path": "web\\KioskAttractScreen.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1289456
+      },
+      {
+        "file_name": "KitchenPage.md",
+        "relative_path": "web\\KitchenPage.md",
+        "is_critical": true,
+        "last_modified": 1768734799.004914
+      },
+      {
+        "file_name": "LandingPage.md",
+        "relative_path": "web\\LandingPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1019468
+      },
+      {
+        "file_name": "LoginPage.md",
+        "relative_path": "web\\LoginPage.md",
+        "is_critical": true,
+        "last_modified": 1768734799.0011728
+      },
+      {
+        "file_name": "MarketingPage.md",
+        "relative_path": "web\\MarketingPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.004914
+      },
+      {
+        "file_name": "OfflinePage.md",
+        "relative_path": "web\\OfflinePage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1079464
+      },
+      {
+        "file_name": "PaymentCallbackPage.md",
+        "relative_path": "web\\PaymentCallbackPage.md",
+        "is_critical": true,
+        "last_modified": 1768734799.0092876
+      },
+      {
+        "file_name": "ProfilePage.md",
+        "relative_path": "web\\ProfilePage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.0059144
+      },
+      {
+        "file_name": "PublicMonitorPage.md",
+        "relative_path": "web\\PublicMonitorPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1346755
+      },
+      {
+        "file_name": "QuickPosPage.md",
+        "relative_path": "web\\QuickPosPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.1729584
+      },
+      {
+        "file_name": "RegisterPage.md",
+        "relative_path": "web\\RegisterPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.0019083
+      },
+      {
+        "file_name": "ResetPasswordPage.md",
+        "relative_path": "web\\ResetPasswordPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.0019083
+      },
+      {
+        "file_name": "SettingsPage.md",
+        "relative_path": "web\\SettingsPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.0059144
+      },
+      {
+        "file_name": "SupportPage.md",
+        "relative_path": "web\\SupportPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.0019083
+      },
+      {
+        "file_name": "TablesPage.md",
+        "relative_path": "web\\TablesPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.0069144
+      },
+      {
+        "file_name": "TeamPage.md",
+        "relative_path": "web\\TeamPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.0069144
+      },
+      {
+        "file_name": "TrustCenterPage.md",
+        "relative_path": "web\\TrustCenterPage.md",
+        "is_critical": false,
+        "last_modified": 1768734799.115947
+      },
+      {
+        "file_name": "TrustSecurityPage.md",
+        "relative_path": "web\\TrustSecurityPage.md",
+        "is_critical": false,
+        "last_modified": 1768569006.9652042
+      },
+      {
+        "file_name": "TrustStatusPage.md",
+        "relative_path": "web\\TrustStatusPage.md",
+        "is_critical": false,
+        "last_modified": 1768570091.7846637
+      },
+      {
+        "file_name": "WaiterOrdersPage.md",
+        "relative_path": "web\\WaiterOrdersPage.md",
+        "is_critical": true,
+        "last_modified": 1768734799.0069144
+      },
+      {
+        "file_name": "WaiterPosPage.md",
+        "relative_path": "web\\WaiterPosPage.md",
+        "is_critical": true,
+        "last_modified": 1768734799.1769567
+      },
+      {
+        "file_name": "WaiterTablesPage.md",
+        "relative_path": "web\\WaiterTablesPage.md",
+        "is_critical": true,
+        "last_modified": 1768734799.0069144
+      }
+    ],
+    "mobile": [
+      {
+        "file_name": "AuthLoginscreen.md",
+        "relative_path": "mobile\\AuthLoginscreen.md",
+        "is_critical": true,
+        "last_modified": 1768568210.289505
+      },
+      {
+        "file_name": "DriverDashboard.md",
+        "relative_path": "mobile\\DriverDashboard.md",
+        "is_critical": true,
+        "last_modified": 1768734799.2064776
+      },
+      {
+        "file_name": "DriverdashboardScreen.md",
+        "relative_path": "mobile\\DriverdashboardScreen.md",
+        "is_critical": true,
+        "last_modified": 1768568437.1626394
+      },
+      {
+        "file_name": "HomeScreen.md",
+        "relative_path": "mobile\\HomeScreen.md",
+        "is_critical": false,
+        "last_modified": 1768734799.192808
+      },
+      {
+        "file_name": "KitchenDashboard.md",
+        "relative_path": "mobile\\KitchenDashboard.md",
+        "is_critical": true,
+        "last_modified": 1768734799.2104776
+      },
+      {
+        "file_name": "KitchendashboardScreen.md",
+        "relative_path": "mobile\\KitchendashboardScreen.md",
+        "is_critical": true,
+        "last_modified": 1768568606.4210095
+      },
+      {
+        "file_name": "LoadingScreen.md",
+        "relative_path": "mobile\\LoadingScreen.md",
+        "is_critical": false,
+        "last_modified": 1768734799.2024782
+      },
+      {
+        "file_name": "LoginScreen.md",
+        "relative_path": "mobile\\LoginScreen.md",
+        "is_critical": true,
+        "last_modified": 1768734799.1982355
+      },
+      {
+        "file_name": "OrderEntryScreen.md",
+        "relative_path": "mobile\\OrderEntryScreen.md",
+        "is_critical": false,
+        "last_modified": 1768734799.2191494
+      },
+      {
+        "file_name": "OrderReviewScreen.md",
+        "relative_path": "mobile\\OrderReviewScreen.md",
+        "is_critical": false,
+        "last_modified": 1768734799.2231495
+      },
+      {
+        "file_name": "OrdersScreen.md",
+        "relative_path": "mobile\\OrdersScreen.md",
+        "is_critical": false,
+        "last_modified": 1768734799.2148957
+      },
+      {
+        "file_name": "PaymentScreen.md",
+        "relative_path": "mobile\\PaymentScreen.md",
+        "is_critical": true,
+        "last_modified": 1768734799.227151
+      },
+      {
+        "file_name": "PrinterDebugScreen.md",
+        "relative_path": "mobile\\PrinterDebugScreen.md",
+        "is_critical": false,
+        "last_modified": 1768734799.2311516
+      },
+      {
+        "file_name": "WaitercallsScreen.md",
+        "relative_path": "mobile\\WaitercallsScreen.md",
+        "is_critical": true,
+        "last_modified": 1768734799.2358944
+      },
+      {
+        "file_name": "WaiterDashboard.md",
+        "relative_path": "mobile\\WaiterDashboard.md",
+        "is_critical": true,
+        "last_modified": 1768734799.2408955
+      },
+      {
+        "file_name": "WaiterdashboardScreen.md",
+        "relative_path": "mobile\\WaiterdashboardScreen.md",
+        "is_critical": true,
+        "last_modified": 1768568689.6565874
+      },
+      {
+        "file_name": "WaiterOrderentryscreen.md",
+        "relative_path": "mobile\\WaiterOrderentryscreen.md",
+        "is_critical": true,
+        "last_modified": 1768568215.7449222
+      },
+      {
+        "file_name": "WaiterOrderreviewScreen.md",
+        "relative_path": "mobile\\WaiterOrderreviewScreen.md",
+        "is_critical": true,
+        "last_modified": 1768568317.8364327
+      },
+      {
+        "file_name": "WaiterPaymentScreen.md",
+        "relative_path": "mobile\\WaiterPaymentScreen.md",
+        "is_critical": true,
+        "last_modified": 1768570109.6419184
+      },
+      {
+        "file_name": "WaiterPrinterdebugScreen.md",
+        "relative_path": "mobile\\WaiterPrinterdebugScreen.md",
+        "is_critical": true,
+        "last_modified": 1768568323.1962676
+      },
+      {
+        "file_name": "Waitertablesscreen.md",
+        "relative_path": "mobile\\Waitertablesscreen.md",
+        "is_critical": true,
+        "last_modified": 1768734799.2448957
+      }
+    ]
+  }
+}

@@ -1,0 +1,269 @@
+[
+  {
+    "date": "2026-01-16T07:32:00.210583",
+    "weighted_coverage": 46.48,
+    "raw_coverage": 25.49,
+    "total_screens": 51,
+    "ghosts": 55,
+    "critical_coverage": 100.0
+  },
+  {
+    "date": "2026-01-16T07:54:51.295829",
+    "weighted_coverage": 46.48,
+    "raw_coverage": 25.49,
+    "total_screens": 51,
+    "ghosts": 0,
+    "critical_coverage": 100.0
+  },
+  {
+    "date": "2026-01-16T07:58:34.490363",
+    "weighted_coverage": 46.48,
+    "raw_coverage": 25.49,
+    "total_screens": 51,
+    "ghosts": 0,
+    "critical_coverage": 100.0
+  },
+  {
+    "date": "2026-01-16T08:02:50.629001",
+    "weighted_coverage": 46.48,
+    "raw_coverage": 25.49,
+    "total_screens": 51,
+    "ghosts": 0,
+    "critical_coverage": 100.0
+  },
+  {
+    "date": "2026-01-16T08:15:27.255252",
+    "weighted_coverage": 38.14,
+    "raw_coverage": 29.41,
+    "total_screens": 51,
+    "ghosts": 19,
+    "critical_coverage": 47.83
+  },
+  {
+    "date": "2026-01-16T08:25:24.454595",
+    "weighted_coverage": 38.14,
+    "raw_coverage": 29.41,
+    "total_screens": 51,
+    "ghosts": 19,
+    "critical_coverage": 47.83
+  },
+  {
+    "date": "2026-01-16T08:36:58.924650",
+    "weighted_coverage": 55.67,
+    "raw_coverage": 54.9,
+    "total_screens": 51,
+    "ghosts": 6,
+    "critical_coverage": 56.52
+  },
+  {
+    "date": "2026-01-16T08:45:49.437412",
+    "score": 29.4,
+    "coverage": 19.51,
+    "ghosts": 19
+  },
+  {
+    "date": "2026-01-16T08:53:02.139417",
+    "avg_score": 29.4,
+    "weighted_coverage": 19.51,
+    "ghosts": 19,
+    "total_screens": 51
+  },
+  {
+    "date": "2026-01-16T08:54:55.901894",
+    "avg_score": 25.9,
+    "weighted_coverage": 19.51,
+    "ghosts": 19
+  },
+  {
+    "date": "2026-01-16T11:57:34.644215+00:00",
+    "avg_score": 25.9,
+    "weighted_coverage": 19.51,
+    "ghosts": 19,
+    "documented": 15,
+    "drafts": 3,
+    "critical_ok": 2
+  },
+  {
+    "date": "2026-01-16T12:05:52.396653+00:00",
+    "avg_score": 1.5,
+    "weighted_coverage": 19.51,
+    "ghosts": 19,
+    "drafts": 0,
+    "documented": 15,
+    "critical_ok": 0
+  },
+  {
+    "date": "2026-01-16T12:06:49.872931+00:00",
+    "avg_score": 1.5,
+    "weighted_coverage": 19.51,
+    "ghosts": 0,
+    "drafts": 0,
+    "documented": 15,
+    "critical_ok": 0
+  },
+  {
+    "date": "2026-01-16T12:07:29.456393+00:00",
+    "avg_score": 1.5,
+    "weighted_coverage": 19.51,
+    "ghosts": 0,
+    "drafts": 0,
+    "documented": 15,
+    "critical_ok": 0
+  },
+  {
+    "date": "2026-01-16T12:10:34.291716+00:00",
+    "avg_score": 27.5,
+    "weighted_coverage": 15.74,
+    "ghosts": 2,
+    "drafts": 0,
+    "documented": 14,
+    "critical_ok": 1
+  },
+  {
+    "date": "2026-01-16T12:20:25.570865+00:00",
+    "weighted_coverage": 0.0,
+    "avg_score": 0.0
+  },
+  {
+    "date": "2026-01-16T12:22:43.025719+00:00",
+    "weighted_coverage": 0.0,
+    "avg_score": 0.0
+  },
+  {
+    "date": "2026-01-16T12:25:39.691750+00:00",
+    "weighted_coverage": 0.0,
+    "avg_score": 0.0
+  },
+  {
+    "date": "2026-01-16T12:33:57.039899+00:00",
+    "weighted_coverage": 0.0,
+    "avg_score": 0.0
+  },
+  {
+    "date": "2026-01-16T12:36:02.492603+00:00",
+    "weighted_coverage": 0.0,
+    "avg_score": 0.0
+  },
+  {
+    "date": "2026-01-16T12:37:44.093311+00:00",
+    "weighted_coverage": 0.0,
+    "avg_score": 0.0
+  },
+  {
+    "date": "2026-01-16T12:39:17.660236+00:00",
+    "weighted_coverage": 4.88,
+    "avg_score": 1.2
+  },
+  {
+    "date": "2026-01-16T12:40:31.936129+00:00",
+    "weighted_coverage": 1.67,
+    "avg_score": 0.8
+  },
+  {
+    "date": "2026-01-16T12:43:15.546411+00:00",
+    "weighted_coverage": 11.38,
+    "avg_score": 2.5
+  },
+  {
+    "timestamp": "2026-01-16T09:46:45.733392",
+    "coverage": 56.14,
+    "score": 61.2,
+    "gate": "FAIL"
+  },
+  {
+    "timestamp": "2026-01-16T09:48:06.351671",
+    "coverage": 50.23,
+    "score": 55.6,
+    "gate": "FAIL"
+  },
+  {
+    "timestamp": "2026-01-16T09:49:13.200307",
+    "coverage": 60.93,
+    "score": 66.8,
+    "gate": "PASS"
+  },
+  {
+    "timestamp": "2026-01-16T09:50:57.118591",
+    "coverage": 60.93,
+    "score": 66.8,
+    "gate": "PASS"
+  },
+  {
+    "timestamp": "2026-01-16T09:52:22.678437",
+    "coverage": 60.93,
+    "score": 66.8,
+    "gate": "PASS"
+  },
+  {
+    "timestamp": "2026-01-16T09:57:09.024799",
+    "coverage": 68.79,
+    "score": 71.0,
+    "gate": "PASS"
+  },
+  {
+    "timestamp": "2026-01-16T09:59:03.165677",
+    "coverage": 75.7,
+    "score": 74.7,
+    "gate": "PASS"
+  },
+  {
+    "timestamp": "2026-01-16T10:00:57.303161",
+    "coverage": 81.12,
+    "score": 77.6,
+    "gate": "PASS"
+  },
+  {
+    "timestamp": "2026-01-16T10:03:40.829661",
+    "coverage": 84.3,
+    "score": 79.3,
+    "gate": "PASS"
+  },
+  {
+    "timestamp": "2026-01-16T10:05:07.529704",
+    "coverage": 89.16,
+    "score": 81.9,
+    "gate": "PASS"
+  },
+  {
+    "timestamp": "2026-01-16T10:10:29.318701",
+    "coverage": 90.89,
+    "score": 85.6,
+    "gate": "PASS"
+  },
+  {
+    "timestamp": "2026-01-16T10:13:13.539877",
+    "coverage": 90.89,
+    "score": 85.6,
+    "gate": "PASS"
+  },
+  {
+    "timestamp": "2026-01-16T10:13:30.803125",
+    "coverage": 90.89,
+    "score": 85.6,
+    "gate": "PASS"
+  },
+  {
+    "timestamp": "2026-01-16T10:17:11.305559",
+    "coverage": 95.28,
+    "score": 95.0,
+    "gate": "PASS"
+  },
+  {
+    "timestamp": "2026-01-16T10:23:27.150959",
+    "coverage": 99.44,
+    "score": 98.8,
+    "gate": "PASS"
+  },
+  {
+    "timestamp": "2026-01-16T10:29:04.309261",
+    "coverage": 100.0,
+    "score": 100.0,
+    "gate": "PASS"
+  },
+  {
+    "timestamp": "2026-01-18T08:26:58.718949",
+    "coverage": 95.53,
+    "score": 91.91,
+    "gate": "PASS"
+  }
+]

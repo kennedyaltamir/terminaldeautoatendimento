@@ -1,86 +1,188 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Registry version="4.13">
-    <!-- 
-      MESAFLOW GOVERNANCE REGISTRY v4.13
-      STATUS: GOLD_MASTER_CANDIDATE
-      ALIGNED WITH: /MASTER_PROJECT_SPECIFICATION.md
-      UPDATED: 2026-01-15T12:45:00Z
-    -->
+<Registry version="5.1">
     <Meta>
         <Status>GOLD_MASTER_CANDIDATE</Status>
         <Authority>Optimus Kernel L6</Authority>
-        <LastAudit>2026-01-15T12:45:00Z</LastAudit>
     </Meta>
     <Scripts>
-        <!-- GOVERNANÇA -->
-        <Script id="SYS-01" name="system_integrity_check.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_SYSTEM_INTEGRITY.md"/>
-        <Script id="GOV-01" name="gov_01_xml_presence_audit.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_GOV_01_XML_PRESENCE.md"/>
-        <Script id="GOV-02" name="gov_02_header_audit.py" status="SUCCESS" blocking="false" evidence="governance/evidence/REPORT_GOV_02.md"/>
-        <Script id="GOV-03" name="gov_03_schema_validation.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_GOV_03.md"/>
-        <Script id="GOV-04" name="gov_04_registry_drift.py" status="SUCCESS" blocking="false" evidence="governance/evidence/REPORT_GOV_04.md"/>
-        <!-- INFRAESTRUTURA -->
-        <Script id="INF-01" name="inf_01_healthcheck.py" status="FAILED" blocking="true" evidence="governance/evidence/REPORT_INF_01.md" failure_reason="CONNECTION_REFUSED"/>
-        <Script id="INF-02" name="render_health_probe.py" status="SUCCESS" blocking="false" evidence="governance/evidence/REPORT_INF_02.md"/>
-        <Script id="INF-03" name="vercel_latency_check.py" status="SUCCESS" blocking="false" evidence="governance/evidence/REPORT_INF_03.md"/>
-        <Script id="INF-04" name="expo_runtime_probe.py" status="SUCCESS" blocking="false" evidence="governance/evidence/REPORT_INF_04.md"/>
-        <!-- SEGURANÇA -->
-        <Script id="SEC-01" name="verify_TASK-SEC-01.py" status="SUCCESS" blocking="true" evidence="governance/evidence/RLS_VALIDATION_REPORT.md"/>
-        <Script id="SEC-04" name="audit_env.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_SEC_04.md"/>
-        <Script id="SEC-01A" name="sec_01A_rls_policy_inventory.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_SEC_01A.md"/>
-        <Script id="SEC-01B" name="sec_01B_rls_role_matrix.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_SEC_01B.md"/>
-        <Script id="SEC-01C" name="sec_01C_rls_effective_context.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_SEC_01C.md"/>
-        <Script id="SEC-01D" name="sec_01D_rls_readonly_probe.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_SEC_01D.md"/>
-        <Script id="SEC-05" name="sec_05_boundary_audit.py" status="SUCCESS" blocking="false" evidence="governance/evidence/REPORT_SEC_05.md"/>
-        <!-- APLICAÇÃO -->
-        <Script id="APP-01" name="app_01_orm_context_sync.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_APP_01.md"/>
-        <Script id="APP-02" name="app_02_idempotency_validation.py" status="SUCCESS" blocking="false" evidence="governance/evidence/REPORT_APP_02.md"/>
-        <Script id="APP-03" name="app_03_transaction_check.py" status="SUCCESS" blocking="false"/>
-        <Script id="APP-04" name="app_04_error_handling.py" status="SUCCESS" blocking="false"/>
-        <!-- DADOS -->
-        <Script id="DIAG-01" name="data_readiness_check.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_DIAG_01.md"/>
-        <Script id="DATA-02" name="data_integrity_scan.py" status="SUCCESS" blocking="false"/>
-        <Script id="DATA-03" name="data_orphan_detection.py" status="SUCCESS" blocking="false"/>
-        <!-- OBSERVABILIDADE -->
-        <Script id="OBS-01" name="sentry_ingest_test.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_OBS_01.md"/>
-        <Script id="OBS-02" name="obs_02_log_structure.py" status="SUCCESS" blocking="false"/>
-        <Script id="OBS-03" name="obs_03_correlation_id.py" status="SUCCESS" blocking="false"/>
-        <!-- QA & OMNISCIENCE -->
-        <Script id="QA-01" name="system_omniscience_probe.py" status="SUCCESS" blocking="false" evidence="governance/evidence/REPORT_FULL_COVERAGE.md"/>
-        <Script id="QA-02" name="ui_interaction_audit.py" status="SUCCESS" blocking="false" evidence="governance/evidence/REPORT_UI_INTERACTIONS.md"/>
-        <Script id="QA-03" name="full_system_crawler.py" status="SUCCESS" blocking="false" evidence="testesvisuais/crawler_report/index.html"/>
-        <Script id="QA-04" name="delivery_realtime_simulation.py" status="SUCCESS" blocking="false" evidence="governance/evidence/REPORT_OMNI_SIMULATION_SUCCESS.md"/>
-        <Script id="E2E-01" name="e2e_system_flow_v2.py" status="SUCCESS" blocking="false" evidence="governance/evidence/REPORT_E2E_SUCCESS.md"/>
-        <!-- BACKUP -->
-        <Script id="BKP-01" name="backup_diff_audit.py" status="SUCCESS" blocking="false" evidence="governance/evidence/REPORT_BKP_01.md"/>
-        <Script id="BKP-02" name="bkp_02_snapshot_integrity.py" status="SUCCESS" blocking="false"/>
-        <!-- INVESTOR -->
-        <Script id="INV-01" name="inv_01_zero_config.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_ZERO_CONFIG_GAPS.md"/>
-        <Script id="INV-02" name="inv_02_readiness_summary.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_READINESS_SUMMARY.md"/>
-        <Script id="INV-03" name="inv_03_auditor_simulation.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_AUDITOR_SIMULATION.md"/>
-        <!-- MASTER CHECK -->
-        <Script id="MRC-01" name="master_readiness_check.py" status="SUCCESS" blocking="true"/>
-    </Scripts>
-</Registry>
-
-<?xml version="1.0" encoding="UTF-8"?>
-<Registry version="5.0">
-    <!-- 
-      MESAFLOW GOVERNANCE REGISTRY v5.0
-      STATUS: GOLD_MASTER_SEALED
-      ALIGNED WITH: /MASTER_PROJECT_SPECIFICATION.md
-      UPDATED: 2026-01-15T14:50:00Z
-    -->
-    <Meta>
-        <Status>GOLD_MASTER_SEALED</Status>
-        <Authority>Optimus Kernel L6</Authority>
-        <LastAudit>2026-01-15T14:50:00Z</LastAudit>
-        <Verdict>100% COMPLIANT</Verdict>
-    </Meta>
-    <Scripts>
-        <Script id="SYS-01" name="system_integrity_check.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_SYSTEM_INTEGRITY.md"/>
-        <Script id="INF-01" name="inf_01_healthcheck.py" status="SUCCESS" blocking="true" evidence="governance/evidence/REPORT_INF_01.md"/>
-        <Script id="SEC-01" name="verify_TASK-SEC-01.py" status="SUCCESS" blocking="true" evidence="governance/evidence/RLS_VALIDATION_REPORT.md"/>
-        <Script id="QA-05" name="final_seal_audit.py" status="SUCCESS" blocking="true" evidence="governance/evidence/FINAL_RELEASE_CERTIFICATE.md"/>
-        <Script id="MRC-01" name="absolute_readiness_report.py" status="SUCCESS" blocking="true"/>
+        <Script id="VERIFY-RLS-PUBL" name="verify_rls_public.py" status="PENDING" blocking="false" />
+        <Script id="PRODUCTION-ABSO" name="production_absolute_audit.py" status="PENDING" blocking="false" />
+        <Script id="SEAL-PRODUCTION" name="seal_production.py" status="PENDING" blocking="false" />
+        <Script id="VERIFY-FRONTEND" name="verify_frontend_compilation.py" status="PENDING" blocking="false" />
+        <Script id="GENERATE-FULL-I" name="generate_full_index.py" status="PENDING" blocking="false" />
+        <Script id="VERIFY-ORDER-GE" name="verify_order_get_fix.py" status="PENDING" blocking="false" />
+        <Script id="CLEANUP-CONTEXT" name="cleanup_context_noise.py" status="PENDING" blocking="false" />
+        <Script id="EXPO-RUNTIME-PR" name="expo_runtime_probe.py" status="PENDING" blocking="false" />
+        <Script id="CLEANUP-DOCTELA" name="cleanup_doctelas.py" status="PENDING" blocking="false" />
+        <Script id="MOBILE-PRODUCTI" name="mobile_production_gate.py" status="PENDING" blocking="false" />
+        <Script id="DEEP-INTERACTIO" name="deep_interaction_test.py" status="PENDING" blocking="false" />
+        <Script id="SEED-UI-STATES" name="seed_ui_states.py" status="PENDING" blocking="false" />
+        <Script id="ACTIVATE-GOLD-M" name="activate_gold_master.py" status="PENDING" blocking="false" />
+        <Script id="MOCK-PRODUCTION" name="mock_production_env.py" status="PENDING" blocking="false" />
+        <Script id="APP-02-IDEMPOTE" name="app_02_idempotency_validation.py" status="PENDING" blocking="false" />
+        <Script id="02-AUDITORIA-MA" name="02_auditoria_markdown.py" status="SUCCESS" blocking="false" />
+        <Script id="RUN-ALL-TESTS" name="run_all_tests.py" status="PENDING" blocking="false" />
+        <Script id="GOV-03-SCHEMA-V" name="gov_03_schema_validation.py" status="PENDING" blocking="false" />
+        <Script id="UI-SWEEP-MOBILE" name="ui_sweep_mobile.py" status="PENDING" blocking="false" />
+        <Script id="DIAGNOSE-AND-FI" name="diagnose_and_fix_driver.py" status="PENDING" blocking="false" />
+        <Script id="OBS-02-LOG-STRU" name="obs_02_log_structure.py" status="PENDING" blocking="false" />
+        <Script id="DIAGNOSE-API-ER" name="diagnose_api_errors.py" status="PENDING" blocking="false" />
+        <Script id="MASTER-READINES" name="master_readiness_check.py" status="PENDING" blocking="false" />
+        <Script id="COLLECT-MARKDOW" name="collect_markdowns.py" status="PENDING" blocking="false" />
+        <Script id="SMOKE-TEST-FOCU" name="smoke_test_focus_nfe.py" status="PENDING" blocking="false" />
+        <Script id="VERCEL-LATENCY-" name="vercel_latency_check.py" status="PENDING" blocking="false" />
+        <Script id="SEAL-GOVERNANCE" name="seal_governance_v2.py" status="PENDING" blocking="false" />
+        <Script id="FIX-CANONICAL-T" name="fix_canonical_tree.py" status="PENDING" blocking="false" />
+        <Script id="OPEN-QA-TABS" name="open_qa_tabs.py" status="PENDING" blocking="false" />
+        <Script id="SANITIZE-REPO" name="sanitize_repo.py" status="PENDING" blocking="false" />
+        <Script id="CLEANUP-GHOSTS" name="cleanup_ghosts.py" status="PENDING" blocking="false" />
+        <Script id="VERIFY-KNOWLEDG" name="verify_knowledge_base.py" status="PENDING" blocking="false" />
+        <Script id="INF-01-HEALTHCH" name="inf_01_healthcheck.py" status="PENDING" blocking="false" />
+        <Script id="AUDIT-STRUCTURE" name="audit_structure.py" status="PENDING" blocking="false" />
+        <Script id="VERIFY-MOBILE-S" name="verify_mobile_syntax.py" status="PENDING" blocking="false" />
+        <Script id="LOAD-TEST-KDS" name="load_test_kds.py" status="PENDING" blocking="false" />
+        <Script id="CHECK-PRODUCTIO" name="check_production_readiness.py" status="PENDING" blocking="false" />
+        <Script id="AUDIT-MOBILE-L4" name="audit_mobile_l4.py" status="PENDING" blocking="false" />
+        <Script id="DIAGNOSE-TABLES" name="diagnose_tables_data.py" status="PENDING" blocking="false" />
+        <Script id="APP-04-ERROR-HA" name="app_04_error_handling.py" status="PENDING" blocking="false" />
+        <Script id="DATA-INTEGRITY-" name="data_integrity_scan.py" status="PENDING" blocking="false" />
+        <Script id="OTIMIZAR" name="otimizar.py" status="PENDING" blocking="false" />
+        <Script id="FIND-HEAVY-FILE" name="find_heavy_files.py" status="PENDING" blocking="false" />
+        <Script id="APPLY-RLS-HARDE" name="apply_rls_hardening.py" status="PENDING" blocking="false" />
+        <Script id="SIMULATION-ENGI" name="simulation_engine.py" status="PENDING" blocking="false" />
+        <Script id="GENERATE-UI-DOC" name="generate_ui_docs.py" status="PENDING" blocking="false" />
+        <Script id="GOVERNANCE-DASH" name="governance_dashboard.py" status="PENDING" blocking="false" />
+        <Script id="KERNEL-RESET" name="kernel_reset.py" status="PENDING" blocking="false" />
+        <Script id="GENERATE-STATIC" name="generate_static_ui_inventory.py" status="PENDING" blocking="false" />
+        <Script id="VERIFY-TELEMETR" name="verify_telemetry.py" status="PENDING" blocking="false" />
+        <Script id="PRE-DEPLOY-COMP" name="pre_deploy_compliance_check.py" status="PENDING" blocking="false" />
+        <Script id="CLEANUP-SCRIPTS" name="cleanup_scripts_noise.py" status="PENDING" blocking="false" />
+        <Script id="MOBILE-HARD-RES" name="mobile_hard_reset.py" status="PENDING" blocking="false" />
+        <Script id="SYSTEM-INTEGRIT" name="system_integrity_check.py" status="PENDING" blocking="false" />
+        <Script id="10-MELHORIA-CON" name="10_melhoria_continua.py" status="PENDING" blocking="false" />
+        <Script id="BACKUP-DIFF-AUD" name="backup_diff_audit.py" status="PENDING" blocking="false" />
+        <Script id="CONSOLIDATE-REP" name="consolidate_reports.py" status="PENDING" blocking="false" />
+        <Script id="APP-03-TRANSACT" name="app_03_transaction_check.py" status="PENDING" blocking="false" />
+        <Script id="LIST-FRONTEND-P" name="list_frontend_pages.py" status="PENDING" blocking="false" />
+        <Script id="SEC-01B-RLS-ROL" name="sec_01B_rls_role_matrix.py" status="PENDING" blocking="false" />
+        <Script id="RUN-DELIVERY-VI" name="run_delivery_visual.py" status="PENDING" blocking="false" />
+        <Script id="UI-SANITY-CHECK" name="ui_sanity_check.py" status="PENDING" blocking="false" />
+        <Script id="SEED-LOGISTICS" name="seed_logistics.py" status="PENDING" blocking="false" />
+        <Script id="RENDER-HEALTH-P" name="render_health_probe.py" status="PENDING" blocking="false" />
+        <Script id="POMPEU-DELIVERY" name="pompeu_delivery_simulation.py" status="PENDING" blocking="false" />
+        <Script id="AUTO-FIX-REPORT" name="auto_fix_reporter_v4.py" status="PENDING" blocking="false" />
+        <Script id="AUDIT-ENUM-USAG" name="audit_enum_usage_v3.py" status="PENDING" blocking="false" />
+        <Script id="SEC-05-BOUNDARY" name="sec_05_boundary_audit.py" status="PENDING" blocking="false" />
+        <Script id="VERIFY-LOGIN-SC" name="verify_login_screen_l6.py" status="PENDING" blocking="false" />
+        <Script id="DOC-CLEANUP-L7" name="doc_cleanup_l7.py" status="PENDING" blocking="false" />
+        <Script id="BOOTSTRAP-QA" name="bootstrap_qa.py" status="PENDING" blocking="false" />
+        <Script id="DELIVERY-REALTI" name="delivery_realtime_simulation.py" status="PENDING" blocking="false" />
+        <Script id="APP-01-ORM-CONT" name="app_01_orm_context_sync.py" status="PENDING" blocking="false" />
+        <Script id="AUDIT-ENV" name="audit_env.py" status="PENDING" blocking="false" />
+        <Script id="ENV-EXECUTION-P" name="env_execution_patch.py" status="PENDING" blocking="false" />
+        <Script id="PREPARE-HANDOFF" name="prepare_handoff.py" status="PENDING" blocking="false" />
+        <Script id="OPTIMUS-V9-1-NE" name="optimus_v9_1_neuro_evolution.py" status="PENDING" blocking="false" />
+        <Script id="SEED-FINANCIAL-" name="seed_financial_data.py" status="PENDING" blocking="false" />
+        <Script id="COMPREHENSIVE-S" name="comprehensive_system_audit.py" status="PENDING" blocking="false" />
+        <Script id="SIMULATE-MAP-FL" name="simulate_map_flow.py" status="PENDING" blocking="false" />
+        <Script id="EXHAUSTIVE-INTE" name="exhaustive_interaction_test.py" status="PENDING" blocking="false" />
+        <Script id="01-VARREDURA" name="01_varredura.py" status="SUCCESS" blocking="false" />
+        <Script id="PRODUCTION-LOCK" name="production_lock_mobile.py" status="PENDING" blocking="false" />
+        <Script id="AUDIT-MOBILE-PR" name="audit_mobile_production.py" status="PENDING" blocking="false" />
+        <Script id="CLEANUP-OBSOLET" name="cleanup_obsolete_docs.py" status="PENDING" blocking="false" />
+        <Script id="REACT-LOOP-DETE" name="react_loop_detector.py" status="PENDING" blocking="false" />
+        <Script id="APPLY-SQL-MIGRA" name="apply_sql_migrations.py" status="PENDING" blocking="false" />
+        <Script id="DATA-ORPHAN-DET" name="data_orphan_detection.py" status="PENDING" blocking="false" />
+        <Script id="INV-03-AUDITOR-" name="inv_03_auditor_simulation.py" status="PENDING" blocking="false" />
+        <Script id="RESTORE-EVIDENC" name="restore_evidence.py" status="PENDING" blocking="false" />
+        <Script id="ORGANIZE-GOVERN" name="organize_governance.py" status="PENDING" blocking="false" />
+        <Script id="GENERATE-EXECUT" name="generate_executive_ui_summary.py" status="PENDING" blocking="false" />
+        <Script id="RUN-DELIVERY-SU" name="run_delivery_suite.py" status="PENDING" blocking="false" />
+        <Script id="ANALISE-ESTRUTU" name="analise_estrutural.py" status="PENDING" blocking="false" />
+        <Script id="AUDIT-ENUM-DRIF" name="audit_enum_drift.py" status="PENDING" blocking="false" />
+        <Script id="VERIFY-IFOOD-HU" name="verify_ifood_hub.py" status="PENDING" blocking="false" />
+        <Script id="AUTO-FIX-ON-FAI" name="auto_fix_on_fail.py" status="PENDING" blocking="false" />
+        <Script id="COMPREHENSIVE-B" name="comprehensive_behavior_test.py" status="PENDING" blocking="false" />
+        <Script id="SYSTEM-OMNISCIE" name="system_omniscience_probe.py" status="PENDING" blocking="false" />
+        <Script id="03-NORMALIZACAO" name="03_normalizacao_roteamento.py" status="PENDING" blocking="false" />
+        <Script id="STANDARDIZE-SCR" name="standardize_scripts.py" status="PENDING" blocking="false" />
+        <Script id="DEEP-FLOW-DIAGN" name="deep_flow_diagnostic.py" status="PENDING" blocking="false" />
+        <Script id="CLEANUP-FINAL-S" name="cleanup_final_sweep.py" status="PENDING" blocking="false" />
+        <Script id="ORGANIZE-OPTIMU" name="organize_optimus_docs.py" status="PENDING" blocking="false" />
+        <Script id="VERIFY-TASK-SEC" name="verify_TASK-SEC-01.py" status="PENDING" blocking="false" />
+        <Script id="ABSOLUTE-READIN" name="absolute_readiness_report.py" status="PENDING" blocking="false" />
+        <Script id="SEC-01D-RLS-REA" name="sec_01D_rls_readonly_probe.py" status="PENDING" blocking="false" />
+        <Script id="04-GHOSTS-ARQUI" name="04_ghosts_arquivamento.py" status="PENDING" blocking="false" />
+        <Script id="05-CALCULO-METR" name="05_calculo_metricas.py" status="SUCCESS" blocking="false" />
+        <Script id="VERIFY-PRODUCTI" name="verify_production_ready.py" status="PENDING" blocking="false" />
+        <Script id="CANONICAL-MIGRA" name="canonical_migration.py" status="PENDING" blocking="false" />
+        <Script id="RUN-DOC-PROTOCO" name="run_doc_protocol.py" status="PENDING" blocking="false" />
+        <Script id="UI-INTERACTION-" name="ui_interaction_audit.py" status="PENDING" blocking="false" />
+        <Script id="OBS-03-CORRELAT" name="obs_03_correlation_id.py" status="PENDING" blocking="false" />
+        <Script id="INSPECT-UI-ISSU" name="inspect_ui_issues.py" status="PENDING" blocking="false" />
+        <Script id="GENERATE-API-RE" name="generate_api_ref.py" status="PENDING" blocking="false" />
+        <Script id="GOV-04-REGISTRY" name="gov_04_registry_drift.py" status="PENDING" blocking="false" />
+        <Script id="SEC-01C-RLS-EFF" name="sec_01C_rls_effective_context.py" status="PENDING" blocking="false" />
+        <Script id="MIGRATE-GOVERNA" name="migrate_governance_structure.py" status="PENDING" blocking="false" />
+        <Script id="STRESS-TEST-GUA" name="stress_test_guards.py" status="PENDING" blocking="false" />
+        <Script id="03-NORMAL-ROTEA" name="03_normal_roteamento.py" status="SUCCESS" blocking="false" />
+        <Script id="GENERATE-DOCTEL" name="generate_doctelas.py" status="PENDING" blocking="false" />
+        <Script id="CHECK-SERVICES" name="check_services.py" status="PENDING" blocking="false" />
+        <Script id="SEC-01A-RLS-POL" name="sec_01A_rls_policy_inventory.py" status="PENDING" blocking="false" />
+        <Script id="ENV-PRODUCTION-" name="env_production_audit.py" status="PENDING" blocking="false" />
+        <Script id="VERIFY-SCREEN-R" name="verify_screen_resilience.py" status="PENDING" blocking="false" />
+        <Script id="SEC-01-RLS-INTE" name="sec_01_rls_integrity.py" status="PENDING" blocking="false" />
+        <Script id="INV-02-READINES" name="inv_02_readiness_summary.py" status="PENDING" blocking="false" />
+        <Script id="DATA-READINESS-" name="data_readiness_check.py" status="PENDING" blocking="false" />
+        <Script id="CHECK-DB-FISCAL" name="check_db_fiscal_config.py" status="PENDING" blocking="false" />
+        <Script id="OMNI-CHECK" name="omni_check.py" status="PENDING" blocking="false" />
+        <Script id="DISCOVER-SCHEMA" name="discover_schema.py" status="PENDING" blocking="false" />
+        <Script id="JANITOR-L7" name="janitor_l7.py" status="PENDING" blocking="false" />
+        <Script id="COUNT-FRONTEND-" name="count_frontend_pages.py" status="PENDING" blocking="false" />
+        <Script id="SYNC-REGISTRY-M" name="sync_registry_mass.py" status="PENDING" blocking="false" />
+        <Script id="GERAR-CONTEXTO" name="gerar_contexto.py" status="PENDING" blocking="false" />
+        <Script id="FULL-ORDER-SIMU" name="full_order_simulation.py" status="PENDING" blocking="false" />
+        <Script id="DRIVER-PICKUP-S" name="driver_pickup_simulation.py" status="PENDING" blocking="false" />
+        <Script id="07-HISTORICO-CI" name="07_historico_ci.py" status="PENDING" blocking="false" />
+        <Script id="GOV-02-HEADER-A" name="gov_02_header_audit.py" status="PENDING" blocking="false" />
+        <Script id="JANITOR-GOVERNA" name="janitor_governance.py" status="PENDING" blocking="false" />
+        <Script id="MOBILE-RUNTIME-" name="mobile_runtime_sanity.py" status="PENDING" blocking="false" />
+        <Script id="FINAL-LEGACY-CL" name="final_legacy_cleanup.py" status="PENDING" blocking="false" />
+        <Script id="ORGANIZE-SCRIPT" name="organize_scripts.py" status="PENDING" blocking="false" />
+        <Script id="IMPORT-SANITY-C" name="import_sanity_check.py" status="PENDING" blocking="false" />
+        <Script id="AUTO-CALIBRATE-" name="auto_calibrate_qa.py" status="PENDING" blocking="false" />
+        <Script id="GENERATE-SCRIPT" name="generate_script_index.py" status="PENDING" blocking="false" />
+        <Script id="AUDIT-SCRIPT-IN" name="audit_script_inventory.py" status="PENDING" blocking="false" />
+        <Script id="GENERATE-DYNAMI" name="generate_dynamic_doctelas.py" status="PENDING" blocking="false" />
+        <Script id="CLEANUP-OBSOLET" name="cleanup_obsolete_scripts.py" status="PENDING" blocking="false" />
+        <Script id="DUAL-SCREEN-DEL" name="dual_screen_delivery_sim.py" status="PENDING" blocking="false" />
+        <Script id="GENERATE-MASTER" name="generate_master_md_summary.py" status="PENDING" blocking="false" />
+        <Script id="MOBILE-BUILD-AU" name="mobile_build_audit.py" status="PENDING" blocking="false" />
+        <Script id="L10-AUTONOMOUS-" name="l10_autonomous_gate.py" status="PENDING" blocking="false" />
+        <Script id="VERIFY-TABLES-R" name="verify_tables_route_fix.py" status="PENDING" blocking="false" />
+        <Script id="ACTIVATE-FISCAL" name="activate_fiscal_focus.py" status="PENDING" blocking="false" />
+        <Script id="PROVISION-SECUR" name="provision_secure_role.py" status="PENDING" blocking="false" />
+        <Script id="SETUP-REDIS" name="setup_redis.py" status="PENDING" blocking="false" />
+        <Script id="08-TEMPLATES-AU" name="08_templates_automaticos.py" status="PENDING" blocking="false" />
+        <Script id="CLEAR-KITCHEN-O" name="clear_kitchen_orders.py" status="PENDING" blocking="false" />
+        <Script id="FULL-SYSTEM-CRA" name="full_system_crawler.py" status="PENDING" blocking="false" />
+        <Script id="FINAL-SEAL-AUDI" name="final_seal_audit.py" status="PENDING" blocking="false" />
+        <Script id="06-RELATORIOS-M" name="06_relatorios_markdown_html.py" status="SUCCESS" blocking="false" />
+        <Script id="VERIFY-EAS-READ" name="verify_eas_ready.py" status="PENDING" blocking="false" />
+        <Script id="ENTERPRISE-DELI" name="enterprise_delivery_l8.py" status="PENDING" blocking="false" />
+        <Script id="RUN-UI-SWEEP" name="run_ui_sweep.py" status="PENDING" blocking="false" />
+        <Script id="FIX-REGISTRY-DR" name="fix_registry_drift_comprehensive.py" status="PENDING" blocking="false" />
+        <Script id="RUN-HUMAN-QA" name="run_human_qa.py" status="PENDING" blocking="false" />
+        <Script id="INV-01-ZERO-CON" name="inv_01_zero_config.py" status="PENDING" blocking="false" />
+        <Script id="LIST-ALL-INTERA" name="list_all_interactive_elements.py" status="PENDING" blocking="false" />
+        <Script id="DEEP-AUDIT-AND-" name="deep_audit_and_clean.py" status="PENDING" blocking="false" />
+        <Script id="SANITIZE-KNOWLE" name="sanitize_knowledge_base.py" status="PENDING" blocking="false" />
+        <Script id="GOV-01-XML-PRES" name="gov_01_xml_presence_audit.py" status="PENDING" blocking="false" />
+        <Script id="SENTRY-INGEST-T" name="sentry_ingest_test.py" status="PENDING" blocking="false" />
+        <Script id="SEC-04-ENV-AUDI" name="sec_04_env_audit.py" status="PENDING" blocking="false" />
+        <Script id="VERIFY-FISCAL-I" name="verify_fiscal_integration.py" status="PENDING" blocking="false" />
+        <Script id="09-ALERTAS-PRIO" name="09_alertas_priorizacao.py" status="PENDING" blocking="false" />
+        <Script id="BKP-02-SNAPSHOT" name="bkp_02_snapshot_integrity.py" status="PENDING" blocking="false" />
+        <Script id="VERIFY-GOVERNAN" name="verify_governance_structure.py" status="PENDING" blocking="false" />
     </Scripts>
 </Registry>

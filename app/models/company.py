@@ -1,7 +1,5 @@
-
 # DOMAIN: BACKEND
-# LAST_MODIFIED: 2026-01-11 07:00:00
-
+# LAST_MODIFIED: 2026-01-16 13:15:00
 import uuid
 from sqlalchemy import Column, String, Boolean, DateTime, Numeric, Text, Time, JSON
 from sqlalchemy.sql import func
@@ -16,17 +14,19 @@ class Company(Base):
     name = Column(String(255), nullable=False)
     slug = Column(String(255), nullable=False, unique=True, index=True)
     custom_domain = Column(String(255), unique=True, nullable=True, index=True)
-    
     owner_email = Column(String(255), nullable=False, index=True)
     owner_phone = Column(String(20), nullable=True)
     owner_role = Column(String(50), nullable=True)
     password_hash = Column(String(255), nullable=True)
     
+    # Kiosk Security (L7)
+    kiosk_password_hash = Column(String(255), nullable=True) # Se null, usa default 123456
+    
     # Enum como String para evitar LookupError do SQLAlchemy
     plan_tier = Column(String(50), default=PlanTier.FREE.value, nullable=False)
     segment = Column(String(50), default=CompanySegment.GASTRO.value, nullable=False)
-    trial_ends_at = Column(DateTime(timezone=True), nullable=True)
     
+    trial_ends_at = Column(DateTime(timezone=True), nullable=True)
     is_active = Column(Boolean, default=True)
     is_email_verified = Column(Boolean, default=False)
     
@@ -43,7 +43,6 @@ class Company(Base):
     
     instagram_url = Column(String(255), nullable=True)
     whatsapp_number = Column(String(20), nullable=True)
-    
     whatsapp_api_url = Column(String(500), nullable=True)
     whatsapp_instance = Column(String(100), nullable=True)
     whatsapp_token = Column(String(500), nullable=True)
@@ -76,7 +75,7 @@ class Company(Base):
     closes_at = Column(Time, nullable=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
+    
     tables = relationship("Table", back_populates="company", cascade="all, delete-orphan")
     categories = relationship("Category", back_populates="company", cascade="all, delete-orphan")
     orders = relationship("Order", back_populates="company")
@@ -86,10 +85,8 @@ class Company(Base):
     suppliers = relationship("Supplier", back_populates="company", cascade="all, delete-orphan")
     service_ledger = relationship("ServiceFeeLedger", back_populates="company", cascade="all, delete-orphan")
     driver_ledger = relationship("DriverLedger", back_populates="company", cascade="all, delete-orphan")
-    
     webhooks = relationship("WebhookSubscription", back_populates="company", cascade="all, delete-orphan")
     promotions = relationship("Promotion", back_populates="company", cascade="all, delete-orphan")
     feature_flags = relationship("FeatureFlag", back_populates="company", cascade="all, delete-orphan")
     feedbacks = relationship("OrderFeedback", back_populates="company", cascade="all, delete-orphan")
 
- 

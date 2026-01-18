@@ -1,0 +1,9 @@
+{
+  "total_screens": 89,
+  "avg_score": 91.91,
+  "weighted_coverage": 95.53,
+  "critical_total": 33,
+  "critical_ok": 32,
+  "ci_gate": "PASS",
+  "critical_blockers": 1
+}

@@ -1,19 +1,21 @@
+// DOMAIN: FRONTEND
+// LAST_MODIFIED: 2026-01-16 21:45:00
 "use client";
 import { useState, useEffect } from "react";
-import { X, Minus, Plus, ShoppingBag } from "lucide-react";
-import { Product, Option, CartItem } from "@/types";
+import { X, Plus, Minus, ShoppingBag, Info } from "lucide-react";
+import { Product, Option } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 
 interface ProductModalProps {
-  product: Product | null;
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (qty: number, notes: string, opts: Option[]) => void;
+  product: Product | null;
+  onConfirm: (quantity: number, notes: string, selectedOptions: Option[]) => void;
   primaryColor: string;
-  initialValues?: CartItem | null; // Adicionado para suportar edição
+  initialValues?: any;
 }
 
-export default function ProductModal({ product, isOpen, onClose, onConfirm, primaryColor, initialValues }: ProductModalProps) {
+export default function ProductModal({ isOpen, onClose, product, onConfirm, primaryColor, initialValues }: ProductModalProps) {
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState("");
   const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
@@ -34,167 +36,116 @@ export default function ProductModal({ product, isOpen, onClose, onConfirm, prim
 
   if (!isOpen || !product) return null;
 
-  const handleOptionToggle = (option: Option, groupMin: number, groupMax: number) => {
-    const isSelected = selectedOptions.some(o => o.id === option.id);
-    const groupOptions = selectedOptions.filter(o => 
-      product.option_groups.find(g => g.options.some(opt => opt.id === o.id))?.id === 
-      product.option_groups.find(g => g.options.some(opt => opt.id === option.id))?.id
-    );
-
-    if (isSelected) {
-      setSelectedOptions(prev => prev.filter(o => o.id !== option.id));
-    } else {
-      if (groupMax === 1) {
-        // Radio behavior: remove others from same group
-        const otherOptionsIds = product.option_groups
-          .find(g => g.options.some(opt => opt.id === option.id))
-          ?.options.map(o => o.id) || [];
-        
-        setSelectedOptions(prev => [
-          ...prev.filter(o => !otherOptionsIds.includes(o.id)),
-          option
-        ]);
-      } else {
-        if (groupOptions.length < groupMax) {
-          setSelectedOptions(prev => [...prev, option]);
-        }
-      }
-    }
-  };
-
-  const calculateTotal = () => {
-    const optionsTotal = selectedOptions.reduce((acc, opt) => acc + Number(opt.price), 0);
-    return (Number(product.price) + optionsTotal) * quantity;
-  };
-
-  const isValid = () => {
-    return product.option_groups.every(group => {
-      const selectedCount = selectedOptions.filter(o => group.options.some(opt => opt.id === o.id)).length;
-      return selectedCount >= group.min_selection;
+  const handleToggleOption = (option: Option) => {
+    setSelectedOptions(prev => {
+      const isSelected = prev.find(o => o.id === option.id);
+      if (isSelected) return prev.filter(o => o.id !== option.id);
+      return [...prev, option];
     });
   };
 
+  if (!product) return null;
+  const basePrice = Number(product.price);
+  const optionsPrice = selectedOptions.reduce((acc, opt) => acc + Number(opt.price), 0);
+  const totalPrice = (basePrice + optionsPrice) * quantity;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white w-full sm:max-w-md sm:rounded-xl rounded-t-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-        
-        {/* Header Image */}
-        <div className="relative h-48 bg-gray-100">
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="bg-white dark:bg-gray-900 w-full sm:max-w-lg sm:rounded-3xl rounded-t-[2.5rem] max-h-[95vh] flex flex-col overflow-hidden shadow-2xl border-t-4" style={{ borderTopColor: primaryColor }}>
+        <div className="relative h-48 sm:h-64 shrink-0">
           {product.image_url ? (
-            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+            <img src={product.image_url} className="w-full h-full object-cover" alt={product.name} />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">
-              <ShoppingBag size={48} />
+            <div className="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-300">
+              <ShoppingBag size={64} />
             </div>
           )}
-          <button 
-            onClick={onClose}
-            className="absolute top-4 right-4 bg-white/90 p-2 rounded-full shadow-lg hover:bg-white transition-colors"
-          >
-            <X size={20} className="text-gray-900" />
+          <button onClick={onClose} className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full backdrop-blur-md hover:bg-black/70 transition-colors">
+            <X size={24} />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
           <div>
-            <h2 className="text-2xl font-black text-gray-900 leading-tight">{product.name}</h2>
-            <p className="text-gray-500 mt-2 text-sm leading-relaxed">{product.description}</p>
-            <p className="text-xl font-bold text-orange-600 mt-2">{formatCurrency(product.price)}</p>
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{product.name}</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 leading-relaxed">{product.description}</p>
           </div>
 
-          {/* Options */}
-          {product.option_groups.map(group => (
+          {product.option_groups?.map(group => (
             <div key={group.id} className="space-y-3">
-              <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                <h3 className="font-bold text-gray-800">{group.name}</h3>
-                <span className="text-xs font-medium text-gray-500 bg-white px-2 py-1 rounded border border-gray-200">
-                  {group.min_selection > 0 ? `Obrigatório (Min ${group.min_selection})` : 'Opcional'}
-                  {group.max_selection > 1 && ` - Max ${group.max_selection}`}
+              <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl">
+                <h3 className="font-bold text-gray-900 dark:text-white text-sm uppercase tracking-wider">{group.name}</h3>
+                <span className="text-[10px] font-black bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full text-gray-500">
+                  MÁX {group.max_selection}
                 </span>
               </div>
               <div className="space-y-2">
-                {group.options.map(option => {
-                  const isSelected = selectedOptions.some(o => o.id === option.id);
-                  return (
-                    <div 
-                      key={option.id}
-                      onClick={() => handleOptionToggle(option, group.min_selection, group.max_selection)}
-                      className={`flex justify-between items-center p-3 rounded-xl border cursor-pointer transition-all ${
-                        isSelected 
-                          ? 'border-orange-500 bg-orange-50 ring-1 ring-orange-500' 
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${
-                          isSelected ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
-                        }`}>
-                          {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
-                        </div>
-                        <span className={`text-sm font-medium ${isSelected ? 'text-gray-900' : 'text-gray-600'}`}>
-                          {option.name}
-                        </span>
-                      </div>
-                      {Number(option.price) > 0 && (
-                        <span className="text-sm font-bold text-gray-900">+ {formatCurrency(option.price)}</span>
-                      )}
+                {group.options.map(opt => (
+                  <label key={opt.id} className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 dark:border-gray-800 hover:border-orange-200 cursor-pointer transition-all active:scale-[0.98]">
+                    <div className="flex items-center gap-3">
+                      <input 
+                        type="checkbox" 
+                        className="w-5 h-5 rounded-full border-gray-300 text-orange-600 focus:ring-orange-500"
+                        checked={!!selectedOptions.find(o => o.id === opt.id)}
+                        onChange={() => handleToggleOption(opt)}
+                      />
+                      <span className="font-bold text-gray-700 dark:text-gray-300">{opt.name}</span>
                     </div>
-                  );
-                })}
+                    {Number(opt.price) > 0 && (
+                      <span className="text-xs font-black text-orange-600">+ {formatCurrency(Number(opt.price))}</span>
+                    )}
+                  </label>
+                ))}
               </div>
             </div>
           ))}
 
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Observações</label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Ex: Sem cebola, ponto da carne..."
-              className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 outline-none resize-none bg-gray-50"
+          <div className="space-y-2">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+              <Info size={14} /> Observações
+            </label>
+            <textarea 
+              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 text-sm outline-none focus:ring-2 focus:ring-orange-500/20 transition-all"
+              placeholder="Ex: Sem cebola, ponto da carne, etc..."
               rows={3}
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
             />
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 bg-white border-t border-gray-100 safe-area-bottom">
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <div className="flex items-center gap-3 bg-gray-100 rounded-xl p-1">
+        <div className="p-6 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 safe-area-bottom">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl">
               <button 
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm text-gray-600 hover:text-orange-600 disabled:opacity-50"
-                disabled={quantity <= 1}
+                className="w-12 h-12 flex items-center justify-center text-gray-500 hover:text-orange-600 transition-colors"
               >
-                <Minus size={18} />
+                <Minus size={20} />
               </button>
-              <span className="text-lg font-black w-8 text-center">{quantity}</span>
+              <span className="text-xl font-black text-gray-900 dark:text-white w-8 text-center">{quantity}</span>
               <button 
                 onClick={() => setQuantity(quantity + 1)}
-                className="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm text-gray-600 hover:text-orange-600"
+                className="w-12 h-12 flex items-center justify-center text-gray-500 hover:text-orange-600 transition-colors"
               >
-                <Plus size={18} />
+                <Plus size={20} />
               </button>
             </div>
             <div className="text-right">
-              <p className="text-xs text-gray-500 font-bold uppercase">Total</p>
-              <p className="text-2xl font-black text-gray-900">{formatCurrency(calculateTotal())}</p>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Subtotal</p>
+              <p className="text-2xl font-black text-gray-900 dark:text-white">{formatCurrency(totalPrice)}</p>
             </div>
           </div>
-          <button
+
+          <button 
             onClick={() => onConfirm(quantity, notes, selectedOptions)}
-            disabled={!isValid()}
-            className="w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: isValid() ? primaryColor : '#9ca3af' }}
+            className="w-full py-5 rounded-2xl text-white font-black text-lg shadow-xl shadow-orange-900/20 flex items-center justify-center gap-3 active:scale-95 transition-all"
+            style={{ backgroundColor: primaryColor }}
           >
-            {initialValues ? 'Atualizar Pedido' : 'Adicionar ao Carrinho'}
+            <Plus size={24} /> {initialValues ? "Atualizar Item" : "Adicionar ao Pedido"}
           </button>
         </div>
       </div>
     </div>
   );
 }
-
- 
