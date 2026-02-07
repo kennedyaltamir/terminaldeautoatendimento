@@ -1,6 +1,3 @@
-# DOMAIN: CI_CD_PIPELINE
-# VERSION: 2.2.0 (Resilient Install Edition)
-# DESCRIPTION: Pipeline de produção com fallback de instalação para evitar erros de sincronia de lockfile.
 name: MesaFlow CI/CD Pipeline
 
 on:
@@ -51,10 +48,11 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          # 🛡️ FIX: Aponta para o package.json para garantir resolução do path de cache
           cache-dependency-path: frontend/package.json
 
       - name: 📦 Install Dependencies
-        # 🛡️ FIX: Trocado 'npm ci' por 'npm install' para lidar com lockfiles dessincronizados
+        # 🛡️ FIX: npm install reconstrói o que for preciso sem travar por erro de sincronia
         run: npm install
 
       - name: 🏗️ Production Build Validation
