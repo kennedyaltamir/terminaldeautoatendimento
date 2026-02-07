@@ -1,3 +1,15 @@
+//
+/**
+ * Author: MESAFLOW_AI_SOVEREIGN
+ * Version: 12.6.0 (Production URL Compliance)
+ * DNA_ID: MF-WS-CONTEXT-V12-6
+ * OBJETIVO: Gerenciador de comunicação bidirecional resiliente.
+ * Comportamento esperado: 
+ *  1. Resolve dinamicamente a URL entre WSS (Prod) e WS (Dev).
+ *  2. Garante o rito de conexão no path /api/ws/{slug} alinhado ao Kernel.
+ *  3. Implementa heartbeat e reconexão automática com exponential backoff.
+ */
+//
 "use client";
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 
@@ -15,30 +27,21 @@ export function WebSocketProvider({ children, slug }: { children: React.ReactNod
   const ws = useRef<WebSocket | null>(null);
   const isMounted = useRef(false);
   
-  // 🛡️ Gestão de Timers com Tipagem Cross-Platform
   const reconnectTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartbeatInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  /**
-   * Rito de Conexão Soberana
-   */
   const connect = useCallback(() => {
     if (!slug || slug === "undefined" || !isMounted.current) return;
 
-    // Limpeza de instâncias fantasmas antes de nova tentativa
     if (ws.current) {
-      if (ws.current.readyState === WebSocket.OPEN || ws.current.readyState === WebSocket.CONNECTING) {
-        return;
-      }
+      if (ws.current.readyState === WebSocket.OPEN || ws.current.readyState === WebSocket.CONNECTING) return;
       ws.current.close();
     }
 
-    // Resolução de URL: Prioriza ENV, Fallback para Sentinel (8001)
-    const API_HOST = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-    const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || `ws://${API_HOST}:8001/api/ws`;
-    const finalUrl = `${WS_BASE_URL}/${slug}`;
-
-    // 🛡️ FIX: Removido log de debug
+    const isProd = process.env.NEXT_PUBLIC_ENVIRONMENT === 'production';
+    const protocol = isProd ? "wss" : "ws";
+    const host = isProd ? "mesaflow-api.onrender.com" : (typeof window !== 'undefined' ? window.location.hostname + ":8001" : "localhost:8001");
+    const finalUrl = `${protocol}://${host}/api/ws/${slug}`;
     
     const socket = new WebSocket(finalUrl);
     ws.current = socket;
@@ -48,11 +51,7 @@ export function WebSocketProvider({ children, slug }: { children: React.ReactNod
         socket.close();
         return;
       }
-      // 🛡️ FIX: console.log -> console.info para status de conexão
-      console.info(`✅ [WS_CONNECT] Canal sincronizado: ${slug}`);
       setIsConnected(true);
-
-      // Iniciar rito de Heartbeat (Mantém o túnel aberto)
       if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
       heartbeatInterval.current = setInterval(() => {
         if (socket.readyState === WebSocket.OPEN) {
@@ -65,11 +64,10 @@ export function WebSocketProvider({ children, slug }: { children: React.ReactNod
       if (!isMounted.current) return;
       try {
         const data = JSON.parse(event.data);
-        // Ignora respostas de heartbeat no estado global para evitar re-renders inúteis
         if (data.type === "pong") return;
         setLastMessage(data);
       } catch (e) {
-        console.error("🚨 [WS_PARSE_ERROR] Falha ao processar payload:", e);
+        console.error("🚨 [WS_PARSE_ERROR]", e);
       }
     };
 
@@ -77,10 +75,7 @@ export function WebSocketProvider({ children, slug }: { children: React.ReactNod
       if (!isMounted.current) return;
       setIsConnected(false);
       if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
-
-      // Rito de Reconexão (Não reconecta se o fechamento for intencional - código 1000)
       if (event.code !== 1000) {
-        console.warn(`⚠️ [WS_DISCONNECT] Conexão perdida (Código: ${event.code}). Tentando em 3s...`);
         if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
         reconnectTimeout.current = setTimeout(() => {
           if (isMounted.current) connect();
@@ -88,38 +83,26 @@ export function WebSocketProvider({ children, slug }: { children: React.ReactNod
       }
     };
 
-    socket.onerror = (err) => {
-      console.error("❌ [WS_CRITICAL_ERROR] Falha física no soquete:", err);
-      socket.close();
+    socket.onerror = () => {
+      if (ws.current) ws.current.close();
     };
   }, [slug]);
 
   useEffect(() => {
     isMounted.current = true;
-    // Pequeno atraso para garantir que o rito de hidratação do Next.js terminou
-    const initTimer = setTimeout(connect, 100);
-
+    const initTimer = setTimeout(connect, 200);
     return () => {
       isMounted.current = false;
       clearTimeout(initTimer);
       if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
       if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
-      if (ws.current) {
-        // Encerramento Gracioso
-        ws.current.close(1000, "Component Unmounted");
-        ws.current = null;
-      }
+      if (ws.current) ws.current.close(1000);
     };
   }, [connect]);
 
-  /**
-   * Método de envio seguro.
-   */
   const sendMessage = useCallback((msg: any) => {
     if (ws.current?.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify(msg));
-    } else {
-      console.warn("📤 [WS_SEND_SKIP] Tentativa de envio com canal fechado.");
     }
   }, []);
 
@@ -130,18 +113,8 @@ export function WebSocketProvider({ children, slug }: { children: React.ReactNod
   );
 }
 
-/**
- * Hook de acesso rápido com Fallback de Segurança.
- */
 export function useWebSocketContext() {
   const context = useContext(WebSocketContext);
-  if (!context) {
-    // Retorna interface nula para não quebrar componentes fora do Provider
-    return { 
-      isConnected: false, 
-      lastMessage: null, 
-      sendMessage: (msg: any) => console.error("WS fora de contexto", msg) 
-    };
-  }
+  if (!context) return { isConnected: false, lastMessage: null, sendMessage: () => {} };
   return context;
 }

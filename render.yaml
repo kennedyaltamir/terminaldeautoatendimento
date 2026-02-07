@@ -1,40 +1,46 @@
-# DOMAIN: ROOT_CONFIG
-# LAST_MODIFIED: 2026-01-08 23:55:00
+
+# DOMAIN: INFRASTRUCTURE_CONFIG
+# VERSION: 2.0.0 (Production Hardened)
+# LAST_MODIFIED: 2026-02-07 17:00:00
 services:
   # --------------------------------------------------------------------------------
-  # BACKEND (FastAPI)
+  # BACKEND (FastAPI Core) - O Coração do Sistema
   # --------------------------------------------------------------------------------
   - type: web
     name: mesaflow-api
     env: python
     region: oregon
-    plan: starter
+    plan: starter  # Recomendado: upgrade para 'standard' após o primeiro cliente real
     buildCommand: pip install -r requirements.txt
+    # O Gunicorn com 4 workers garante alta disponibilidade em produção
     startCommand: gunicorn app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+    healthCheckPath: /health  # 🛡️ VITAL: Render usa isso para saber se o app caiu
+    autoDeploy: true
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
       - key: ENVIRONMENT
         value: production
+      - key: DEBUG
+        value: "false"
       - key: ALLOWED_ORIGINS
-        value: "https://mesaflow.vercel.app,https://app.mesaflow.com.br"
-      - key: DOCS_URL
-        value: "/docs"
+        # 🛡️ HARDENING: Inclua seu domínio real e o da Vercel
+        value: "https://mesaflow.com.br,https://app.mesaflow.com.br,https://terminaldeautoatendimento.vercel.app"
       - key: WEB_CONCURRENCY
         value: "4"
       - key: DATABASE_URL
-        sync: false
+        sync: false # Definir manualmente no painel para segurança
       - key: REDIS_URL
         sync: false
       - key: SECRET_KEY
         sync: false
-      - key: STRIPE_SECRET_KEY
+      - key: SENTRY_DSN_BACKEND
         sync: false
       - key: MP_ACCESS_TOKEN
         sync: false
 
   # --------------------------------------------------------------------------------
-  # WORKER (Celery) - Processamento Assíncrono Persistente
+  # WORKER (Celery) - O Braço Operacional (Webhooks e Fila)
   # --------------------------------------------------------------------------------
   - type: worker
     name: mesaflow-worker
@@ -42,11 +48,9 @@ services:
     region: oregon
     plan: starter
     buildCommand: pip install -r requirements.txt
-    # Inicia o Celery Worker com nível de log INFO
     startCommand: celery -A app.core.celery_app worker --loglevel=info --concurrency=2
+    autoDeploy: true
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.0
       - key: ENVIRONMENT
         value: production
       - key: DATABASE_URL
