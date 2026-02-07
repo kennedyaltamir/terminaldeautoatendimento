@@ -1,36 +1,19 @@
+/**
+ * Author: MESAFLOW_AI_SOVEREIGN
+ * Version: 16.2.3 (Schema Compliance)
+ * DNA_ID: MF-NEXT-CONFIG-V16-2-3
+ */
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: "standalone",
-  
-  // Habilita rotas tipadas (Nativo no Next.js 16)
   typedRoutes: true,
-
-  // 🔓 LISTA BRANCA DE IPs (Crucial para acesso via Wi-Fi)
-  // Adicionamos variações para garantir que o Next.js aceite a conexão
-  allowedDevOrigins: [
-    "localhost:3000", 
-    "localhost:3001",
-    "127.0.0.1:3000",
-    "192.168.0.150:3000", // Seu IP com porta
-    "192.168.0.150:3001", // Porta alternativa
-    "192.168.0.150",      // IP puro (fallback)
-  ],
-
-  // Fallback de CORS para garantir carregamento de assets
-  async headers() {
-    return [
-      {
-        source: "/:path*",
-        headers: [
-          { key: "Access-Control-Allow-Origin", value: "*" },
-          { key: "Access-Control-Allow-Methods", value: "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
-        ],
-      },
-    ];
+  // 🛡️ FIX: 'allowedDevOrigins' is deprecated/invalid in standard ExperimentalConfig for this version.
+  // We use standard CORS headers handled at the Kernel (main.py) instead.
+  experimental: {
+    // Other experimental flags can go here if needed
   },
-
   images: {
     remotePatterns: [
       {

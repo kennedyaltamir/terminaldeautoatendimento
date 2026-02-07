@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="10">
+<title>Sentinel v5.8</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<style>
+body { background: #0f172a; color: white; font-family: sans-serif; margin: 0; }
+.header { padding: 20px; background: #1e293b; border-bottom: 1px solid #334155; position: sticky; top: 0; z-index: 1000; }
+.legend { position: fixed; bottom: 20px; left: 20px; background: rgba(15,23,42,0.9); padding: 15px; border-radius: 10px; border: 1px solid #334155; z-index: 100; }
+.item { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; font-size: 12px; }
+.box { width: 12px; height: 12px; border-radius: 2px; }
+#map-container { width: 100%; height: calc(100vh - 80px); overflow: auto; padding: 40px; box-sizing: border-box; }
+.mermaid { min-width: 3000px; }
+</style>
+</head>
+<body>
+<div class="header">
+<h1 style="color: #ea580c; margin: 0; font-size: 20px;">🛡️ MesaFlow Architecture Sentinel v5.8</h1>
+<p style="color: #94a3b8; margin: 5px 0 0; font-size: 13px;">Deep Variable Resolution Ativo</p>
+</div>
+<div class="legend">
+<div class="item"><div class="box" style="background: #ef4444;"></div> Link Quebrado</div>
+<div class="item"><div class="box" style="background: #334155;"></div> Estável</div>
+</div>
+<div id="map-container"><div class="mermaid">graph TD
+    subgraph ADMIN
+        direction LR
+        admin__slug__audit_financial["Sem Título<br/><small>admin__slug__audit_financial</small>"]
+        style admin__slug__audit_financial fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__audit["Sem Título<br/><small>admin__slug__audit</small>"]
+        style admin__slug__audit fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__counter["Sem Título<br/><small>admin__slug__counter</small>"]
+        style admin__slug__counter fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__dashboard_history["Sem Título<br/><small>admin__slug__dashboard_history</small>"]
+        style admin__slug__dashboard_history fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__dashboard["Sem Título<br/><small>admin__slug__dashboard</small>"]
+        style admin__slug__dashboard fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__delivery["Sem Título<br/><small>admin__slug__delivery</small>"]
+        style admin__slug__delivery fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__driver["Sem Título<br/><small>admin__slug__driver</small>"]
+        style admin__slug__driver fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__expeditor["Sem Título<br/><small>admin__slug__expeditor</small>"]
+        style admin__slug__expeditor fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__franchise["Sem Título<br/><small>admin__slug__franchise</small>"]
+        style admin__slug__franchise fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__history["Sem Título<br/><small>admin__slug__history</small>"]
+        style admin__slug__history fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__inventory["Sem Título<br/><small>admin__slug__inventory</small>"]
+        style admin__slug__inventory fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__kitchen["Sem Título<br/><small>admin__slug__kitchen</small>"]
+        style admin__slug__kitchen fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__marketing["Sem Título<br/><small>admin__slug__marketing</small>"]
+        style admin__slug__marketing fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__menu["Sem Título<br/><small>admin__slug__menu</small>"]
+        style admin__slug__menu fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__profile["Sem Título<br/><small>admin__slug__profile</small>"]
+        style admin__slug__profile fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__settings_billing["Sem Título<br/><small>admin__slug__settings_billing</small>"]
+        style admin__slug__settings_billing fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__settings_features["Sem Título<br/><small>admin__slug__settings_features</small>"]
+        style admin__slug__settings_features fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__settings["Sem Título<br/><small>admin__slug__settings</small>"]
+        style admin__slug__settings fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__tables["Sem Título<br/><small>admin__slug__tables</small>"]
+        style admin__slug__tables fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__team["Sem Título<br/><small>admin__slug__team</small>"]
+        style admin__slug__team fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__waiter_orders["Sem Título<br/><small>admin__slug__waiter_orders</small>"]
+        style admin__slug__waiter_orders fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__waiter["Mapa de Mesas (Garçom)<br/><small>admin__slug__waiter</small>"]
+        style admin__slug__waiter fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__waiter_pos__tableId["Sem Título<br/><small>admin__slug__waiter_pos__tableId</small>"]
+        style admin__slug__waiter_pos__tableId fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin__slug__waiter_pos_quick["Venda Rápida (Balcão)<br/><small>admin__slug__waiter_pos_quick</small>"]
+        style admin__slug__waiter_pos_quick fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin_forgot_password["Sem Título<br/><small>admin_forgot_password</small>"]
+        style admin_forgot_password fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin_login["Sem Título<br/><small>admin_login</small>"]
+        style admin_login fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin_payment_callback["Sem Título<br/><small>admin_payment_callback</small>"]
+        style admin_payment_callback fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin_register["Revolucione seu Restaurante<br/><small>admin_register</small>"]
+        style admin_register fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin_reset_password["Redefinir Senha<br/><small>admin_reset_password</small>"]
+        style admin_reset_password fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        admin_support["Sem Título<br/><small>admin_support</small>"]
+        style admin_support fill:#ef4444,stroke:#fff,stroke-width:2px,color:#fff
+    end
+
+    subgraph CLIENTE
+        direction LR
+        slug__checkout["Finalizar Pedido (Checkout)<br/><small>slug__checkout</small>"]
+        style slug__checkout fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        slug__kiosk["Tela de Atração (Totem)<br/><small>slug__kiosk</small>"]
+        style slug__kiosk fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        slug__menu["Cardápio Digital (Cliente)<br/><small>slug__menu</small>"]
+        style slug__menu fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        slug__monitor["Monitor de Pedidos (Salão)<br/><small>slug__monitor</small>"]
+        style slug__monitor fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+    end
+
+    subgraph INSTITUCIONAL
+        direction LR
+        trust["Trust Center | MesaFlow<br/><small>trust</small>"]
+        style trust fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        trust_security["Segurança | MesaFlow Trust Center<br/><small>trust_security</small>"]
+        style trust_security fill:#ef4444,stroke:#fff,stroke-width:2px,color:#fff
+        trust_status["Sem Título<br/><small>trust_status</small>"]
+        style trust_status fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+    end
+
+    subgraph GERAL
+        direction LR
+        offline["Sem Título<br/><small>offline</small>"]
+        style offline fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+        page_tsx["Sem Título<br/><small>page_tsx</small>"]
+        style page_tsx fill:#334155,stroke:#fff,stroke-width:2px,color:#fff
+    end
+
+    slug__kiosk --> slug__menu
+    admin__slug__delivery --> admin_login
+    admin__slug__driver --> admin_login
+    admin__slug__kitchen --> admin_login
+    admin__slug__waiter --> admin__slug__waiter_pos_quick
+    admin__slug__waiter_pos__tableId --> admin__slug__waiter
+    admin_forgot_password --> admin_login
+    admin_login --> admin_register
+    admin_login --> admin_forgot_password
+    admin_payment_callback --> admin_login
+    admin_register --> admin_login
+    admin_reset_password --> admin_login
+    admin_reset_password --> admin_forgot_password
+    admin_support --> admin__company_slug__dashboard
+    trust --> trust_status
+    trust --> trust_security
+    trust_security --> privacy
+    click slug__checkout "https://github.com/search?q=slug__checkout" "Ver Código"
+    click slug__kiosk "https://github.com/search?q=slug__kiosk" "Ver Código"
+    click slug__menu "https://github.com/search?q=slug__menu" "Ver Código"
+    click slug__monitor "https://github.com/search?q=slug__monitor" "Ver Código"
+    click admin__slug__audit_financial "https://github.com/search?q=admin__slug__audit_financial" "Ver Código"
+    click admin__slug__audit "https://github.com/search?q=admin__slug__audit" "Ver Código"
+    click admin__slug__counter "https://github.com/search?q=admin__slug__counter" "Ver Código"
+    click admin__slug__dashboard_history "https://github.com/search?q=admin__slug__dashboard_history" "Ver Código"
+    click admin__slug__dashboard "https://github.com/search?q=admin__slug__dashboard" "Ver Código"
+    click admin__slug__delivery "https://github.com/search?q=admin__slug__delivery" "Ver Código"
+    click admin__slug__driver "https://github.com/search?q=admin__slug__driver" "Ver Código"
+    click admin__slug__expeditor "https://github.com/search?q=admin__slug__expeditor" "Ver Código"
+    click admin__slug__franchise "https://github.com/search?q=admin__slug__franchise" "Ver Código"
+    click admin__slug__history "https://github.com/search?q=admin__slug__history" "Ver Código"
+    click admin__slug__inventory "https://github.com/search?q=admin__slug__inventory" "Ver Código"
+    click admin__slug__kitchen "https://github.com/search?q=admin__slug__kitchen" "Ver Código"
+    click admin__slug__marketing "https://github.com/search?q=admin__slug__marketing" "Ver Código"
+    click admin__slug__menu "https://github.com/search?q=admin__slug__menu" "Ver Código"
+    click admin__slug__profile "https://github.com/search?q=admin__slug__profile" "Ver Código"
+    click admin__slug__settings_billing "https://github.com/search?q=admin__slug__settings_billing" "Ver Código"
+    click admin__slug__settings_features "https://github.com/search?q=admin__slug__settings_features" "Ver Código"
+    click admin__slug__settings "https://github.com/search?q=admin__slug__settings" "Ver Código"
+    click admin__slug__tables "https://github.com/search?q=admin__slug__tables" "Ver Código"
+    click admin__slug__team "https://github.com/search?q=admin__slug__team" "Ver Código"
+    click admin__slug__waiter_orders "https://github.com/search?q=admin__slug__waiter_orders" "Ver Código"
+    click admin__slug__waiter "https://github.com/search?q=admin__slug__waiter" "Ver Código"
+    click admin__slug__waiter_pos__tableId "https://github.com/search?q=admin__slug__waiter_pos__tableId" "Ver Código"
+    click admin__slug__waiter_pos_quick "https://github.com/search?q=admin__slug__waiter_pos_quick" "Ver Código"
+    click admin_forgot_password "https://github.com/search?q=admin_forgot_password" "Ver Código"
+    click admin_login "https://github.com/search?q=admin_login" "Ver Código"
+    click admin_payment_callback "https://github.com/search?q=admin_payment_callback" "Ver Código"
+    click admin_register "https://github.com/search?q=admin_register" "Ver Código"
+    click admin_reset_password "https://github.com/search?q=admin_reset_password" "Ver Código"
+    click admin_support "https://github.com/search?q=admin_support" "Ver Código"
+    click offline "https://github.com/search?q=offline" "Ver Código"
+    click page_tsx "https://github.com/search?q=page_tsx" "Ver Código"
+    click trust "https://github.com/search?q=trust" "Ver Código"
+    click trust_security "https://github.com/search?q=trust_security" "Ver Código"
+    click trust_status "https://github.com/search?q=trust_status" "Ver Código"
+
+</div></div>
+<script>
+mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose', flowchart: { useMaxWidth: false, htmlLabels: true, curve: 'basis' } });
+</script>
+</body>
+</html>

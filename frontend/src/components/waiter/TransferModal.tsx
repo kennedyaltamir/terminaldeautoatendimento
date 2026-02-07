@@ -1,10 +1,26 @@
+/**
+ * MODULE: WAITER_TRANSFER
+ * VERSION: 3.0 (Visual Map)
+ * DNA_ID: MF-TRANSFER-MODAL-V3
+ * PURPOSE: Move or merge tables with visual confirmation.
+ */
 "use client";
 
-import { useState, useEffect } from "react";
-import { X, ArrowRight, ArrowRightLeft, Users, AlertTriangle, Loader2 } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { 
+  X, 
+  ArrowRightLeft, 
+  Users, 
+  AlertTriangle, 
+  Loader2, 
+  CheckCircle2 ,
+  ArrowRight
+} from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import { getTablesDashboard, transferTable } from "@/lib/api";
 import { toast } from "sonner";
+import { TableDashboard } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface TransferModalProps {
   isOpen: boolean;
@@ -15,31 +31,43 @@ interface TransferModalProps {
   onSuccess: () => void;
 }
 
-export default function TransferModal({ isOpen, onClose, fromTableId, fromTableName, slug, onSuccess }: TransferModalProps) {
-  const [tables, setTables] = useState<any[]>([]);
+export default function TransferModal({ 
+  isOpen, 
+  onClose, 
+  fromTableId, 
+  fromTableName, 
+  slug,
+  onSuccess 
+}: TransferModalProps) {
+  const [tables, setTables] = useState<TableDashboard[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTarget, setSelectedTarget] = useState<number | null>(null);
   const [processing, setProcessing] = useState(false);
   const [mergeConfirm, setMergeConfirm] = useState(false);
 
+  const loadTables = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await getTablesDashboard();
+      // Filtra a própria mesa da lista de destinos
+      setTables(data.filter(t => t.id !== fromTableId));
+    } catch (e) {
+      toast.error("Falha ao carregar mapa de mesas.");
+    } finally {
+      setLoading(false);
+    }
+  }, [fromTableId]);
+
   useEffect(() => {
     if (isOpen) {
-      setLoading(true);
+      loadTables();
       setMergeConfirm(false);
       setSelectedTarget(null);
-      getTablesDashboard(slug)
-        .then(data => {
-          // Filtra a própria mesa da lista
-          setTables(data.filter((t: any) => t.id !== fromTableId));
-        })
-        .catch(() => toast.error("Erro ao carregar mesas"))
-        .finally(() => setLoading(false));
     }
-  }, [isOpen, slug, fromTableId]);
+  }, [isOpen, loadTables]);
 
   const handleTransfer = async (forceMerge = false) => {
     if (!selectedTarget) return;
-    
     setProcessing(true);
     try {
       await transferTable({
@@ -47,15 +75,15 @@ export default function TransferModal({ isOpen, onClose, fromTableId, fromTableN
         to_table_id: selectedTarget,
         merge: forceMerge
       });
-      
-      toast.success("Mesa transferida com sucesso!");
+      toast.success(forceMerge ? "Mesas unificadas com sucesso!" : "Mesa transferida!");
       onSuccess();
       onClose();
     } catch (err: any) {
-      if (err.detail && err.detail.includes("Deseja juntar")) {
+      // O Backend retorna 409 se a mesa de destino estiver ocupada
+      if (err.status === 409 || (err.detail && err.detail.includes("ocupada"))) {
         setMergeConfirm(true);
       } else {
-        toast.error(err.detail || "Erro na transferência");
+        toast.error(err.message || "Erro na operação de transferência.");
       }
     } finally {
       setProcessing(false);
@@ -68,72 +96,79 @@ export default function TransferModal({ isOpen, onClose, fromTableId, fromTableN
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Transferir ${fromTableName}`}>
-      <div className="space-y-4">
-        
+      <div className="space-y-6">
         {mergeConfirm ? (
-          <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl animate-in fade-in">
-            <div className="flex items-center gap-3 mb-3 text-yellow-800">
-              <AlertTriangle size={24} />
-              <h4 className="font-bold">Mesa Ocupada!</h4>
+          <div className="bg-orange-500/10 border border-orange-500/20 p-6 rounded-[2rem] animate-in zoom-in duration-300">
+            <div className="flex items-center gap-3 mb-4 text-orange-500">
+              <AlertTriangle size={28} />
+              <h4 className="font-black uppercase text-sm tracking-widest">Mesa Ocupada</h4>
             </div>
-            <p className="text-sm text-gray-700 mb-4">
-              A Mesa {targetTable?.table_number} já tem uma conta aberta ({targetTable?.active_session?.customer_name}). 
-              Deseja <b>JUNTAR</b> as duas mesas em uma só conta?
+            <p className="text-sm text-slate-300 mb-6 leading-relaxed">
+              A <span className="text-white font-bold">Mesa {targetTable?.table_number}</span> já possui uma sessão ativa para <span className="text-orange-400 font-bold">{targetTable?.active_session?.customer_name}</span>. 
+              Deseja <span className="text-white font-black underline">JUNTAR</span> os pedidos de ambas as mesas?
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <button 
                 onClick={() => setMergeConfirm(false)}
-                className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg font-bold"
+                className="flex-1 bg-slate-800 text-slate-300 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 transition-all"
               >
-                Cancelar
+                Voltar
               </button>
               <button 
                 onClick={() => handleTransfer(true)}
                 disabled={processing}
-                className="flex-1 bg-yellow-600 text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2"
+                className="flex-[2] bg-orange-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-orange-900/20 flex items-center justify-center gap-2 active:scale-95 transition-all"
               >
-                {processing ? <Loader2 className="animate-spin" /> : <Users size={18} />}
-                Juntar Mesas
+                {processing ? <Loader2 className="animate-spin" size={18} /> : <Users size={18} />}
+                Confirmar União
               </button>
             </div>
           </div>
         ) : (
           <>
-            <p className="text-sm text-gray-500">Selecione a mesa de destino:</p>
+            <div className="flex items-center justify-between px-2">
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Selecione o Destino</p>
+              {loading && <Loader2 size={14} className="animate-spin text-orange-500" />}
+            </div>
             
-            <div className="grid grid-cols-3 gap-2 max-h-[50vh] overflow-y-auto p-1">
-              {loading ? (
-                <p className="col-span-3 text-center py-4 text-gray-400">Carregando...</p>
-              ) : (
-                tables.map(table => (
-                  <button
-                    key={table.id}
-                    onClick={() => setSelectedTarget(table.id)}
-                    className={`p-3 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${
-                      selectedTarget === table.id 
-                        ? 'border-orange-500 bg-orange-50 text-orange-700' 
-                        : table.status === 'occupied' 
-                          ? 'border-red-200 bg-red-50 text-red-400 opacity-80' 
-                          : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-                    }`}
-                  >
-                    <span className="text-xl font-bold">{table.table_number}</span>
-                    <span className="text-[10px] font-bold uppercase">
-                      {table.status === 'occupied' ? 'Ocupada' : 'Livre'}
-                    </span>
-                  </button>
-                ))
-              )}
+            <div className="grid grid-cols-3 gap-3 max-h-[45vh] overflow-y-auto p-1 custom-scrollbar">
+              {tables.map(table => (
+                <button
+                  key={table.id}
+                  onClick={() => setSelectedTarget(table.id)}
+                  className={cn(
+                    "p-4 rounded-[1.5rem] border-2 flex flex-col items-center justify-center transition-all active:scale-95 h-24",
+                    selectedTarget === table.id 
+                      ? 'border-orange-500 bg-orange-500/10 shadow-md ring-1 ring-orange-500/50' 
+                      : table.status === 'occupied' 
+                        ? 'border-slate-800 bg-slate-900/50 text-slate-500' 
+                        : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700'
+                  )}
+                >
+                  <span className="text-2xl font-black tracking-tighter">{table.table_number}</span>
+                  <span className="text-[8px] font-black uppercase tracking-widest mt-1">
+                    {table.status === 'occupied' ? 'Ocupada' : 'Livre'}
+                  </span>
+                </button>
+              ))}
             </div>
 
-            <button
-              disabled={!selectedTarget || processing}
-              onClick={() => handleTransfer(false)}
-              className="w-full bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg"
-            >
-              {processing ? <Loader2 className="animate-spin" /> : <ArrowRightLeft size={20} />}
-              Confirmar Transferência
-            </button>
+            <div className="pt-4 space-y-3">
+              <button
+                disabled={!selectedTarget || processing}
+                onClick={() => handleTransfer(false)}
+                className="w-full bg-white text-slate-950 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl transition-all active:scale-[0.98] disabled:opacity-20 flex items-center justify-center gap-3"
+              >
+                {processing ? <Loader2 className="animate-spin" /> : <ArrowRightLeft size={20} />}
+                Mover Pedidos
+              </button>
+              <button 
+                onClick={onClose}
+                className="w-full py-2 text-slate-500 font-bold text-[10px] uppercase tracking-widest hover:text-slate-300 transition-colors"
+              >
+                Cancelar Operação
+              </button>
+            </div>
           </>
         )}
       </div>

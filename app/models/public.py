@@ -1,3 +1,5 @@
+# DOMAIN: BACKEND
+# LAST_MODIFIED: 2026-01-27 18:21:54
 
 from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.sql import func

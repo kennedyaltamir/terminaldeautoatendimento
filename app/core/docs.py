@@ -1,3 +1,5 @@
+# DOMAIN: BACKEND
+# LAST_MODIFIED: 2026-01-27 18:21:54
 """
 Configurações de Metadados para a Documentação da API (Swagger/OpenAPI).
 Este arquivo define como a documentação interativa (/docs) é apresentada.

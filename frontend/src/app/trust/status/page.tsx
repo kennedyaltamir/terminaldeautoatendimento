@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, XCircle, Loader2, Server, Database, Activity } from "lucide-react";
 
+// FIX: Remoção de dependências quebradas. Página autossuficiente.
+
 interface HealthData {
   status: string;
   timestamp: number;
@@ -24,7 +26,9 @@ export default function StatusPage() {
         if (!res.ok) throw new Error("Falha no health check");
         const data = await res.json();
         setHealth(data);
+        setError(false);
       } catch (e) {
+        console.error("Health Check Error:", e);
         setError(true);
       } finally {
         setLoading(false);
@@ -32,11 +36,11 @@ export default function StatusPage() {
     };
 
     checkHealth();
-    const interval = setInterval(checkHealth, 30000); // Atualiza a cada 30s
+    const interval = setInterval(checkHealth, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  const StatusIndicator = ({ status }: { status: string }) => {
+  const StatusIndicator = ({ status }: { status: string | undefined }) => {
     const isUp = status === "up" || status === "healthy";
     return (
       <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase ${isUp ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
@@ -66,7 +70,6 @@ export default function StatusPage() {
         </div>
       ) : (
         <div className="grid gap-6 max-w-2xl mx-auto">
-          {/* Status Geral */}
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="bg-green-100 p-3 rounded-full text-green-600">
@@ -77,10 +80,9 @@ export default function StatusPage() {
                 <p className="text-xs text-gray-500">Latência normal</p>
               </div>
             </div>
-            <StatusIndicator status={health?.status || "down"} />
+            <StatusIndicator status={health?.status} />
           </div>
 
-          {/* Database */}
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="bg-blue-100 p-3 rounded-full text-blue-600">
@@ -91,10 +93,9 @@ export default function StatusPage() {
                 <p className="text-xs text-gray-500">Neon Serverless</p>
               </div>
             </div>
-            <StatusIndicator status={health?.services.database || "down"} />
+            <StatusIndicator status={health?.services?.database} />
           </div>
 
-          {/* Redis */}
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="bg-red-100 p-3 rounded-full text-red-600">
@@ -105,7 +106,7 @@ export default function StatusPage() {
                 <p className="text-xs text-gray-500">WebSockets & Pub/Sub</p>
               </div>
             </div>
-            <StatusIndicator status={health?.services.redis || "down"} />
+            <StatusIndicator status={health?.services?.redis} />
           </div>
 
           <p className="text-center text-xs text-gray-400 mt-8">

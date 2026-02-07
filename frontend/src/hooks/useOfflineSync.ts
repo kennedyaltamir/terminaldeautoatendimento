@@ -1,88 +1,130 @@
-// DOMAIN: FRONTEND
-// LAST_MODIFIED: 2026-01-10 16:15:00
-import { useEffect, useState } from 'react';
+/**
+ * Author: MESAFLOW_AI_SOVEREIGN
+ * Version: 26.2.0 (Undefined Guard Fix)
+ * DNA_ID: MF-HOOK-SYNC-V26-2
+ * Objective: Prevent 'undefined' journey_id from crashing the API and tripping Circuit Breaker.
+ */
+"use client";
+
+import { useEffect, useState, useCallback } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/lib/db';
-import { createOrder } from '@/lib/api';
+import { db, PendingDeliveryAction } from '@/lib/db';
 import { toast } from 'sonner';
 
 export function useOfflineSync() {
-  const [isSyncing, setIsSyncing] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [dbReady, setDbReady] = useState(false);
 
-  // Monitora a tabela local reativamente
-  const pendingCount = useLiveQuery(() => db.pendingOrders.where('status').equals('pending').count()) || 0;
-  const errorCount = useLiveQuery(() => db.pendingOrders.where('status').equals('error').count()) || 0;
+    // 1. Database Connection Lifecycle
+    useEffect(() => {
+        const initDB = async () => {
+            try {
+                await db.safeOpen();
+                setDbReady(true);
+            } catch (error) {
+                console.error("[IDB_FATAL] Falha ao abrir banco local:", error);
+            }
+        };
+        initDB();
+    }, []);
 
-  const syncNow = async () => {
-    if (isSyncing || !navigator.onLine) return;
+    // 2. Reactive Data Fetching
+    const pendingActions = useLiveQuery(
+        () => dbReady ? db.pendingActions.where('status').equals('pending').toArray() : Promise.resolve([] as PendingDeliveryAction[]),
+        [dbReady]
+    );
 
-    const pendingOrders = await db.pendingOrders
-      .where('status')
-      .equals('pending')
-      .toArray();
+    const errorCountData = useLiveQuery(
+        () => dbReady ? db.pendingActions.where('status').equals('error').count() : Promise.resolve(0),
+        [dbReady]
+    );
 
-    if (pendingOrders.length === 0) return;
+    const safePendingActions = pendingActions || [];
+    const pendingCount = safePendingActions.length;
+    const errorCount = errorCountData || 0;
 
-    setIsSyncing(true);
-    let successCount = 0;
-
-    for (const order of pendingOrders) {
-      try {
-        await createOrder(order.slug, order.payload);
-        // Sucesso: Remove da fila
-        await db.pendingOrders.delete(order.id!);
-        successCount++;
-      } catch (error: any) {
-        console.error("Erro na sincronização:", error);
-        
-        // Se for erro de regra de negócio (400) ou validação (422)
-        // Marcamos como erro para parar o loop de retry automático
-        const isFatalError = error.status === 400 || error.status === 422;
-        
-        if (isFatalError) {
-          await db.pendingOrders.update(order.id!, {
-            status: 'error',
-            errorMessage: error.message || "Erro de validação"
-          });
-          toast.error(`Falha no pedido offline: ${error.message}`, {
-            description: "O pedido foi movido para a lista de erros."
-          });
-        } else {
-          // Erro de rede ou servidor: Incrementa retry e tenta depois
-          await db.pendingOrders.update(order.id!, {
-            retryCount: (order.retryCount || 0) + 1
-          });
+    /**
+     * Clear Queue (SRE Emergency Protocol)
+     */
+    const clearQueue = useCallback(async () => {
+        if (!dbReady) return;
+        try {
+            await db.pendingActions.clear();
+            toast.success("Fila de sincronização limpa.");
+        } catch (e) {
+            toast.error("Falha ao acessar banco local.");
         }
-      }
-    }
+    }, [dbReady]);
 
-    setIsSyncing(false);
-    if (successCount > 0) {
-      toast.success(`${successCount} pedidos sincronizados! ☁️`);
-    }
-  };
+    /**
+     * Background Synchronization Sequence
+     */
+    const syncNow = useCallback(async () => {
+        if (isSyncing || !navigator.onLine || !dbReady || pendingCount === 0) return;
 
-  const clearQueue = async () => {
-    if (confirm("Deseja limpar todos os pedidos pendentes (incluindo erros)?")) {
-      await db.pendingOrders.clear();
-      toast.success("Fila offline limpa.");
-    }
-  };
+        setIsSyncing(true);
+        try {
+            const token = localStorage.getItem('mesaflow_access_token');
+            const apiBase = process.env.NEXT_PUBLIC_API_URL;
 
-  useEffect(() => {
-    const handleOnline = () => {
-      syncNow();
+            for (const action of safePendingActions) {
+                if (!action.id) continue;
+
+                // 🛡️ GUARD: Impede envio de ID inválido que quebra o backend
+                if (!action.journey_id || action.journey_id === 'undefined' || action.journey_id === 'null') {
+                    console.warn(`[SYNC_SKIP] Ação ${action.id} possui journey_id inválido: ${action.journey_id}. Marcando como erro.`);
+                    await db.pendingActions.update(action.id, { status: 'error', retryCount: 99 });
+                    continue;
+                }
+
+                try {
+                    const res = await fetch(`${apiBase}/mobile/logistics/journey/${action.journey_id}/status`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(action.payload)
+                    });
+
+                    if (res.ok) {
+                        await db.pendingActions.delete(action.id);
+                        console.info(`[SYNC_SUCCESS] Evento ${action.id} transmitido.`);
+                    } else {
+                        // Se for 503, aborta o loop para não piorar o Circuit Breaker
+                        if (res.status === 503) {
+                            console.warn("[SYNC_PAUSE] Backend em proteção (503). Pausando sincronia.");
+                            break;
+                        }
+                        
+                        await db.pendingActions.update(action.id, { 
+                            status: 'error',
+                            retryCount: (action.retryCount || 0) + 1 
+                        });
+                    }
+                } catch (fetchError) {
+                    console.warn(`[SYNC_RETRY] Falha de transporte para ação ${action.id}.`);
+                    break; 
+                }
+            }
+        } finally {
+            setIsSyncing(false);
+        }
+    }, [isSyncing, dbReady, safePendingActions, pendingCount]);
+
+    // 🔄 Automatic Sync Trigger
+    useEffect(() => {
+        if (navigator.onLine && pendingCount > 0) {
+            syncNow();
+        }
+    }, [pendingCount, syncNow]);
+
+    return { 
+        pendingCount, 
+        errorCount, 
+        isSyncing, 
+        dbReady, 
+        syncNow,
+        clearQueue
     };
-    window.addEventListener('online', handleOnline);
-    
-    return () => window.removeEventListener('online', handleOnline);
-  }, [pendingCount]);
-
-  return {
-    pendingCount,
-    errorCount,
-    isSyncing,
-    syncNow,
-    clearQueue
-  };
 }

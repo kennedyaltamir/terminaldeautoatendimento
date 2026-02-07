@@ -1,12 +1,17 @@
 "use client";
-
+/**
+ * DOMAIN: FRONTEND
+ * FILE: src/context/LanguageContext.tsx
+ * OBJECTIVE: Gerenciamento de internacionalização com inicialização segura (Render Safe).
+ * FIX: Deferral de atualização de estado para evitar conflitos de renderização.
+ */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { dictionaries, Locale } from '@/lib/dictionaries';
 
 interface LanguageContextType {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: typeof dictionaries['pt']; // Tipo inferido do dicionário PT
+  t: typeof dictionaries['pt'];
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -14,11 +19,17 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocale] = useState<Locale>('pt');
 
-  // Detectar idioma do navegador na primeira carga
   useEffect(() => {
-    const browserLang = navigator.language.split('-')[0];
-    if (browserLang === 'en' || browserLang === 'es') {
-      setLocale(browserLang as Locale);
+    if (typeof window !== "undefined") {
+      const browserLang = navigator.language.split('-')[0];
+      if (['en', 'es', 'pt'].includes(browserLang)) {
+        // 🛡️ FIX: Deferral (Adiamento) da atualização de estado.
+        // Move a atualização para o próximo tick do Event Loop, evitando
+        // conflitos de renderização com outros Context Providers.
+        setTimeout(() => {
+          setLocale(browserLang as Locale);
+        }, 0);
+      }
     }
   }, []);
 

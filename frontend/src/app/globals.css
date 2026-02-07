@@ -1,81 +1,126 @@
+/* 
+ * Author: MESAFLOW_AI_SOVEREIGN
+ * Version: 15.1.0 (Leaflet Fix)
+ * DNA_ID: MF-DESIGN-SYSTEM-V15-1
+ * OBJETIVO: Garantir que o CSS do Leaflet seja carregado globalmente.
+ */
+@import "leaflet/dist/leaflet.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* =========================================================
+   3. DESIGN TOKENS (Sovereign Colors)
+   ========================================================= */
 :root {
   --foreground-rgb: 15, 23, 42;
   --background-start-rgb: 248, 250, 252;
   --background-end-rgb: 255, 255, 255;
   --primary-orange: #ea580c;
   --slate-900: #0f172a;
+  --slate-950: #020617;
   --emerald-500: #10b981;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 15, 23, 42;
-    --background-end-rgb: 2, 6, 23;
+    --background-start-rgb: 2, 6, 23;
+    --background-end-rgb: 0, 0, 0;
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-start-rgb));
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* =========================================================
+   4. BASE LAYER
+   ========================================================= */
+@layer base {
+  body {
+    color: rgb(var(--foreground-rgb));
+    background: rgb(var(--background-start-rgb));
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    @apply antialiased selection:bg-orange-500/30;
+  }
+
+  /* Acessibilidade de Foco */
+  :focus-visible {
+    @apply outline-none ring-2 ring-orange-500 ring-offset-2 ring-offset-white dark:ring-offset-black;
+  }
 }
 
-/* --- COMPONENTES MODERNOS (GLASSMORPISM & SMOOTH UI) --- */
+/* =========================================================
+   5. COMPONENT LAYER (SOVEREIGN UI)
+   ========================================================= */
 @layer components {
+  /* Design System: Glassmorphism */
   .glass-card {
     @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/20 dark:border-slate-800/50 shadow-xl rounded-3xl;
   }
-  
   .glass-panel {
     @apply bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg border border-white/10 dark:border-slate-800/30 shadow-lg rounded-2xl;
   }
 
+  /* Botões de Alta Performance */
   .btn-primary {
-    @apply bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-2xl transition-all active:scale-95 shadow-lg shadow-orange-600/20 flex items-center justify-center gap-2;
+    @apply bg-orange-600 text-white font-black rounded-2xl shadow-xl shadow-orange-900/40
+           hover:bg-orange-500 hover:scale-[1.02] transition-all active:scale-95
+           flex items-center justify-center gap-3 uppercase tracking-[0.1em]
+           border-2 border-white/10 backdrop-blur-sm py-3 px-6;
   }
-
   .btn-secondary {
-    @apply bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold py-3 px-6 rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 flex items-center justify-center gap-2;
+    @apply bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold py-3 px-6 
+           rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 
+           dark:hover:bg-slate-700 transition-all active:scale-95 flex items-center justify-center gap-2;
   }
 
-  .input-modern {
-    @apply w-full bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-orange-500/50 transition-all backdrop-blur-sm;
-  }
-  
+  /* Tipografia Operacional */
   .heading-hero {
-    @apply text-5xl md:text-7xl font-black tracking-tighter text-slate-900 dark:text-white leading-[1.1];
+    @apply text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.9]
+           text-slate-900 dark:text-white drop-shadow-2xl;
   }
+  .input-modern {
+    @apply w-full bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 
+           rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-orange-500/50 
+           transition-all backdrop-blur-sm text-slate-900 dark:text-white;
+  }
+
+  /* Scrollbars Customizados */
+  .custom-scrollbar {
+    @apply [scrollbar-width:thin] [scrollbar-color:#1e293b_transparent];
+  }
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-slate-800 rounded-full; }
 }
 
-/* --- UTILITÁRIOS DE INTERFACE --- */
+/* =========================================================
+   6. UTILITY LAYER
+   ========================================================= */
 @layer utilities {
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-orange-600 to-red-600;
   }
+  .bg-noise {
+    position: relative;
+  }
+  .bg-noise::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
 }
+
+/* =========================================================
+   7. GLOBAL ANIMATIONS & UI EFFECTS
+   ========================================================= */
 
 /* Scroll Progress Bar */
 .scroll-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
+  position: fixed; top: 0; left: 0; width: 100%; height: 3px;
   background: linear-gradient(to right, #ea580c, #f97316);
   transform-origin: 0 50%;
   animation: scroll-progress auto linear;
@@ -88,13 +133,14 @@ body {
   100% { transform: scaleX(1); }
 }
 
-/* Mesh Gradient Animation */
+/* Mesh Gradient Dynamic Background */
 .mesh-bg {
-  background-color: #ffffff;
+  background-color: #020617;
   background-image: 
-    radial-gradient(at 40% 20%, hsla(28,100%,74%,0.1) 0px, transparent 50%),
-    radial-gradient(at 80% 0%, hsla(189,100%,56%,0.1) 0px, transparent 50%),
-    radial-gradient(at 0% 50%, hsla(340,100%,76%,0.1) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, hsla(22,100%,74%,0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(200,100%,56%,0.1) 0px, transparent 50%),
+    radial-gradient(at 40% 20%, hsla(28,100%,74%,0.05) 0px, transparent 50%);
+  background-size: 200% 200%;
   animation: mesh 20s infinite alternate;
 }
 
@@ -104,31 +150,71 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-/* Custom Cursor */
-.custom-cursor {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #ea580c;
-  border-radius: 50%;
-  position: fixed;
-  pointer-events: none;
-  z-index: 9999;
-  transform: translate(-50%, -50%);
-  transition: width 0.2s, height 0.2s, background-color 0.2s;
-  mix-blend-mode: difference;
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
 }
 
-.custom-cursor.hovered {
-  width: 50px;
-  height: 50px;
-  background-color: rgba(234, 88, 12, 0.2);
-  border-color: transparent;
+.animate-shimmer {
+  animation: shimmer 2s infinite;
 }
 
-/* --- ESTILOS DE IMPRESSÃO TÉRMICA --- */
+/* =========================================================
+   8. PRINT PROTOCOL (THERMAL & DOCUMENT)
+   ========================================================= */
 @media print {
-  @page { margin: 0; size: 80mm auto; }
-  body { background-color: white !important; color: black !important; font-family: 'Courier New', Courier, monospace !important; width: 100%; margin: 0; padding: 0; }
-  body > *:not(.print\:block) { display: none !important; }
-  .print\:block { display: block !important; position: absolute; left: 0; top: 0; width: 100%; padding: 0; margin: 0; font-size: 12px; line-height: 1.2; }
+  @page {
+    margin: 0;
+    size: 80mm auto; /* Otimizado para bobinas térmicas */
+  }
+
+  /* Ocultar elementos de navegação e UI */
+  .no-print, header, nav, footer, aside, 
+  button:not(.print-visible), 
+  .scroll-progress, .custom-cursor {
+  display: none !important;
+}
+
+  body {
+    background-color: white !important;
+    color: black !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Container principal de impressão */
+  .print-container, .print\:block {
+    display: block !important;
+    position: relative;
+    width: 100%;
+    padding: 4mm;
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  /* Utilitários de Alinhamento de Cupom */
+  .print\:flex { display: flex !important; }
+  .print\:justify-between { justify-content: space-between !important; }
+  .print\:text-center { text-align: center !important; }
+  .print\:font-bold { font-weight: bold !important; }
+  .print\:border-b { border-bottom: 1px dashed black !important; }
+  .print\:border-t { border-top: 1px dashed black !important; }
+  .print\:text-xs { font-size: 9px !important; }
+  .print\:text-sm { font-size: 11px !important; }
+  .print\:text-lg { font-size: 14px !important; }
+  .print\:text-xl { font-size: 18px !important; }
+}
+
+/* Leaflet Overrides */
+.leaflet-container {
+  background: #020617 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 0;
+}
+.leaflet-control-attribution {
+  display: none !important;
 }

@@ -1,7 +1,12 @@
 "use client";
-
+/**
+ * DOMAIN: FRONTEND
+ * FILE: src/components/waiter/ChangeCalculator.tsx
+ * OBJECTIVE: Interface numérica para cálculo rápido de troco em dispositivos touch.
+ */
 import { useState, useEffect } from "react";
-import { Calculator, ArrowRight, Delete, Banknote } from "lucide-react";
+import { Delete, Check, X } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 import Modal from "@/components/ui/Modal";
 
 interface ChangeCalculatorProps {
@@ -12,104 +17,118 @@ interface ChangeCalculatorProps {
 }
 
 export default function ChangeCalculator({ isOpen, onClose, totalAmount, onConfirm }: ChangeCalculatorProps) {
-  const [receivedString, setReceivedString] = useState("");
+  const [input, setInput] = useState("");
   
-  // Resetar ao abrir
+  // Sugestões inteligentes de pagamento (ex: se total é 45, sugere 50 e 100)
+  const suggestions = [
+    Math.ceil(totalAmount / 10) * 10,
+    Math.ceil(totalAmount / 50) * 50,
+    Math.ceil(totalAmount / 100) * 100
+  ].filter((v, i, a) => v >= totalAmount && a.indexOf(v) === i); // Remove duplicatas e valores menores
+
   useEffect(() => {
-    if (isOpen) setReceivedString("");
+    if (isOpen) setInput("");
   }, [isOpen]);
 
+  const handlePress = (val: string) => {
+    if (val === "." && input.includes(".")) return;
+    // Limita casas decimais
+    if (input.includes(".") && input.split(".")[1].length >= 2) return;
+    setInput(prev => prev + val);
+  };
+
+  const handleDelete = () => {
+    setInput(prev => prev.slice(0, -1));
+  };
+
+  const handleConfirm = () => {
+    const val = parseFloat(input);
+    if (!isNaN(val) && val >= totalAmount) {
+      onConfirm(val);
+    }
+  };
+
+  const received = parseFloat(input) || 0;
+  const change = received - totalAmount;
+  const isSufficient = received >= totalAmount;
+
   if (!isOpen) return null;
-
-  const handleNumberClick = (num: string) => {
-    setReceivedString(prev => prev + num);
-  };
-
-  const handleBackspace = () => {
-    setReceivedString(prev => prev.slice(0, -1));
-  };
-
-  const handleQuickAdd = (amount: number) => {
-    setReceivedString(amount.toString());
-  };
-
-  const receivedVal = parseFloat(receivedString.replace(",", ".")) || 0;
-  const change = receivedVal - totalAmount;
-  const isSufficient = change >= 0;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Calculadora de Troco">
       <div className="space-y-6">
-        <div className="text-center bg-gray-50 p-4 rounded-xl border border-gray-200">
-          <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">Total da Conta</p>
-          <p className="text-3xl font-black text-gray-900">R$ {totalAmount.toFixed(2)}</p>
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Valor Recebido</label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">R$</span>
-            <input 
-              type="number" 
-              readOnly
-              className={`w-full bg-white border-2 rounded-xl py-4 pl-12 pr-4 text-2xl font-bold outline-none transition-colors ${isSufficient ? 'border-green-500 text-green-600' : 'border-gray-300 text-gray-900'}`}
-              placeholder="0.00"
-              value={receivedString}
-            />
-            {receivedString && (
-              <button onClick={handleBackspace} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 p-2">
-                <Delete size={24} />
-              </button>
-            )}
+        {/* Display */}
+        <div className="bg-slate-100 p-4 rounded-2xl text-right border-2 border-slate-200">
+          <p className="text-xs text-slate-500 font-bold uppercase mb-1">Valor Recebido</p>
+          <div className={`text-4xl font-black tracking-tight ${isSufficient ? 'text-slate-900' : 'text-red-500'}`}>
+            R$ {input || "0,00"}
           </div>
         </div>
 
-        {/* Sugestões de Notas */}
-        <div className="grid grid-cols-4 gap-2">
-          {[10, 20, 50, 100].map(val => (
+        {/* Info de Troco */}
+        <div className="flex justify-between items-center px-2">
+          <div className="text-left">
+            <p className="text-xs text-slate-400 font-bold uppercase">Total da Conta</p>
+            <p className="text-lg font-bold text-slate-700">{formatCurrency(totalAmount)}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-slate-400 font-bold uppercase">Troco</p>
+            <p className={`text-2xl font-black ${change >= 0 ? 'text-green-600' : 'text-slate-300'}`}>
+              {change >= 0 ? formatCurrency(change) : "---"}
+            </p>
+          </div>
+        </div>
+
+        {/* Sugestões Rápidas */}
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setInput(totalAmount.toString())}
+            className="flex-1 py-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold border border-blue-100 hover:bg-blue-100"
+          >
+            Exato
+          </button>
+          {suggestions.map(s => (
             <button 
-              key={val}
-              onClick={() => handleQuickAdd(val)}
-              className="bg-green-50 hover:bg-green-100 border border-green-200 text-green-700 font-bold py-2 rounded-lg text-sm flex flex-col items-center"
+              key={s}
+              onClick={() => setInput(s.toString())}
+              className="flex-1 py-2 bg-slate-50 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 hover:bg-slate-100"
             >
-              <span className="text-[10px] opacity-70">Nota</span>
-              R$ {val}
+              {formatCurrency(s)}
             </button>
           ))}
         </div>
 
         {/* Teclado Numérico */}
-        <div className="grid grid-cols-3 gap-2">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, '.', 0].map((key) => (
+        <div className="grid grid-cols-3 gap-3">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
             <button
-              key={key}
-              onClick={() => handleNumberClick(key.toString())}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-4 rounded-xl text-xl active:scale-95 transition-transform"
+              key={num}
+              onClick={() => handlePress(num.toString())}
+              className="h-14 bg-white border border-slate-200 rounded-xl text-2xl font-bold text-slate-700 shadow-sm active:bg-slate-50 active:scale-95 transition-all"
             >
-              {key}
+              {num}
             </button>
           ))}
-          <button 
-            onClick={() => setReceivedString("")}
-            className="bg-red-100 hover:bg-red-200 text-red-600 font-bold py-4 rounded-xl text-sm uppercase"
-          >
-            Limpar
+          <button onClick={() => handlePress(".")} className="h-14 bg-slate-50 border border-slate-200 rounded-xl text-2xl font-bold text-slate-500">.</button>
+          <button onClick={() => handlePress("0")} className="h-14 bg-white border border-slate-200 rounded-xl text-2xl font-bold text-slate-700 shadow-sm active:bg-slate-50">0</button>
+          <button onClick={handleDelete} className="h-14 bg-red-50 border border-red-100 rounded-xl flex items-center justify-center text-red-500 active:bg-red-100">
+            <Delete size={24} />
           </button>
         </div>
 
-        {/* Resultado do Troco */}
-        <div className={`p-4 rounded-xl text-center transition-all duration-300 ${isSufficient ? 'bg-green-600 text-white shadow-lg scale-105' : 'bg-gray-200 text-gray-400'}`}>
-          <p className="text-xs font-bold uppercase mb-1 opacity-80">{isSufficient ? "Troco a Devolver" : "Faltam"}</p>
-          <p className="text-3xl font-black">R$ {Math.abs(change).toFixed(2)}</p>
+        {/* Ações */}
+        <div className="flex gap-3 pt-2">
+          <button onClick={onClose} className="flex-1 py-4 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
+            Cancelar
+          </button>
+          <button 
+            onClick={handleConfirm}
+            disabled={!isSufficient}
+            className="flex-[2] bg-green-600 disabled:bg-slate-300 text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            <Check size={20} /> Confirmar
+          </button>
         </div>
-
-        <button
-          disabled={!isSufficient}
-          onClick={() => onConfirm(receivedVal)}
-          className="w-full bg-gray-900 hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold text-lg shadow-xl flex items-center justify-center gap-2 transition-all"
-        >
-          Confirmar Pagamento <ArrowRight size={20} />
-        </button>
       </div>
     </Modal>
   );

@@ -1,16 +1,20 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+
+import { useEffect, useState, useCallback, use } from "react"; // FIX: Import 'use'
 import { getOrderHistory, emitFiscalDocument } from "@/lib/api";
 import { Order } from "@/types";
-import { ChevronLeft, ChevronRight, Eye, AlertTriangle, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, RefreshCw } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import FiscalStatusBadge from "@/components/admin/FiscalStatusBadge";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import { useFiscalSync } from "@/hooks/useFiscalSync";
 import { formatCurrency } from "@/lib/utils";
 
-export default function HistoryPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default function HistoryPage({ params: paramsPromise }: { params: Promise<{ slug: string }> }) {
+  // 🛡️ PROTOCOLO NEXT 16: Unwrapping da Promise de params
+  const params = use(paramsPromise);
+  const slug = params.slug;
+  
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -20,17 +24,18 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
   const limit = 10;
 
   const fetchHistory = useCallback(async () => {
+    if (!slug || slug === "undefined") return;
     setLoading(true);
     try {
       const data = await getOrderHistory(slug, page, limit);
       setOrders(data.data);
       setTotal(data.total);
     } catch (error) {
-      console.error(error);
+      console.error("Erro ao carregar histórico:", error);
     } finally {
       setLoading(false);
     }
-  }, [slug, page, limit]);
+  }, [slug, page]);
 
   const { pendingCount, errorCount, isSyncing, syncNow } = useFiscalSync({
     onSyncComplete: () => fetchHistory()
@@ -62,28 +67,10 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
   const isNextDisabled = page >= totalPages;
 
   return (
-    <div className="space-y-6">
-      <Toaster position="top-right" richColors />
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
+    <div className="space-y-6 p-6">
+      <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-white">Histórico de Pedidos</h1>
-          <p className="text-sm text-gray-400">Total: {total} pedidos registrados</p>
-        </div>
-        {(pendingCount > 0 || errorCount > 0) && (
-          <div 
-            onClick={() => !isSyncing && syncNow()}
-            className={`flex items-center gap-3 px-4 py-2 rounded-xl border cursor-pointer transition-all animate-in slide-in-from-right ${
-              errorCount > 0 ? 'bg-red-900/20 border-red-500 text-red-200' : 'bg-orange-900/20 border-orange-500 text-orange-200'
-            }`}
-          >
-            {isSyncing ? <RefreshCw size={18} className="animate-spin" /> : <AlertTriangle size={18} />}
-            <div className="text-xs">
-              <p className="font-bold">{pendingCount} Notas em Contingência</p>
-              {errorCount > 0 && <p className="opacity-80">{errorCount} erros detectados</p>}
-            </div>
-            {!isSyncing && <RefreshCw size={14} className="ml-2 opacity-50" />}
-          </div>
-        )}
+        <p className="text-sm text-gray-400">Loja: {slug}</p>
       </div>
 
       <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-xl">
@@ -91,38 +78,21 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
           <table className="w-full text-left text-sm text-gray-400">
             <thead className="bg-gray-900 text-gray-200 uppercase font-bold">
               <tr>
-                <th className="px-6 py-4">ID</th>
                 <th className="px-6 py-4">Data</th>
                 <th className="px-6 py-4">Mesa</th>
                 <th className="px-6 py-4">Total</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Pagamento</th>
                 <th className="px-6 py-4">Fiscal</th>
                 <th className="px-6 py-4">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
               {loading ? (
-                <tr><td colSpan={8} className="px-6 py-8 text-center">Carregando...</td></tr>
-              ) : orders.length === 0 ? (
-                <tr><td colSpan={8} className="px-6 py-8 text-center">Nenhum pedido encontrado.</td></tr>
-              ) : (
-                orders.map((order) => (
+                <tr><td colSpan={5} className="px-6 py-8 text-center">Carregando...</td></tr>
+              ) : orders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-700/50 transition-colors">
-                    <td className="px-6 py-4 font-mono text-xs">{order.id.slice(0, 8)}</td>
                     <td className="px-6 py-4">{new Date(order.created_at).toLocaleString()}</td>
                     <td className="px-6 py-4 font-bold text-white">{order.table?.table_number || "Delivery"}</td>
                     <td className="px-6 py-4 font-bold text-white">{formatCurrency(order.total_amount)}</td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-gray-700 text-gray-300">
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`font-bold uppercase text-xs ${order.payment_status === 'paid' ? 'text-green-500' : 'text-yellow-500'}`}>
-                        {order.payment_status}
-                      </span>
-                    </td>
                     <td className="px-6 py-4">
                       <FiscalStatusBadge 
                         orderId={order.id}
@@ -134,20 +104,16 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
                       />
                     </td>
                     <td className="px-6 py-4">
-                      <button 
-                        type="button" 
-                        onClick={() => setSelectedOrder(order)} 
-                        className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition-colors"
-                      >
+                    <button onClick={() => setSelectedOrder(order)} className="p-2 bg-gray-700 rounded-lg text-white">
                         <Eye size={16} />
                       </button>
                     </td>
                   </tr>
-                ))
-              )}
+              ))}
             </tbody>
           </table>
         </div>
+        
         <div className="bg-gray-900 px-6 py-4 border-t border-gray-700 flex justify-between items-center">
           <button 
             type="button"
@@ -201,4 +167,4 @@ export default function HistoryPage({ params }: { params: { slug: string } }) {
     </div>
   );
 }
-
+   

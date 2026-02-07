@@ -94,3 +94,4 @@ Todo arquivo incluído deve ser precedido por um cabeçalho padronizado para que
 # DOMAIN: [BACKEND|FRONTEND|MOBILE|GOVERNANCE]
 # LAST_MODIFIED: YYYY-MM-DD HH:MM:SS
 ...conteúdo...
+[[MESAFLOW_END]]

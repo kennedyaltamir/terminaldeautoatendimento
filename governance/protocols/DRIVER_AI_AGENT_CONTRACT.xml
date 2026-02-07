@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AIAgentContract domain="LOGISTICS_ROUTING">
+    <Constraint id="SAFE-ROUTE-01">
+        <Rule>A IA nunca deve sugerir rotas que ignorem restrições de tráfego pesado ou zonas de risco reportadas.</Rule>
+    </Constraint>
+    <Constraint id="HUMAN-PRIORITY-01">
+        <Rule>O motorista tem autoridade final para desviar da rota sugerida pela IA por motivos de segurança física.</Rule>
+    </Constraint>
+    <Constraint id="BATCH-LIMIT-01">
+        <Rule>A IA não deve agrupar mais de 3 entregas por saída para garantir o SLA de temperatura do alimento.</Rule>
+    </Constraint>
+</AIAgentContract>
+

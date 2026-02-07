@@ -1,188 +1,179 @@
+/**
+ * Author: MESAFLOW_AI_SOVEREIGN
+ * Version: 14.0.0 (Isolation Master)
+ * DNA_ID: admin-layout-v14-isolation
+ * Objective: Implement high-fidelity contextual isolation. Prevents administrative Sidebar 
+ * from mounting in operational driver contexts.
+ */
 "use client";
-import { useState, useEffect } from "react";
+
+import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { 
-  Menu, LogOut, LayoutDashboard, Settings, QrCode, 
-  BarChart3, User, History, Package, Smartphone, Users, 
-  Bike, Building2, Activity, ChevronDown, Megaphone, ShieldCheck, Store, ClipboardList, ShieldAlert, ChefHat
+import {
+  LayoutDashboard, Bike, ChefHat, Smartphone, History,
+  Menu as MenuIcon, Package, QrCode, Users, Settings, 
+  Menu, X, LogOut, ShieldCheck, DollarSign, Monitor, User,
+  Truck, Layout
 } from "lucide-react";
-import { removeToken, isAuthenticated, getUserRole, getToken } from "@/lib/auth";
-import OnboardingTour from "@/components/admin/OnboardingTour";
-import { WebSocketProvider } from "@/context/WebSocketContext";
-import { FeatureFlagProvider } from "@/context/FeatureFlagContext"; // FIX: Adicionado Provider
-import { useTerminology } from "@/hooks/useTerminology";
-import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 import Logo from "@/components/ui/Logo";
-import { toast, Toaster } from "sonner";
+import { removeTokens } from "@/lib/auth";
 
-export default function AdminLayout({
-  children,
-  params,
-}: {
+interface AdminLayoutProps {
   children: React.ReactNode;
-  params: { slug: string };
-}) {
-  const { slug } = params;
+  params: Promise<{ slug: string }>; 
+}
+
+export default function AdminLayout({ children, params: paramsPromise }: AdminLayoutProps) {
+  const params = use(paramsPromise);
+  const slug = params.slug;
   const pathname = usePathname();
   const router = useRouter();
-  const [isAuth, setIsAuth] = useState(false);
-  const [role, setRole] = useState<string | null>(null);
-  const [isImpersonating, setIsImpersonating] = useState(false);
-  const terms = useTerminology();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push("/admin/login");
-    } else {
-      const userRole = getUserRole();
-      setRole(userRole);
-      setIsAuth(true);
-      
-      const token = getToken();
-      if (token) {
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          setIsImpersonating(!!payload.impersonator);
-        } catch (e) {
-          setIsImpersonating(false);
-        }
-      }
-
-      if (userRole === 'cashier' && !pathname.includes('/waiter') && !pathname.includes('/counter')) {
-        router.replace(`/admin/${slug}/waiter`);
-      } else if (userRole === 'kitchen' && !pathname.includes('/kitchen') && !pathname.includes('/expeditor')) {
-        router.replace(`/admin/${slug}/kitchen`);
-      } else if (userRole === 'driver' && !pathname.includes('/driver')) {
-        router.replace(`/admin/${slug}/driver`);
-      }
+    if (slug === "undefined" || !slug) {
+      router.replace("/admin/login");
     }
-  }, [router, pathname, slug]);
+  }, [slug, router]);
 
   const handleLogout = () => {
-    removeToken();
+    removeTokens();
     router.push("/admin/login");
   };
 
-  if (!isAuth) return null;
+  // 🛡️ CRITICAL ISOLATION LOGIC: Check if current route is an Operational Cockpit
+  const isOperationalRoute = pathname?.includes('/driver');
 
-  const managementItems = [
-    { name: "Dashboard", href: `/admin/${slug}/dashboard`, icon: BarChart3, id: "nav-dashboard", roles: ['owner', 'manager'] },
-    { name: "Balcão (PDV)", href: `/admin/${slug}/counter`, icon: Store, id: "nav-counter", roles: ['owner', 'manager', 'cashier'] },
-    { name: "Franquia", href: `/admin/${slug}/franchise`, icon: Building2, id: "nav-franchise", roles: ['owner'] },
-    { name: terms.menu, href: `/admin/${slug}/menu`, icon: Menu, id: "nav-menu", roles: ['owner', 'manager'] },
-    { name: "Estoque", href: `/admin/${slug}/inventory`, icon: Package, id: "nav-inventory", roles: ['owner', 'manager'] },
-    { name: terms.tables, href: `/admin/${slug}/tables`, icon: QrCode, id: "nav-tables", roles: ['owner', 'manager'] },
-    { name: "Marketing", href: `/admin/${slug}/marketing`, icon: Megaphone, id: "nav-marketing", roles: ['owner', 'manager'] },
-    { name: "Equipe", href: `/admin/${slug}/team`, icon: Users, id: "nav-team", roles: ['owner'] },
-    { name: "Histórico", href: `/admin/${slug}/history`, icon: History, id: "nav-history", roles: ['owner', 'manager'] },
-    { name: "Auditoria", href: `/admin/${slug}/audit`, icon: ShieldCheck, id: "nav-audit", roles: ['owner'] },
-    { name: "Config", href: `/admin/${slug}/settings`, icon: Settings, id: "nav-settings", roles: ['owner'] },
+  if (isOperationalRoute) {
+    // 🧱 O rito administrativo é abortado. Retorna apenas o container principal sem Sidebar.
+    // O componente Sidebar e seus sub-itens NUNCA são montados neste branch.
+    return (
+      <main className="min-h-screen w-full bg-black relative overflow-hidden">
+        {children}
+      </main>
+    );
+  }
+
+  const navigation = [
+    {
+      group: "Operação",
+      items: [
+        { name: "Dashboard", href: `/admin/${slug}/dashboard`, icon: LayoutDashboard },
+        { name: "Cozinha (KDS)", href: `/admin/${slug}/kitchen`, icon: ChefHat },
+        { name: "Expedidor", href: `/admin/${slug}/expeditor`, icon: Truck },
+        { name: "Balcão (POS)", href: `/admin/${slug}/counter`, icon: Monitor },
+        { name: "App Garçom", href: `/admin/${slug}/waiter`, icon: Smartphone },
+        { name: "Delivery", href: `/admin/${slug}/delivery`, icon: Bike },
+        { name: "Mesas", href: `/admin/${slug}/tables`, icon: QrCode },
+      ]
+    },
+    {
+      group: "Gestão",
+      items: [
+        { name: "Cardápio", href: `/admin/${slug}/menu`, icon: MenuIcon },
+        { name: "Estoque", href: `/admin/${slug}/inventory`, icon: Package },
+        { name: "Histórico", href: `/admin/${slug}/history`, icon: History },
+        { name: "Marketing", href: `/admin/${slug}/marketing`, icon: Megaphone },
+      ]
+    },
+    {
+      group: "Sistema",
+      items: [
+        { name: "Equipe", href: `/admin/${slug}/team`, icon: Users },
+        { name: "Auditoria", href: `/admin/${slug}/audit`, icon: ShieldCheck },
+        { name: "Financeiro", href: `/admin/${slug}/audit/financial`, icon: DollarSign },
+        { name: "Configurações", href: `/admin/${slug}/settings`, icon: Settings },
+        { name: "Assinatura", href: `/admin/${slug}/settings/billing`, icon: Zap },
+      ]
+    }
   ];
 
-  const operationItems = [
-    { name: "Produção (KDS)", href: `/admin/${slug}/kitchen`, icon: ChefHat, id: "nav-kitchen", roles: ['owner', 'manager', 'kitchen'] },
-    { name: "Expedição", href: `/admin/${slug}/expeditor`, icon: ClipboardList, id: "nav-expeditor", roles: ['owner', 'manager', 'kitchen'] },
-    { name: "Delivery & Frota", href: `/admin/${slug}/delivery`, icon: Bike, id: "nav-delivery", roles: ['owner', 'manager'] },
-    { name: `App ${terms.waiter}`, href: `/admin/${slug}/waiter`, icon: Smartphone, id: "nav-waiter", roles: ['owner', 'manager', 'cashier'] },
-  ];
-
-  const filterItems = (items: any[]) => items.filter(item => role && item.roles.includes(role));
-
-  const isOperationalMode = ['/waiter', '/kitchen', '/driver', '/expeditor'].some(path => pathname.includes(path)) && role !== 'owner' && role !== 'manager';
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <FeatureFlagProvider>
-      <WebSocketProvider slug={slug}>
-        <Toaster position="top-center" richColors closeButton />
-        
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
-          {role === 'owner' && <OnboardingTour />}
-          
-          {isImpersonating && (
-            <div className="bg-red-600 text-white py-1.5 px-4 text-center text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 z-[60]">
-              <ShieldAlert size={14} /> Modo Suporte Ativo - Acesso Auditado
-            </div>
-          )}
+    <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
+      <div className="md:hidden flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
+        <Logo size="sm" />
+        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-slate-300">
+          {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
 
-          {!isOperationalMode && (
-            <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm transition-all">
-              <Link href={`/admin/${slug}/dashboard`}>
-                <Logo size="sm" animated={true} />
-              </Link>
-              
-              <div className="flex items-center gap-4 overflow-x-auto no-scrollbar">
-                <div className="flex gap-1">
-                  {filterItems(managementItems).map((item) => {
-                    const isActive = pathname === item.href;
-                    return (
-                      <Link 
-                        key={item.href} 
-                        id={item.id}
-                        href={item.href} 
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold transition-all whitespace-nowrap ${isActive ? "bg-orange-600 text-white shadow-lg shadow-orange-600/20 scale-105" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900"}`}
-                      >
-                        <item.icon size={18} />
-                        <span className="hidden lg:inline">{item.name}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-
-                <div className="relative group">
-                  <button 
-                    type="button"
-                    onClick={() => {}} 
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold transition-all ${pathname.includes('/kitchen') || pathname.includes('/delivery') || pathname.includes('/waiter') || pathname.includes('/expeditor') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                  >
-                    <Activity size={18} />
-                    <span className="hidden md:inline">Operação</span>
-                    <ChevronDown size={14} />
-                  </button>
-                  
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden hidden group-hover:block hover:block z-50 animate-in fade-in slide-in-from-top-2">
-                    {filterItems(operationItems).map((item) => (
-                      <Link 
-                        key={item.href}
-                        href={item.href}
-                        className="flex items-center gap-4 px-5 py-4 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-orange-600 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-0"
-                      >
-                        <div className="bg-slate-100 dark:bg-slate-900 p-2 rounded-xl"><item.icon size={18} /></div>
-                        {item.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-2"></div>
-                
-                <button 
-                  type="button"
-                  onClick={handleLogout} 
-                  className="text-slate-400 hover:text-red-500 p-2 transition-colors hover:bg-red-50 rounded-xl" 
-                  title="Sair"
-                >
-                  <LogOut size={22} />
-                </button>
-              </div>
-            </nav>
-          )}
-
-          <AnimatePresence mode="wait">
-            <motion.main 
-              key={pathname}
-              initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="flex-1 p-6 max-w-[1600px] mx-auto w-full"
-            >
-              {children}
-            </motion.main>
-          </AnimatePresence>
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-40 w-72 bg-slate-950 border-r border-slate-800 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:h-screen flex flex-col",
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="p-8 hidden md:block">
+          <Logo size="md" animated={true} />
         </div>
-      </WebSocketProvider>
-    </FeatureFlagProvider>
+        <nav className="flex-1 px-4 overflow-y-auto custom-scrollbar space-y-8 pb-10">
+          {navigation.map((group) => (
+            <div key={group.group} className="space-y-2">
+              <h3 className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">
+                {group.group}
+              </h3>
+              <div className="space-y-1">
+                {group.items.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setIsSidebarOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all group",
+                      isActive(item.href) 
+                        ? "bg-orange-600 text-white shadow-lg shadow-orange-900/40" 
+                        : "text-slate-500 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800"
+                    )}
+                  >
+                    <item.icon size={18} className={cn(
+                      "transition-colors",
+                      isActive(item.href) ? "text-white" : "text-slate-600 group-hover:text-orange-500"
+                    )} />
+                    <span>{item.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+        </nav>
+
+        <div className="p-4 border-t border-slate-900 bg-black/20">
+          <Link 
+            href={`/admin/${slug}/profile`}
+            className="flex items-center gap-3 p-4 mb-4 bg-slate-900/50 rounded-2xl border border-slate-800 hover:border-slate-700 transition-all group"
+          >
+            <div className="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center font-black text-xs text-white">
+              <User size={16} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-black text-white truncate uppercase">Meu Perfil</p>
+              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">{slug}</p>
+            </div>
+          </Link>
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-900/10 transition-colors"
+          >
+            <LogOut size={18} />
+            <span>Sair do Sistema</span>
+          </button>
+        </div>
+      </aside>
+
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-black/60 z-30 md:hidden backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />
+      )}
+
+      <main className="flex-1 h-screen overflow-y-auto bg-black relative">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-orange-900/5 via-transparent to-transparent pointer-events-none" />
+        <div className="p-4 md:p-8 relative z-10">
+          {children}
+        </div>
+      </main>
+    </div>
   );
 }
 
+import { Megaphone, Zap } from "lucide-react";

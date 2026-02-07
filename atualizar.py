@@ -32,7 +32,7 @@ KNOWLEDGE_BASE_FILE = Path("docs/technical/AI_KNOWLEDGE_BASE.md")
 
 # RFC-007: Security Boundary
 PROTECTED_FILES = {
-    ".env", ".gitignore", "atualizar.py", "gerartxt.py", 
+    ".env", ".gitignore", "atualizar.py", "gerartxt.py", "register.tsx",
     "package-lock.json", "yarn.lock"
 }
 PROTECTED_DIRECTORIES = ["docs/governance"]

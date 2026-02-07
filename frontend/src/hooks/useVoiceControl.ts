@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
@@ -18,7 +17,6 @@ export function useVoiceControl(commands: VoiceCommand[]) {
     if (typeof window !== "undefined") {
       // @ts-ignore
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      
       if (SpeechRecognition) {
         setIsSupported(true);
         const rec = new SpeechRecognition();
@@ -30,7 +28,7 @@ export function useVoiceControl(commands: VoiceCommand[]) {
           const last = event.results.length - 1;
           const text = event.results[last][0].transcript.trim().toLowerCase();
           setTranscript(text);
-          console.log("🎤 Voz detectada:", text);
+          // 🛡️ FIX: Removido log de debug
           processCommand(text);
         };
 
@@ -62,8 +60,14 @@ export function useVoiceControl(commands: VoiceCommand[]) {
     for (const cmd of commands) {
       const match = text.match(cmd.command);
       if (match) {
-        console.log("✅ Comando reconhecido:", cmd.command);
+        // 🛡️ FIX: Removido log de debug
         cmd.action(match);
+        
+        // Feedback Sonoro de Sucesso (Bip)
+        const audio = new Audio('/sounds/bump.mp3'); // Reusa som existente
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+        
         toast.success(`Comando de voz: ${text}`);
         return;
       }

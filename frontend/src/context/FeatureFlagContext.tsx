@@ -1,6 +1,11 @@
+/**
+ * 🛡️ FEATURE FLAG CONTEXT - VERSION 12.4 (Network Resilient)
+ * DOMAIN: FRONTEND / CORE
+ * DESCRIPTION: Gerencia flags com proteção contra falhas de backend (Fail-Open).
+ */
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { getToken } from "@/lib/auth";
 import { decodeJwtPayload } from "@/lib/jwt";
 import { getFeatureFlags, updateFeatureFlag } from "@/lib/featureFlagsApi";
@@ -16,6 +21,7 @@ interface FeatureFlagContextType {
   isImpersonator: boolean;
   refreshFlags: () => Promise<void>;
   toggleFlag: (key: string) => Promise<void>;
+  isEnabled: (flag: string) => boolean;
 }
 
 const FeatureFlagContext = createContext<FeatureFlagContextType | undefined>(undefined);
@@ -24,32 +30,47 @@ export function FeatureFlagProvider({ children }: { children: React.ReactNode })
   const [flags, setFlags] = useState<FeatureFlags>({});
   const [loading, setLoading] = useState(true);
   const [isImpersonator, setIsImpersonator] = useState(false);
+  
+  // 🛡️ KERNEL GUARD: Impede disparos múltiplos
+  const fetchLock = useRef(false);
+  const lastToken = useRef<string | null>(null);
 
   const fetchFlags = useCallback(async () => {
     const token = getToken();
+
+    // Se o token não mudou e já buscamos com sucesso, aborta
+    if (token === lastToken.current && fetchLock.current) return;
+
     if (!token) {
+      setFlags({});
       setLoading(false);
       return;
     }
 
     try {
-      // 1. Decodificação segura do JWT via utilitário dedicado
       const payload = decodeJwtPayload(token);
-      setIsImpersonator(!!payload.impersonator);
+      setIsImpersonator(!!payload?.impersonator);
 
-      // 2. Busca as flags do backend
       const data = await getFeatureFlags();
-      setFlags(data);
-    } catch (e) {
-      console.error("Erro ao carregar Feature Flags", e);
-      setFlags({}); // Fail Secure
+      setFlags(data || {}); // Garante objeto vazio se null
+      
+      // Sela o estado para este token
+      fetchLock.current = true;
+      lastToken.current = token;
+    } catch (e: any) {
+      // Silencia erros esperados de infraestrutura para não quebrar a UI
+      if (e.message === "BACKEND_OFFLINE" || e.status === 0) {
+        console.warn("⚠️ [FeatureFlags] Backend indisponível. Operando em modo degradado (Flags OFF).");
+        setFlags({}); // Fallback seguro
+      } else if (e.status !== 401 && e.status !== 403) {
+        console.error("🚨 [FeatureFlags] Sync Error:", e);
+      }
     } finally {
       setLoading(false);
     }
   }, []);
 
   const toggleFlag = async (key: string) => {
-    // Segurança: Bloqueio preventivo no client
     if (!isImpersonator) {
       toast.error("Acesso restrito ao suporte técnico.");
       return;
@@ -58,26 +79,20 @@ export function FeatureFlagProvider({ children }: { children: React.ReactNode })
     const previousValue = !!flags[key];
     const newValue = !previousValue;
 
-    // 1. Atualização Otimista (UX fluida)
+    // Optimistic Update
     setFlags(prev => ({ ...prev, [key]: newValue }));
 
     try {
       await updateFeatureFlag(key, newValue);
-      toast.success(`Funcionalidade ${newValue ? 'ativada' : 'desativada'}.`);
+      toast.success(`Flag ${key} atualizada.`);
     } catch (e: any) {
-      // 2. Rollback em caso de erro (Fail Secure)
+      // Rollback em caso de erro
       setFlags(prev => ({ ...prev, [key]: previousValue }));
-      
-      const status = e.status;
-      if (status === 403) {
-        toast.error("Sessão de suporte inválida ou expirada.");
-      } else if (status === 422) {
-        toast.error("Erro de validação no servidor.");
-      } else {
-        toast.error("Falha na comunicação com o servidor.");
-      }
+      toast.error("Falha ao sincronizar flag.");
     }
   };
+
+  const isEnabled = (flag: string) => !!flags[flag];
 
   useEffect(() => {
     fetchFlags();
@@ -85,11 +100,7 @@ export function FeatureFlagProvider({ children }: { children: React.ReactNode })
 
   return (
     <FeatureFlagContext.Provider value={{ 
-      flags, 
-      loading, 
-      isImpersonator, 
-      refreshFlags: fetchFlags,
-      toggleFlag
+      flags, loading, isImpersonator, refreshFlags: fetchFlags, toggleFlag, isEnabled 
     }}>
       {children}
     </FeatureFlagContext.Provider>
@@ -98,6 +109,6 @@ export function FeatureFlagProvider({ children }: { children: React.ReactNode })
 
 export const useFeatureFlags = () => {
   const context = useContext(FeatureFlagContext);
-  if (!context) throw new Error("useFeatureFlags deve ser usado dentro de FeatureFlagProvider");
+  if (!context) throw new Error("useFeatureFlags must be used within FeatureFlagProvider");
   return context;
 };

@@ -1,133 +1,200 @@
 # DOMAIN: BACKEND
-# LAST_MODIFIED: 2026-01-16 13:20:00
-from fastapi import APIRouter, Depends, HTTPException, status
+# LAST_MODIFIED: 2026-01-20 01:20:00
+import logging
+from typing import Any, Dict, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
+
 from app.database import get_db
-from app.models import Company, Employee, UserRole
-from app.schemas import CompanyAdminSettings, CompanyUpdate, PasswordUpdate, KioskValidationRequest
+from app.models import Company, Employee, AuditAction
+from app.schemas import (
+    CompanyAdminSettings, 
+    CompanyUpdate, 
+    PasswordUpdate, 
+    KioskValidationRequest
+)
 from app.routers.auth import get_current_user
 from app.core.security import verify_password, get_password_hash
+from app.services.audit_service import AuditService
 
 router = APIRouter()
+logger = logging.getLogger("CompanyRouter")
 
-def require_owner(current_user: any = Depends(get_current_user)):
+# --- CONSTANTES DE SEGURANÇA ---
+MASK_PATTERN = "****"
+MP_PREFIX = "APP_USR-"
+
+# --- HELPERS PRIVADOS ---
+
+def _apply_security_mask(token: Optional[str], prefix: str = "") -> Optional[str]:
+    """Aplica máscara de ofuscação em strings sensíveis."""
+    if not token:
+        return None
+    if len(token) <= 4:
+        return f"{prefix}{MASK_PATTERN}"
+    return f"{prefix}{MASK_PATTERN}{token[-4:]}"
+
+def _is_masked(value: Any) -> bool:
+    """Verifica se o valor recebido é uma máscara visual do frontend."""
+    return isinstance(value, str) and MASK_PATTERN in value
+
+# --- DEPENDÊNCIAS ---
+
+def require_owner(current_user: Any = Depends(get_current_user)) -> Company:
+    """Garante que o usuário logado seja o proprietário (Company)."""
     if isinstance(current_user, Company):
         return current_user
-    raise HTTPException(status_code=403, detail="Apenas o dono pode alterar configurações")
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Acesso negado: Esta operação exige privilégios de proprietário."
+    )
+
+# --- ENDPOINTS ---
 
 @router.get("/me", response_model=CompanyAdminSettings)
-def get_my_company(current_user: any = Depends(get_current_user)):
+async def get_my_company(current_user: Any = Depends(get_current_user)):
     """
-    Retorna os dados da empresa com mascaramento de credenciais sensíveis.
+    Recupera o perfil do Tenant atual com ofuscação de segredos.
+    Funciona para Owners e Employees (Staff).
     """
-    if isinstance(current_user, Employee):
-        company = current_user.company
-    else:
-        company = current_user
+    company = current_user if isinstance(current_user, Company) else current_user.company
     
     settings = CompanyAdminSettings.model_validate(company)
     
-    # Mascaramento Mercado Pago
-    if settings.mp_access_token:
-        visible_part = settings.mp_access_token[-4:]
-        settings.mp_access_token = f"APP_USR-****{visible_part}"
+    # Ofuscação de Tokens para trânsito seguro até a UI
+    settings.mp_access_token = _apply_security_mask(settings.mp_access_token, MP_PREFIX)
+    settings.whatsapp_token = _apply_security_mask(settings.whatsapp_token)
     
-    # Mascaramento WhatsApp Token
-    if settings.whatsapp_token:
-        visible_part = settings.whatsapp_token[-4:]
-        settings.whatsapp_token = f"****{visible_part}"
-        
-    # Kiosk Status
+    # Status booleano para o Kiosk
     settings.kiosk_password_set = bool(company.kiosk_password_hash)
-
+    
     return settings
 
 @router.patch("/me", response_model=CompanyAdminSettings)
-def update_my_company(
+async def update_my_company(
+    request: Request,
     company_data: CompanyUpdate,
     db: Session = Depends(get_db),
     current_user: Company = Depends(require_owner)
 ):
-    update_data = company_data.model_dump(exclude_unset=True)
+    """
+    Atualiza configurações do estabelecimento com validação de integridade.
+    Protege contra sobrescrita acidental de tokens mascarados.
+    """
+    update_dict = company_data.model_dump(exclude_unset=True)
     
-    # Lógica de Segurança para o Token MP
-    if "mp_access_token" in update_data:
-        token = update_data["mp_access_token"]
-        if token == "": update_data["mp_access_token"] = None
-        elif token and "****" in token: del update_data["mp_access_token"]
-        elif token and not token.startswith("APP_USR-"):
-            raise HTTPException(status_code=400, detail="Token do Mercado Pago inválido.")
-            
-    # Lógica de Segurança para o Token WhatsApp
-    if "whatsapp_token" in update_data:
-        token_ws = update_data["whatsapp_token"]
-        if token_ws == "": update_data["whatsapp_token"] = None
-        elif token_ws and "****" in token_ws: del update_data["whatsapp_token"]
+    # 🛡️ GUARD: Proteção contra corrupção de segredos
+    # Se o frontend enviar o valor mascarado (ex: APP_USR-****1234), nós ignoramos.
+    for field in ["mp_access_token", "whatsapp_token"]:
+        if field in update_dict:
+            if _is_masked(update_dict[field]):
+                del update_dict[field]
+            elif update_dict[field] == "":
+                update_dict[field] = None
 
-    # Lógica de Senha do Kiosk (Hash)
-    if "kiosk_password" in update_data:
-        plain_pass = update_data.pop("kiosk_password")
+    # Validação de formato para novos tokens Mercado Pago
+    if update_dict.get("mp_access_token") and not update_dict["mp_access_token"].startswith(MP_PREFIX):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Token inválido. Deve iniciar com {MP_PREFIX}"
+        )
+
+    # Gestão de Senha do Totem (Kiosk)
+    if "kiosk_password" in update_dict:
+        plain_pass = update_dict.pop("kiosk_password")
         if plain_pass:
             if len(plain_pass) < 4:
-                raise HTTPException(status_code=400, detail="Senha do Totem deve ter no mínimo 4 dígitos.")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="A senha do Totem deve ter no mínimo 4 dígitos."
+                )
             current_user.kiosk_password_hash = get_password_hash(plain_pass)
         else:
-            # Se enviou string vazia, remove a senha (volta pro default 123456 na lógica de validação se quiser, ou desativa)
-            # Decisão: Se remover, fica sem senha customizada, usa default.
             current_user.kiosk_password_hash = None
 
-    for key, value in update_data.items():
+    # Auditoria: Captura estado anterior para o log
+    old_data = {k: getattr(current_user, k) for k in update_dict.keys() if hasattr(current_user, k)}
+
+    # Aplicação das mudanças
+    for key, value in update_dict.items():
         setattr(current_user, key, value)
     
-    db.commit()
-    db.refresh(current_user)
-    
-    # Retorna mascarado
-    settings = CompanyAdminSettings.model_validate(current_user)
-    if settings.mp_access_token:
-        settings.mp_access_token = f"APP_USR-****{settings.mp_access_token[-4:]}"
-    if settings.whatsapp_token:
-        settings.whatsapp_token = f"****{settings.whatsapp_token[-4:]}"
-    settings.kiosk_password_set = bool(current_user.kiosk_password_hash)
-    
-    return settings
+    try:
+        db.commit()
+        db.refresh(current_user)
+        
+        # Registro de Auditoria
+        AuditService.log(
+            db=db,
+            user=current_user,
+            action=AuditAction.UPDATE,
+            resource="Company",
+            resource_id=str(current_user.id),
+            details={"changes": update_dict, "previous": old_data},
+            request=request
+        )
+        
+        return await get_my_company(current_user)
+        
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"Erro ao atualizar empresa {current_user.id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Falha interna ao persistir dados."
+        )
 
 @router.patch("/me/password", status_code=status.HTTP_200_OK)
-def update_password(
+async def update_password(
+    request: Request,
     password_data: PasswordUpdate,
     db: Session = Depends(get_db),
-    current_user: any = Depends(get_current_user)
+    current_user: Any = Depends(get_current_user)
 ):
+    """Altera a senha de acesso do usuário administrativo logado."""
     if not verify_password(password_data.current_password, current_user.password_hash):
-        raise HTTPException(status_code=400, detail="Senha atual incorreta")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A senha atual informada está incorreta."
+        )
     
     current_user.password_hash = get_password_hash(password_data.new_password)
-    db.commit()
-    return {"message": "Senha alterada com sucesso"}
+    
+    try:
+        db.commit()
+        AuditService.log(
+            db=db,
+            user=current_user,
+            action=AuditAction.UPDATE,
+            resource="UserPassword",
+            resource_id=str(current_user.id),
+            request=request
+        )
+        return {"message": "Senha alterada com sucesso."}
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Erro ao atualizar credenciais.")
 
 @router.post("/kiosk/validate", status_code=status.HTTP_200_OK)
-def validate_kiosk_password(
+async def validate_kiosk_password(
     data: KioskValidationRequest,
-    db: Session = Depends(get_db),
-    current_user: any = Depends(get_current_user)
+    current_user: Any = Depends(get_current_user)
 ):
     """
-    Valida a senha do Kiosk.
-    Se não houver senha configurada, aceita '123456' como fallback.
+    Valida a senha de saída do modo Totem.
+    Implementa fallback para '123456' se nenhuma senha customizada existir.
     """
-    # Identifica a empresa
     company = current_user if isinstance(current_user, Company) else current_user.company
     
-    # Fallback Default
+    # Fallback para senha padrão de fábrica
     if not company.kiosk_password_hash:
-        if data.password == "123456":
-            return {"valid": True}
-        else:
-            return {"valid": False}
+        return {"valid": data.password == "123456"}
             
-    # Validação Real
-    if verify_password(data.password, company.kiosk_password_hash):
-        return {"valid": True}
+    # Validação criptográfica
+    is_valid = verify_password(data.password, company.kiosk_password_hash)
+    
+    if not is_valid:
+        logger.warning(f"Tentativa de desbloqueio de Kiosk falhou para o Tenant {company.slug}")
         
-    return {"valid": False}
-
+    return {"valid": is_valid}

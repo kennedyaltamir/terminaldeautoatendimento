@@ -1,19 +1,19 @@
-// DOMAIN: FRONTEND
-// LAST_MODIFIED: 2026-01-15 14:15:00
 import { defineConfig, devices } from '@playwright/test';
 import path from 'path';
 
 /**
- * MESAFLOW PLAYWRIGHT CONFIG v3.2
- * Hardened for Monorepo-like structure and Noise Filtering
+ * MESAFLOW PLAYWRIGHT CONFIG v3.3 (Noise Filtered)
+ * Hardened to ignore backup folders and prevent duplicate test execution.
  */
 export default defineConfig({
   testDir: path.resolve(__dirname, './tests'),
-  // 🛡️ Ignora explicitamente pastas de backup e ruído do Kernel
+  // 🛡️ Ignora explicitamente pastas de backup, quarentena e node_modules
   testIgnore: [
     '**/ignorar/**',
     '**/backups/**',
-    '**/node_modules/**'
+    '**/archive/**',
+    '**/node_modules/**',
+    '**/.*/**' // Ignora pastas ocultas
   ],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -48,4 +48,3 @@ export default defineConfig({
     timeout: 120 * 1000,
   },
 });
-

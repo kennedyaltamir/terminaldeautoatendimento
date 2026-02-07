@@ -1,93 +1,153 @@
 "use client";
+
 import { useState } from "react";
-import { Lock, Key, ArrowRight, Loader2 } from "lucide-react";
+import { Lock, Key, ArrowRight, Loader2, ChevronLeft } from "lucide-react";
 import { joinTable } from "@/lib/api";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
+interface BlockedTableScreenProps {
+  customerName: string;
+  tableId: string;
+  slug: string;
+  qrToken: string;
+  onSuccess: (token: string) => void;
+}
+
+/**
+ * BlockedTableScreen - Interface de bloqueio de mesa ocupada.
+ * Permite a recuperação de sessão via Token de Acesso (PIN).
+ */
 export default function BlockedTableScreen({ 
   customerName, 
   tableId, 
   slug, 
   qrToken,
   onSuccess 
-}: { 
-  customerName: string, 
-  tableId: string, 
-  slug: string, 
-  qrToken: string,
-  onSuccess: (token: string) => void
-}) {
+}: BlockedTableScreenProps) {
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPinInput, setShowPinInput] = useState(false);
 
   const handleRecover = async () => {
-    if (pin.length < 10) return toast.error("Token deve ter 10 dígitos");
+    if (pin.length < 10) {
+      toast.error("O Token deve conter exatamente 10 dígitos.");
+      return;
+    }
 
     setLoading(true);
     try {
-      const session = await joinTable(slug, parseInt(tableId), qrToken, customerName, pin);
-      toast.success("Acesso recuperado!");
+      // CORREÇÃO DO ERRO TS2554: Passando os argumentos como objeto conforme definido em lib/api.ts
+      const session = await joinTable(slug, {
+        table_id: parseInt(tableId),
+        qr_token: qrToken,
+        customer_name: customerName,
+        pin: pin
+      });
+
+      toast.success("Acesso restaurado com sucesso!");
       onSuccess(session.session_token);
     } catch (e: any) {
-      toast.error(e.message || "Token incorreto");
+      toast.error(e.message || "Token inválido ou expirado. Verifique com o garçom.");
+      setPin(""); // Limpa o input em caso de erro
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-6 text-center text-white">
-      <div className="w-24 h-24 bg-red-500/20 rounded-full flex items-center justify-center mb-6 animate-pulse">
-        <Lock size={48} className="text-red-500" />
-      </div>
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white font-sans">
+      <motion.div 
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center mb-8 border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.1)]"
+      >
+        <Lock size={48} className="text-red-500 animate-pulse" />
+      </motion.div>
 
-      <h1 className="text-3xl font-bold mb-2">Mesa Ocupada</h1>
-      <p className="text-gray-400 text-lg mb-8">
-        Esta mesa está sendo usada por <span className="text-white font-bold">{customerName}</span>.
-      </p>
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1 }}
+      >
+        <h1 className="text-4xl font-black mb-3 tracking-tight">Mesa Ocupada</h1>
+        <p className="text-slate-400 text-lg mb-10 max-w-sm mx-auto leading-relaxed">
+          Esta mesa está sendo utilizada por <span className="text-white font-bold underline decoration-orange-500/50">{customerName}</span>.
+        </p>
+      </motion.div>
 
-      {!showPinInput ? (
-        <div className="space-y-4 w-full max-w-xs">
-          <button 
-            onClick={() => setShowPinInput(true)}
-            className="w-full bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
+      <AnimatePresence mode="wait">
+        {!showPinInput ? (
+          <motion.div 
+            key="options"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-6 w-full max-w-xs"
           >
-            <Key size={18} /> Tenho o Token de Acesso
-          </button>
-          <p className="text-xs text-gray-500">
-            Se você é {customerName} e saiu sem querer, peça o Token ao garçom.
-          </p>
-        </div>
-      ) : (
-        <div className="w-full max-w-xs animate-in slide-in-from-bottom-4">
-          <label className="block text-sm font-bold text-gray-400 mb-2">Digite o Token de 10 dígitos</label>
-          <div className="flex gap-2">
-            <input 
-              type="tel" 
-              maxLength={10}
-              className="flex-1 bg-gray-800 border border-gray-600 rounded-xl p-3 text-center text-white text-xl font-mono tracking-widest focus:ring-2 focus:ring-orange-500 outline-none"
-              placeholder="0000000000"
-              value={pin}
-              onChange={e => setPin(e.target.value)}
-              autoFocus
-            />
             <button 
-              onClick={handleRecover}
-              disabled={loading || pin.length < 10}
-              className="bg-orange-600 text-white px-4 rounded-xl font-bold hover:bg-orange-700 disabled:opacity-50 transition-colors"
+              onClick={() => setShowPinInput(true)}
+              className="w-full bg-white text-slate-950 py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition-all hover:bg-orange-500 hover:text-white active:scale-95 shadow-xl"
             >
-              {loading ? <Loader2 className="animate-spin" /> : <ArrowRight />}
+              <Key size={20} /> TENHO O TOKEN
             </button>
-          </div>
-          <button 
-            onClick={() => setShowPinInput(false)}
-            className="text-sm text-gray-500 mt-4 hover:text-white underline"
+            
+            <div className="pt-6 border-t border-slate-800">
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                Se você é <span className="text-slate-300">{customerName}</span> e sua sessão expirou, 
+                solicite o Token de 10 dígitos ao garçom para continuar seu pedido.
+              </p>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="input"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="w-full max-w-xs"
           >
-            Cancelar
-          </button>
-        </div>
-      )}
+            <div className="bg-slate-900 border border-slate-800 p-6 rounded-[2.5rem] shadow-2xl">
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">
+                Token de Acesso
+              </label>
+              
+              <div className="flex flex-col gap-4">
+                <input 
+                  type="tel" 
+                  maxLength={10}
+                  className="w-full bg-slate-950 border-2 border-slate-800 rounded-2xl p-4 text-center text-white text-2xl font-mono tracking-[0.3em] focus:border-orange-500 outline-none transition-all"
+                  placeholder="0000000000"
+                  value={pin}
+                  onChange={e => setPin(e.target.value.replace(/\D/g, ""))}
+                  autoFocus
+                />
+                
+                <button 
+                  onClick={handleRecover}
+                  disabled={loading || pin.length < 10}
+                  className="w-full bg-orange-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-orange-500 disabled:opacity-30 disabled:grayscale transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-900/20"
+                >
+                  {loading ? <Loader2 className="animate-spin" /> : (
+                    <>VALIDAR ACESSO <ArrowRight size={18} /></>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setShowPinInput(false)}
+              className="mt-8 text-slate-500 hover:text-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 mx-auto transition-colors"
+            >
+              <ChevronLeft size={14} /> Voltar
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <footer className="fixed bottom-8 text-[10px] text-slate-600 font-mono uppercase tracking-[0.3em]">
+        MesaFlow Security Protocol v2.4
+      </footer>
     </div>
   );
 }

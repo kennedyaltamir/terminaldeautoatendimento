@@ -1,19 +1,24 @@
 "use client";
-
+/**
+ * @sentinel-title: Redefinir Senha
+ * @sentinel-description: Criação de nova credencial de acesso após validação de token de segurança.
+ */
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Lock, Loader2, CheckCircle2 } from "lucide-react";
+import { Lock, Loader2, CheckCircle2, ArrowLeft } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import AuthInput from "@/components/ui/AuthInput";
+import Logo from "@/components/ui/Logo";
+import Link from "next/link";
 
 const resetSchema = z.object({
-  new_password: z.string().min(8, "Mínimo 8 caracteres"),
+  new_password: z.string().min(8, "A senha deve ter no mínimo 8 caracteres"),
   confirm_password: z.string()
 }).refine((data) => data.new_password === data.confirm_password, {
-  message: "Senhas não conferem",
+  message: "As senhas não conferem",
   path: ["confirm_password"],
 });
 
@@ -30,7 +35,10 @@ function ResetForm() {
   });
 
   const onSubmit = async (data: ResetSchema) => {
-    if (!token) return toast.error("Token inválido.");
+    if (!token) {
+      toast.error("Token de recuperação ausente ou inválido.");
+      return;
+    }
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`, {
@@ -41,54 +49,67 @@ function ResetForm() {
 
       if (res.ok) {
         setSuccess(true);
+        toast.success("Senha alterada com sucesso!");
         setTimeout(() => router.push("/admin/login"), 3000);
       } else {
         const err = await res.json();
-        toast.error(err.detail || "Erro ao redefinir senha.");
+        toast.error(err.detail || "Erro ao redefinir senha. O link pode ter expirado.");
       }
     } catch (e) {
-      toast.error("Erro de conexão.");
+      toast.error("Falha na conexão com o servidor.");
     }
   };
 
-  if (!token) return <div className="text-red-500 text-center">Link inválido ou expirado.</div>;
+  if (!token) {
+    return (
+      <div className="text-center space-y-4 animate-in fade-in">
+        <p className="text-red-500 font-bold">Link de recuperação inválido ou expirado.</p>
+        <Link href="/admin/forgot-password" className="text-orange-500 hover:underline text-sm font-bold">
+          Solicitar novo link
+        </Link>
+      </div>
+    );
+  }
 
   if (success) {
     return (
-      <div className="text-center animate-in fade-in">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
-          <CheckCircle2 size={32} />
+      <div className="text-center animate-in zoom-in duration-300">
+        <div className="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle2 size={40} />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">Senha Alterada!</h2>
-        <p className="text-gray-500 mt-2">Redirecionando para o login...</p>
+        <h2 className="text-2xl font-black text-white">Senha Alterada!</h2>
+        <p className="text-slate-400 text-sm mt-2">Sua nova credencial foi salva. Redirecionando para o login...</p>
       </div>
     );
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <AuthInput 
-        label="Nova Senha" 
-        type="password" 
-        icon={Lock} 
-        placeholder="******" 
-        error={errors.new_password?.message}
-        {...register("new_password")}
-      />
-      <AuthInput 
-        label="Confirmar Senha" 
-        type="password" 
-        icon={Lock} 
-        placeholder="******" 
-        error={errors.confirm_password?.message}
-        {...register("confirm_password")}
-      />
+      <div className="space-y-4">
+        <AuthInput 
+          label="Nova Senha" 
+          type="password" 
+          icon={Lock} 
+          placeholder="••••••••" 
+          error={errors.new_password?.message}
+          {...register("new_password")}
+        />
+        <AuthInput 
+          label="Confirmar Nova Senha" 
+          type="password" 
+          icon={Lock} 
+          placeholder="••••••••" 
+          error={errors.confirm_password?.message}
+          {...register("confirm_password")}
+        />
+      </div>
+
       <button 
         type="submit" 
         disabled={isSubmitting}
-        className="w-full bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+        className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-orange-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70"
       >
-        {isSubmitting ? <Loader2 className="animate-spin" /> : "Salvar Nova Senha"}
+        {isSubmitting ? <Loader2 className="animate-spin" /> : "SALVAR NOVA SENHA"}
       </button>
     </form>
   );
@@ -96,13 +117,33 @@ function ResetForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6">
       <Toaster position="top-center" richColors />
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-        <h1 className="text-2xl font-bold text-gray-900 text-center mb-8">Redefinir Senha</h1>
-        <Suspense fallback={<div className="text-center">Carregando...</div>}>
+      
+      <div className="mb-12">
+        <Logo size="lg" variant="light" animated />
+      </div>
+
+      <div className="w-full max-w-md bg-slate-900 border border-slate-800 p-8 rounded-[2.5rem] shadow-2xl">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-black text-white tracking-tight">Redefinir Senha</h1>
+          <p className="text-slate-500 text-sm mt-1">Crie uma senha forte para proteger sua conta.</p>
+        </div>
+
+        <Suspense fallback={
+          <div className="flex flex-col items-center py-10 gap-4">
+            <Loader2 className="animate-spin text-orange-500" size={32} />
+            <p className="text-slate-500 text-sm font-bold">Validando token...</p>
+          </div>
+        }>
           <ResetForm />
         </Suspense>
+
+        <div className="mt-8 text-center">
+          <Link href="/admin/login" className="text-xs font-bold text-slate-600 hover:text-slate-400 transition-colors flex items-center justify-center gap-2">
+            <ArrowLeft size={14} /> Voltar para o Login
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -1,42 +1,42 @@
+
 import { getToken } from "./auth";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8001/api";
 
-/**
- * Cliente isolado para gestão de Feature Flags.
- * Mantém o escopo fechado e evita modificações no api.ts legado.
- */
-async function authenticatedFetch(endpoint: string, options: RequestInit = {}) {
+async function authenticatedFetch(endpoint: string, options: RequestInit = {}): Promise<Response> {
   const token = getToken();
   const headers: any = {
     "Content-Type": "application/json",
     ...options.headers,
   };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
+  // 🛡️ FIX: Remove barras duplicadas ou finais para evitar redirects de CORS
+  const cleanPath = endpoint.replace(/\/$/, "").replace(/^\//, "");
+  const url = `${API_BASE_URL}/${cleanPath}`;
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
-
-  if (!response.ok) {
-    const error = new Error("Erro na requisição de Feature Flags");
-    (error as any).status = response.status;
+  try {
+    const response = await fetch(url, { ...options, headers });
+    if (!response.ok) throw new Error(`HTTP_${response.status}`);
+    return response;
+  } catch (error: any) {
     throw error;
   }
-
-  return response;
 }
 
-export async function getFeatureFlags() {
-  const res = await authenticatedFetch("/admin/features");
-  return res.json();
+export async function getFeatureFlags(): Promise<Record<string, boolean>> {
+  try {
+    const res = await authenticatedFetch("admin/features");
+    return await res.json();
+  } catch (error) {
+    return {};
+  }
 }
 
 export async function updateFeatureFlag(key: string, isEnabled: boolean) {
-  const res = await authenticatedFetch("/admin/features", {
+  const res = await authenticatedFetch("admin/features", {
     method: "POST",
     body: JSON.stringify({ key, is_enabled: isEnabled }),
   });
-  return res.json();
+  return await res.json();
 }

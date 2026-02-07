@@ -1,18 +1,18 @@
-# DOMAIN: GOVERNANCE
-# LAST_MODIFIED: 2026-01-16 16:00:00
-# 🖥️ Política de Segurança do Modo Kiosk (Totem)
+# 🖥️ Política de Segurança do Modo Kiosk (v14.0)
+**Domain:** SECURITY / UX-HARDENING
+**Status:** ENFORCED
 
-## 1. Sandbox de Navegação
-O modo Kiosk deve atuar como uma sandbox visual. É terminantemente proibido o uso de qualquer lógica de redirecionamento automático para rotas fora do escopo `/[slug]/kiosk` ou `/[slug]/menu` enquanto o estado `LOCKED` ou `BREACHED` estiver ativo.
+## 1. Sandbox de Navegação e Trap Mode
+O modo Kiosk atua como uma sandbox de hardware.
+*   **Trap Mode:** Qualquer tentativa de fuga do modo Fullscreen ou detecção de perda de foco (Alt+Tab) dispara o rito de violação `BREACHED`.
+*   **Lockdown:** O teclado virtual é a única entrada permitida. Atalhos de SO (F5, F11, Ctrl+R) são interceptados e anulados no nível do Kernel.
 
-## 2. Isolamento de Interceptores
-As APIs de segurança do Kiosk (validação de senha) devem ser consumidas via clientes HTTP isolados que não possuam lógica de redirecionamento em caso de erro 401/403.
+## 2. Theater Mode (Isolamento Operacional)
+Durante a fase de checkout (`on_site` workflow), todos os elementos de branding periférico e navegação de suporte são removidos para eliminar distrações e erros de input.
 
-## 3. Proteção contra Brute Force
-O sistema deve implementar proteção em duas camadas:
-1.  **Client-side:** Lockout temporal de 30 segundos após 3 tentativas incorretas.
-2.  **Server-side:** Rate-limit por IP e Slug no endpoint de validação pública.
+## 3. Rito de Desbloqueio Administrativo
+*   **Stealth Trigger:** O acesso ao painel de desbloqueio é oculto (exige sequência tátil nos 4 cantos da tela).
+*   **Lockout Progressivo:** Erros de senha geram atrasos exponenciais (30s, 5m, 1h) para mitigar ataques de força bruta.
 
-## 4. Trap Mode (Contenção)
-Qualquer tentativa de violação do modo Fullscreen sem a devida autenticação deve forçar o sistema para o estado `BREACHED`, bloqueando a interface e exigindo intervenção técnica.
-
+## 4. Persistência de Integridade
+O estado do Kiosk é persistido em `MesaFlowDB (IndexedDB)`. Um refresh de página ou queda de energia não retira o sistema do modo `LOCKED`.

@@ -1,3 +1,5 @@
+# DOMAIN: BACKEND
+# LAST_MODIFIED: 2026-01-27 18:21:54
 from abc import ABC, abstractmethod
 from typing import Dict, Any
 from app.models import Order, Company

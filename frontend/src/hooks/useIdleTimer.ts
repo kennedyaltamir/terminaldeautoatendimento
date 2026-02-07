@@ -1,25 +1,28 @@
+/**
+ * DOMAIN: FRONTEND / UI
+ * OBJECTIVE: Idle Timer with environment-agnostic typing.
+ */
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface UseIdleTimerProps {
-  timeout: number; // Tempo em ms para considerar inativo
-  onIdle: () => void; // Callback quando ficar inativo
-  onActive?: () => void; // Callback quando voltar a ser ativo
+  timeout: number;
+  onIdle: () => void;
+  onActive?: () => void;
 }
 
 export function useIdleTimer({ timeout, onIdle, onActive }: UseIdleTimerProps) {
   const [isIdle, setIsIdle] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  // 🛡️ FIX TS2322: ReturnType garante compatibilidade entre Browser e Node
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resetTimer = useCallback(() => {
     if (isIdle) {
       setIsIdle(false);
       onActive?.();
     }
-    
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
-
     timerRef.current = setTimeout(() => {
       setIsIdle(true);
       onIdle();
@@ -27,16 +30,13 @@ export function useIdleTimer({ timeout, onIdle, onActive }: UseIdleTimerProps) {
   }, [timeout, onIdle, onActive, isIdle]);
 
   useEffect(() => {
-    // Eventos que resetam o timer
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-    
     const handleEvent = () => resetTimer();
-
+    
     events.forEach(event => {
       window.addEventListener(event, handleEvent);
     });
 
-    // Inicia o timer
     resetTimer();
 
     return () => {

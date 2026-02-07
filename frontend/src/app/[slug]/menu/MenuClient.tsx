@@ -1,265 +1,405 @@
-// DOMAIN: FRONTEND
-// LAST_MODIFIED: 2026-01-16 20:05:00
+/**
+ * Author: MESAFLOW_AI_SOVEREIGN
+ * Version: 26.1.0 (API Sync Fix)
+ * DNA_ID: MF-MENU-CLIENT-V26-1
+ * Objective: Fix build error "Export getTableSession doesn't exist". 
+ * Corrected import to getSessionDetails which handles session tokens.
+ */
 "use client";
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+
+import React, { useEffect, useState, useRef, useMemo, useCallback, use } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import { 
-  getMenu, createOrder, getOrder, requestService, 
-  checkTableStatus, joinTable, validateCoupon, getWallet 
-} from "@/lib/api";
-import { MenuResponse, Product, Category, Order, CartItem, Option } from "@/types";
-import { 
-  Search, ShoppingBag, Plus, Trash2, ChevronRight, 
-  ChefHat, User, X, Printer, Zap, Eye, CreditCard, 
-  ArrowRightLeft, Star, WifiOff, Wallet, Calculator,
-  Bell, Info, CheckCircle2, AlertCircle
+  Loader2, ShoppingBag, ChevronDown, Lock, 
+  ArrowLeft, Search, Sparkles, CheckCircle2, Plus 
 } from "lucide-react";
+import { 
+  getMenu, 
+  checkTableStatus, 
+  getSessionDetails, // 🛡️ FIX: Replaced getTableSession
+  joinTable,
+  createOrder 
+} from "@/lib/api";
+import { MenuResponse, Product, Category, TableSession, Option, Order } from "@/types";
 import { useCart } from "@/context/CartContext";
-import { toast, Toaster } from "sonner";
-import { formatCurrency } from "@/lib/utils";
-import ProductModal from "@/components/menu/ProductModal";
-import OrderStatusView from "@/components/menu/OrderStatusView";
+import { formatCurrency, cn } from "@/lib/utils";
 import CategoryNav from "@/components/menu/CategoryNav";
-import SearchBar from "@/components/menu/SearchBar";
-import WalletWidget from "@/components/menu/WalletWidget";
-import ServiceModal from "@/components/menu/ServiceModal";
-import FeedbackModal from "@/components/menu/FeedbackModal";
+import ProductCard from "@/components/menu/ProductCard";
+import ProductModal from "@/components/menu/ProductModal";
+import CartDrawer from "@/components/menu/CartDrawer";
+import SearchBar from "@/components/menu/SearchBar"; 
+import ComandaView from "@/components/menu/ComandaView";
+import KioskHeader from "@/components/kiosk/KioskHeader";
+import KioskCheckoutModal from "@/components/kiosk/KioskCheckoutModal";
+import PixPaymentModal from "@/components/menu/PixPaymentModal";
+import PinEntryModal from "@/components/menu/PinEntryModal";
+
+// --- ANIMATION HELPERS ---
+const FlyingItem = ({ start, end, onComplete }: { start: {x:number, y:number}, end: {x:number, y:number}, onComplete: () => void }) => (
+  <motion.div
+    initial={{ x: start.x, y: start.y, scale: 1, opacity: 1 }}
+    animate={{ x: end.x, y: end.y, scale: 0.2, opacity: 0.5 }}
+    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+    onAnimationComplete={onComplete}
+    className="fixed z-[9999] w-12 h-12 bg-orange-500 rounded-full shadow-xl pointer-events-none flex items-center justify-center text-white"
+  >
+    <ShoppingBag size={20} />
+  </motion.div>
+);
 
 export default function MenuClient({ slug }: { slug: string }) {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const tableId = searchParams.get("table");
-  const qrToken = searchParams.get("token");
-  const activeOrderId = searchParams.get("order");
-
-  const [menu, setMenu] = useState<MenuResponse | null>(null);
+  const searchParams = useSearchParams();
+  const { addToCart, items, total, clearCart } = useCart();
+  const cartBtnRef = useRef<HTMLDivElement>(null);
+  
+  const [menuData, setMenuData] = useState<MenuResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sessionData, setSessionData] = useState<TableSession | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isServiceOpen, setIsServiceOpen] = useState(false);
+  const [isComandaOpen, setIsComandaOpen] = useState(false);
+  const [flyingItems, setFlyingItems] = useState<{id: number, start: {x:number, y:number}}[]>([]);
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [blockedCustomerName, setBlockedCustomerName] = useState("");
+  const [isKioskCheckoutOpen, setIsKioskCheckoutOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [walletBalance, setWalletBalance] = useState(0);
-  const [useBalance, setUseBalance] = useState(false);
+  const [isPixModalOpen, setIsPixModalOpen] = useState(false);
 
-  const { items, addToCart, removeFromCart, clearCart, total } = useCart();
+  const tableId = searchParams.get("table");
+  const qrToken = searchParams.get("token");
+  const isKiosk = searchParams.get("kiosk") === "true";
 
-  const fetchData = useCallback(async () => {
-    try {
-      const data = await getMenu(slug);
-      setMenu(data);
-      if (data.categories.length > 0) setActiveCategory(data.categories[0].id);
-      
-      if (activeOrderId) {
-        const orderData = await getOrder(activeOrderId);
-        setActiveOrder(orderData);
+  // 1. INITIAL LOAD & RESILIENT HANDSHAKE
+  useEffect(() => {
+    if (!slug || slug === "undefined") return;
+    const init = async () => {
+      try {
+        const menu = await getMenu(slug);
+        setMenuData(menu);
+        if (menu.categories.length > 0) setActiveCategory(menu.categories[0].id);
+
+        if (tableId) {
+          const storageKey = `mesaflow_session_${slug}_${tableId}`;
+          const storedToken = localStorage.getItem(storageKey);
+          
+          try {
+            const statusData = await checkTableStatus(slug, parseInt(tableId), qrToken || undefined, storedToken);
+            
+            if (statusData.status === 'active' && statusData.session_token) {
+              localStorage.setItem(storageKey, statusData.session_token);
+              // 🛡️ FIX: Correct API call to getSessionDetails
+              const session = await getSessionDetails(statusData.session_token);
+              setSessionData(session);
+            } 
+            else if (statusData.status === 'blocked') {
+              setBlockedCustomerName(statusData.customer_name || "Outro Cliente");
+              setIsPinModalOpen(true);
+            }
+            else if (statusData.status === 'free') {
+              const joinRes = await joinTable(slug, {
+                table_id: parseInt(tableId),
+                qr_token: qrToken || "staff-override",
+                customer_name: "Cliente Mesa " + tableId
+              });
+              localStorage.setItem(storageKey, joinRes.session_token);
+              setSessionData(joinRes);
+            }
+          } catch (err: any) {
+            if (err.status === 403) {
+              localStorage.removeItem(storageKey);
+              if (qrToken) window.location.reload(); 
+            } else {
+              throw err;
+            }
+          }
+        }
+      } catch (error) {
+        console.error("MesaFlow Boot Error:", error);
+      } finally {
+        setLoading(false);
       }
+    };
+    init();
+  }, [slug, tableId, qrToken]);
+
+  // 2. SCROLL SPY LOGIC
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = document.querySelectorAll('section[id^="cat-"]');
+      let currentId = activeCategory;
+
+      sections.forEach((section) => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top >= 0 && rect.top <= 300) {
+          currentId = parseInt(section.id.replace('cat-', ''));
+        }
+      });
+
+      if (currentId !== activeCategory) setActiveCategory(currentId);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [activeCategory]);
+
+  // 3. HANDLERS
+  const handleAddToCart = useCallback((product: Product, quantity: number, notes: string, options: Option[]) => {
+    addToCart(product, quantity, notes, options); 
+    setSelectedProduct(null);
+    
+    const startX = typeof window !== 'undefined' ? window.innerWidth / 2 : 0;
+    const startY = typeof window !== 'undefined' ? window.innerHeight / 2 : 0;
+    setFlyingItems(prev => [...prev, { id: Date.now(), start: { x: startX, y: startY } }]);
+  }, [addToCart]);
+
+  const handlePinConfirm = async (pin: string) => {
+    try {
+      const joinRes = await joinTable(slug, {
+        table_id: parseInt(tableId!),
+        qr_token: qrToken!,
+        customer_name: "Convidado",
+        pin: pin
+      });
+      localStorage.setItem(`mesaflow_session_${slug}_${tableId}`, joinRes.session_token);
+      setSessionData(joinRes);
+      setIsPinModalOpen(false);
+      toast.success("Acesso autorizado!");
     } catch (e) {
-      toast.error("Erro ao carregar cardápio");
-    } finally {
-      setLoading(false);
-    }
-  }, [slug, activeOrderId]);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
-
-  const handleAddToCart = (qty: number, notes: string, opts: Option[]) => {
-    if (selectedProduct) {
-      addToCart(selectedProduct, qty, notes, opts);
-      setSelectedProduct(null);
-      toast.success(`${selectedProduct.name} adicionado!`);
+      throw new Error("PIN Inválido");
     }
   };
 
-  const handleCheckout = async () => {
-    if (items.length === 0) return;
+  const handleKioskCheckout = () => {
+    setIsCartOpen(false);
+    setIsKioskCheckoutOpen(true);
+  };
+
+  const handleConfirmOrder = async (data: any) => {
+    setIsKioskCheckoutOpen(false);
+    const toastId = toast.loading("Processando pedido...");
     try {
       const payload = {
-        table_id: tableId ? parseInt(tableId) : null,
-        qr_token: qrToken || "public",
-        customer_name: customerName || "Cliente",
-        customer_phone: customerPhone,
-        use_balance: useBalance,
-        items: items.map(i => ({
-          product_id: i.product.id,
-          quantity: i.quantity,
-          notes: i.notes,
-          selected_options: i.selectedOptions.map(o => o.id)
+        customer_name: data.customerName,
+        customer_phone: data.customerPhone,
+        pickup_note: data.pickupNote,
+        payment_method: data.paymentMethod,
+        order_type: "on_site",
+        origin: "kiosk",
+        items: items.map(item => ({
+          product_id: item.product.id,
+          quantity: item.quantity,
+          notes: item.notes,
+          selected_options: item.selectedOptions.map(o => o.id)
         }))
       };
-      const res = await createOrder(slug, payload);
-      clearCart();
-      router.push(`/${slug}/menu?order=${res.id}`);
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao enviar pedido");
-    }
-  };
-
-  const handleServiceRequest = async (type: string, notes: string) => {
-    if (!tableId) return;
-    try {
-      await requestService(slug, parseInt(tableId), type, notes);
-      toast.success("Solicitação enviada!");
-      setIsServiceOpen(false);
+      const order = await createOrder(slug, payload);
+      setActiveOrder(order);
+      toast.dismiss(toastId);
+      if (data.paymentMethod === "pix" && order.mp_qr_code) {
+        setIsPixModalOpen(true);
+      } else {
+        toast.success("Pedido realizado com sucesso!");
+        clearCart();
+        setTimeout(() => router.push(`/${slug}/kiosk`), 5000);
+      }
     } catch (e) {
-      toast.error("Erro ao solicitar serviço");
+      toast.dismiss(toastId);
+      toast.error("Falha ao criar pedido.");
     }
   };
 
-  if (loading) return <div className="p-10 text-center animate-pulse text-gray-500">Preparando cardápio...</div>;
-  if (activeOrder) return <OrderStatusView order={activeOrder} onNewOrder={() => setActiveOrder(null)} primaryColor={menu?.company.primary_color || "#ea580c"} />;
+  const filteredCategories = useMemo(() => {
+    return menuData?.categories.map(cat => ({
+      ...cat,
+      products: cat.products.filter(p => 
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) && p.is_available
+      )
+    })).filter(cat => cat.products.length > 0) || [];
+  }, [menuData, searchTerm]);
 
-  const filteredProducts = menu?.categories
-    .find(c => c.id === activeCategory)
-    ?.products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())) || [];
+  const primaryColor = menuData?.company.primary_color || "#ea580c";
+  const cartRect = cartBtnRef.current?.getBoundingClientRect() || { x: 0, y: 0 };
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-950">
+      <Loader2 className="animate-spin text-orange-500" size={48} />
+    </div>
+  );
+
+  if (!menuData) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-32">
-      <Toaster position="top-center" richColors />
-      
-      {/* HEADER */}
-      <header className="bg-white dark:bg-gray-900 p-6 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-40">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-4">
-            {menu?.company.logo_url ? (
-              <img src={menu.company.logo_url} className="w-12 h-12 rounded-2xl object-cover shadow-md" alt="Logo" />
-            ) : (
-              <div className="w-12 h-12 bg-orange-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
-                <ChefHat size={28} />
-              </div>
-            )}
-            <div>
-              <h1 className="text-xl font-black text-gray-900 dark:text-white tracking-tight uppercase">{menu?.company.name}</h1>
-              {tableId && <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Mesa {tableId}</p>}
-            </div>
-          </div>
-          <button onClick={() => setIsServiceOpen(true)} className="p-3 bg-gray-100 dark:bg-gray-800 rounded-2xl text-gray-600 dark:text-gray-400 active:scale-95 transition-all">
-            <Bell size={24} />
-          </button>
-        </div>
-        <SearchBar value={searchTerm} onChange={setSearchTerm} />
-      </header>
-
-      <CategoryNav 
-        categories={menu?.categories || []} 
-        activeId={activeCategory} 
-        onSelect={setActiveCategory} 
-        primaryColor={menu?.company.primary_color || "#ea580c"} 
-      />
-
-      <main className="p-4 space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredProducts.map(product => (
-            <button 
-              key={product.id}
-              onClick={() => setSelectedProduct(product)}
-              className="bg-white dark:bg-gray-900 p-4 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm flex justify-between items-center text-left active:scale-[0.98] transition-all group"
-            >
-              <div className="flex-1 pr-4">
-                <h3 className="font-bold text-gray-900 dark:text-white mb-1 group-hover:text-orange-600 transition-colors">{product.name}</h3>
-                <p className="text-xs text-gray-500 line-clamp-2 mb-3">{product.description}</p>
-                <p className="text-orange-600 font-black">{formatCurrency(product.price)}</p>
-              </div>
-              {product.image_url && (
-                <img src={product.image_url} className="w-24 h-24 rounded-2xl object-cover shadow-inner" alt={product.name} />
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-32 font-sans">
+      {isKiosk ? (
+        <KioskHeader 
+          companyName={menuData.company.name} 
+          primaryColor={primaryColor} 
+          logoUrl={menuData.company.logo_url} 
+        />
+      ) : (
+        <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 shadow-sm border-b border-gray-100 dark:border-slate-800">
+          <div className="px-4 py-3 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              {menuData.company.logo_url ? (
+                <img src={menuData.company.logo_url} alt="Logo" className="w-10 h-10 rounded-lg object-cover" />
+              ) : (
+                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 font-bold">
+                  {menuData.company.name.charAt(0)}
+                </div>
               )}
-            </button>
-          ))}
-        </div>
+              <div>
+                <h1 className="font-bold text-gray-900 dark:text-white leading-tight">{menuData.company.name}</h1>
+                {tableId && <p className="text-xs text-green-600 font-medium">Mesa {tableId}</p>}
+              </div>
+            </div>
+            {sessionData && (
+              <button 
+                onClick={() => setIsComandaOpen(true)}
+                className="text-xs font-bold bg-gray-100 dark:bg-slate-800 px-3 py-1.5 rounded-full text-gray-600 dark:text-gray-300"
+              >
+                Ver Comanda
+              </button>
+            )}
+          </div>
+          <div className="px-4 pb-3">
+            <SearchBar value={searchTerm} onChange={setSearchTerm} primaryColor={primaryColor} />
+          </div>
+          <CategoryNav 
+            categories={filteredCategories} 
+            activeId={activeCategory} 
+            onSelect={(id) => {
+              setActiveCategory(id);
+              document.getElementById(`cat-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+            primaryColor={primaryColor}
+          />
+        </header>
+      )}
+
+      <main className="p-4 space-y-12 max-w-7xl mx-auto">
+        {filteredCategories.map(category => (
+          <section key={category.id} id={`cat-${category.id}`} className="scroll-mt-48">
+            <div className="flex items-center gap-4 mb-6">
+              <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{category.name}</h2>
+              <div className="h-1 flex-1 bg-slate-200 dark:bg-slate-800 rounded-full" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {category.products.map(product => (
+                <ProductCard 
+                  key={product.id} 
+                  product={product} 
+                  onClick={() => setSelectedProduct(product)}
+                  primaryColor={primaryColor}
+                />
+              ))}
+            </div>
+          </section>
+        ))}
       </main>
 
-      {/* FOOTER CARRINHO */}
-      {items.length > 0 && (
-        <div className="fixed bottom-6 left-4 right-4 z-50 animate-in slide-in-from-bottom-4">
-          <button 
-            onClick={() => setIsCartOpen(true)}
-            className="w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 p-5 rounded-[2rem] shadow-2xl flex justify-between items-center group active:scale-95 transition-all"
+      <AnimatePresence>
+        {items.length > 0 && (
+          <motion.div 
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-6 left-4 right-4 z-40 md:left-auto md:right-6 md:w-96"
           >
-            <div className="flex items-center gap-4">
-              <div className="bg-orange-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black">
-                {items.length}
-              </div>
-              <div className="text-left">
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-50">Ver Pedido</p>
-                <p className="text-lg font-black">{formatCurrency(total)}</p>
-              </div>
-            </div>
-            <ChevronRight size={24} className="group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
-      )}
-
-      {/* MODAL PRODUTO */}
-      <ProductModal 
-        isOpen={!!selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        product={selectedProduct}
-        onConfirm={handleAddToCart}
-        primaryColor={menu?.company.primary_color || "#ea580c"}
-      />
-
-      {/* MODAL CARRINHO (FULLSCREEN) */}
-      {isCartOpen && (
-        <div className="fixed inset-0 z-[60] bg-white dark:bg-gray-950 flex flex-col animate-in slide-in-from-right duration-300">
-          <header className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Meu Pedido</h2>
-            <button onClick={() => setIsCartOpen(false)} className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full"><X size={24}/></button>
-          </header>
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {items.map((item, i) => (
-              <div key={i} className="flex justify-between items-center bg-gray-50 dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
-                <div>
-                  <p className="font-bold text-gray-900 dark:text-white">{item.quantity}x {item.product.name}</p>
-                  <p className="text-xs text-orange-600 font-black">{formatCurrency(item.product.price * item.quantity)}</p>
+            <div ref={cartBtnRef}>
+              <button
+                onClick={() => setIsCartOpen(true)}
+                className="w-full text-white p-4 rounded-[2rem] shadow-2xl flex justify-between items-center hover:scale-[1.02] transition-transform active:scale-95 border-2 border-white/10"
+                style={{ backgroundColor: primaryColor }}
+                data-testid="cart-button"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="bg-white text-slate-900 w-12 h-12 rounded-full flex items-center justify-center font-black text-lg">
+                    {items.reduce((acc, item) => acc + item.quantity, 0)}
+                  </div>
+                  <div className="text-left">
+                    <p className="font-black text-sm uppercase tracking-widest opacity-80">Meu Pedido</p>
+                    <p className="font-bold text-xs">Ver itens</p>
+                  </div>
                 </div>
-                <button onClick={() => removeFromCart(i)} className="text-red-500 p-2"><Trash2 size={20}/></button>
-              </div>
-            ))}
-            
-            <div className="pt-6 space-y-4">
-              <input 
-                type="text" 
-                placeholder="Seu Nome"
-                className="w-full bg-gray-100 dark:bg-gray-800 border-none rounded-2xl p-4 text-sm outline-none focus:ring-2 focus:ring-orange-500/50"
-                value={customerName}
-                onChange={e => setCustomerName(e.target.value)}
-              />
-              <input 
-                type="tel" 
-                placeholder="Telefone (Opcional)"
-                className="w-full bg-gray-100 dark:bg-gray-800 border-none rounded-2xl p-4 text-sm outline-none focus:ring-2 focus:ring-orange-500/50"
-                value={customerPhone}
-                onChange={e => setCustomerPhone(e.target.value)}
-              />
+                <div className="flex items-center gap-3 bg-black/20 px-4 py-2 rounded-xl">
+                  <span className="font-black text-xl">{formatCurrency(total)}</span>
+                  <ChevronDown className="rotate-[-90deg]" />
+                </div>
+              </button>
             </div>
-          </div>
-          <footer className="p-6 border-t border-gray-100 dark:border-gray-800 safe-area-bottom">
-            <div className="flex justify-between items-end mb-6">
-              <span className="text-gray-500 font-bold uppercase text-xs tracking-widest">Total</span>
-              <span className="text-4xl font-black text-gray-900 dark:text-white">{formatCurrency(total)}</span>
-            </div>
-            <button 
-              onClick={handleCheckout}
-              className="w-full py-5 rounded-2xl text-white font-black text-xl shadow-2xl active:scale-95 transition-all"
-              style={{ backgroundColor: menu?.company.primary_color || "#ea580c" }}
-            >
-              Enviar Pedido
-            </button>
-          </footer>
-        </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {flyingItems.map(item => (
+        <FlyingItem 
+          key={item.id} 
+          start={item.start} 
+          end={{ x: cartRect.x + 20, y: cartRect.y + 20 }} 
+          onComplete={() => setFlyingItems(prev => prev.filter(i => i.id !== item.id))}
+        />
+      ))}
+
+      <ProductModal 
+        isOpen={!!selectedProduct} 
+        onClose={() => setSelectedProduct(null)} 
+        product={selectedProduct} 
+        onAdd={handleAddToCart}
+        primaryColor={primaryColor}
+      />
+
+      <CartDrawer 
+        isOpen={isCartOpen} 
+        onClose={() => setIsCartOpen(false)} 
+        primaryColor={primaryColor}
+        slug={slug}
+        tableId={tableId ? parseInt(tableId) : undefined}
+        sessionToken={sessionData?.session_token}
+        onCheckout={isKiosk ? handleKioskCheckout : undefined}
+      />
+
+      <PinEntryModal 
+        isOpen={isPinModalOpen}
+        customerName={blockedCustomerName}
+        onConfirm={handlePinConfirm}
+        onCancel={() => router.push('/')}
+      />
+
+      <KioskCheckoutModal 
+        isOpen={isKioskCheckoutOpen}
+        onClose={() => setIsKioskCheckoutOpen(false)}
+        onConfirm={handleConfirmOrder}
+        primaryColor={primaryColor}
+      />
+
+      {activeOrder && (
+        <PixPaymentModal 
+          isOpen={isPixModalOpen}
+          pixCode={activeOrder.mp_qr_code || ""}
+          total={activeOrder.total_amount}
+          orderId={activeOrder.id}
+          slug={slug}
+          onPaymentConfirmed={() => {
+             setIsPixModalOpen(false);
+             clearCart();
+             toast.success("Pagamento confirmado!");
+             setTimeout(() => router.push(`/${slug}/kiosk`), 5000);
+          }}
+        />
       )}
 
-      <ServiceModal 
-        isOpen={isServiceOpen} 
-        onClose={() => setIsServiceOpen(false)} 
-        onConfirm={handleServiceRequest}
-        primaryColor={menu?.company.primary_color || "#ea580c"}
-        segment={menu?.company.segment}
-      />
+      {sessionData && isComandaOpen && (
+        <ComandaView 
+          session={sessionData} 
+          onClose={() => setIsComandaOpen(false)} 
+          primaryColor={primaryColor} 
+        />
+      )}
     </div>
   );
 }
-

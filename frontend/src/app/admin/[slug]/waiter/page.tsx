@@ -1,169 +1,223 @@
+/**
+ * MODULE: WAITER_DASHBOARD
+ * VERSION: 4.0 (Unified Gold Master)
+ * DNA_ID: MF-WAITER-GRID-V4
+ * PURPOSE: Tactical floor view for high-velocity operations.
+ * NATURE: UI / Presentation (Dumb Component driven by Smart Hooks)
+ */
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import React, { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getTablesDashboard } from "@/lib/api";
-import { Table } from "@/types";
-import { Search, Clock, ChevronRight, ShoppingBag, Bike, Key, RefreshCw } from "lucide-react";
+import { 
+  Grid, List, Filter, BellRing, Clock, 
+  User, DollarSign, Plus, Search, RefreshCw 
+} from "lucide-react";
+import { toast, Toaster } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
+
+// --- INTERNAL LIBS ---
+import { useWaiterController } from "@/hooks/waiter/useWaiterController";
+import { cn, formatCurrency } from "@/lib/utils";
 import WaiterBottomNav from "@/components/waiter/WaiterBottomNav";
-import { useTerminology } from "@/hooks/useTerminology";
-import { Toaster, toast } from "sonner";
-import { useWebSocket } from "@/hooks/useWebSocket";
 
-interface TableDashboard extends Table {
-  status: 'free' | 'occupied' | 'alert';
-  active_session?: {
-    id: number;
-    customer_name: string;
-    total_spent: number;
-    start_time: string;
-    access_pin?: string;
-  };
-}
+// --- ATOMIC COMPONENTS (LOCAL) ---
 
-export default function WaiterTablesPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
-  const router = useRouter();
-  const terms = useTerminology();
-  const [tables, setTables] = useState<TableDashboard[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<'all' | 'free' | 'occupied'>('all');
-
-  const fetchTables = useCallback(async () => {
-    try {
-      const data = await getTablesDashboard(slug);
-      setTables(data);
-    } catch (e) {
-      toast.error("Erro ao atualizar mesas");
-    } finally {
-      setLoading(false);
-    }
-  }, [slug]);
-
-  useEffect(() => { fetchTables(); }, [fetchTables]);
-
-  useWebSocket(slug, (data) => {
-    if (data.type === "order_update" || data.type === "new_order") {
-      fetchTables();
-    }
-  });
-
-  const filteredTables = tables.filter(t => {
-    const matchesSearch = t.table_number.toString().includes(search) || 
-                          t.active_session?.customer_name.toLowerCase().includes(search.toLowerCase());
-
-    if (filter === 'all') return matchesSearch;
-    if (filter === 'free') return matchesSearch && t.status === 'free';
-    if (filter === 'occupied') return matchesSearch && (t.status === 'occupied' || t.status === 'alert');
-    return matchesSearch;
-  });
-
-  const handleTableClick = (table: TableDashboard) => {
-    router.push(`/admin/${slug}/waiter/pos/${table.id}`);
-  };
-
-  const handleQuickOrder = (type: 'delivery' | 'takeout') => {
-    router.push(`/admin/${slug}/waiter/pos/quick?mode=${type}`);
+const TableCard = ({ table, onClick }: { table: any, onClick: () => void }) => {
+  const isAlert = table.status === 'alert';
+  const isPayment = table.status === 'payment';
+  const isOccupied = table.status === 'occupied';
+  
+  // SLA Visual Logic
+  const getSLAColor = () => {
+    if (!table.active_session?.start_time) return "";
+    const minutes = (Date.now() - new Date(table.active_session.start_time).getTime()) / 60000;
+    if (minutes > 90) return "border-red-500/50 bg-red-50"; // Crítico (>1h30)
+    if (minutes > 60) return "border-orange-500/50 bg-orange-50"; // Atenção (>1h)
+    return "border-blue-200 bg-white"; // Normal
   };
 
   return (
-    <>
-      <Toaster position="top-center" richColors />
-
-      <div className="p-4 bg-gray-900 text-white sticky top-0 z-40 shadow-md">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-xl font-bold">Salão ({terms.table}s)</h1>
-          <div className="flex gap-2">
-            <button onClick={fetchTables} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700"><RefreshCw size={18}/></button>
-            <div className="flex bg-gray-800 rounded-lg p-1">
-                <button onClick={() => setFilter('all')} className={`px-3 py-1 rounded text-xs font-bold ${filter === 'all' ? 'bg-gray-600 text-white' : 'text-gray-400'}`}>Todos</button>
-                <button onClick={() => setFilter('free')} className={`px-3 py-1 rounded text-xs font-bold ${filter === 'free' ? 'bg-green-600 text-white' : 'text-gray-400'}`}>Livres</button>
-                <button onClick={() => setFilter('occupied')} className={`px-3 py-1 rounded text-xs font-bold ${filter === 'occupied' ? 'bg-red-600 text-white' : 'text-gray-400'}`}>Ocupados</button>
+    <motion.button
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      onClick={onClick}
+      className={cn(
+        "relative flex flex-col justify-between p-4 rounded-3xl border-2 transition-all active:scale-95 h-32 shadow-sm overflow-hidden",
+        isAlert ? "bg-red-600 border-red-500 text-white animate-pulse" :
+        isPayment ? "bg-purple-600 border-purple-500 text-white" :
+        isOccupied ? getSLAColor() :
+        "bg-slate-50 border-slate-200 text-slate-400"
+      )}
+    >
+      <div className="flex justify-between items-start w-full relative z-10">
+        <span className={cn("text-2xl font-black tracking-tighter", isOccupied ? "text-slate-900" : "text-inherit")}>
+          #{table.table_number}
+        </span>
+        {isAlert && <BellRing size={20} className="fill-current animate-bounce" />}
+        {isPayment && <DollarSign size={20} className="fill-current" />}
+        {isOccupied && !isAlert && !isPayment && (
+          <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+            {formatCurrency(table.active_session?.total_spent || 0)}
+          </span>
+        )}
+      </div>
+      
+      <div className="w-full text-left relative z-10">
+        {isOccupied ? (
+          <>
+            <p className={cn("text-xs font-bold truncate", (isAlert || isPayment) ? "text-white/90" : "text-slate-600")}>
+              {table.active_session?.customer_name || "Cliente"}
+            </p>
+            <div className={cn("flex items-center gap-1 text-[10px] font-mono mt-0.5", (isAlert || isPayment) ? "text-white/70" : "text-slate-400")}>
+              <Clock size={10} />
+              {new Date(table.active_session?.start_time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
             </div>
-          </div>
-        </div>
-
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-          <input 
-            type="text" 
-            placeholder={`Buscar ${terms.table} ou cliente...`}
-            className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-10 pr-4 py-3 text-white focus:ring-2 focus:ring-orange-500 outline-none"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 p-4 pb-0">
-        <button onClick={() => handleQuickOrder('takeout')} className="bg-orange-50 border border-orange-200 p-4 rounded-2xl flex flex-col items-center gap-2 active:scale-95 transition-all shadow-sm">
-          <div className="bg-orange-100 p-3 rounded-full text-orange-600"><ShoppingBag size={24}/></div>
-          <div className="text-center">
-            <p className="text-sm font-black text-orange-800 uppercase">VENDA BALCÃO</p>
-            <p className="text-[10px] text-orange-600 font-bold">Atendimento Rápido</p>
-          </div>
-        </button>
-        <button onClick={() => handleQuickOrder('delivery')} className="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex flex-col items-center gap-2 active:scale-95 transition-all shadow-sm">
-          <div className="bg-blue-100 p-3 rounded-full text-blue-600"><Bike size={24}/></div>
-          <div className="text-center">
-            <p className="text-sm font-black text-blue-800 uppercase">NOVO DELIVERY</p>
-            <p className="text-[10px] text-blue-600 font-bold">Anotar Entrega</p>
-          </div>
-        </button>
-      </div>
-
-      <div className="p-4 grid grid-cols-2 gap-3 pb-24">
-        {loading ? (
-          <p className="col-span-2 text-center py-10 text-gray-500">Carregando...</p>
+          </>
         ) : (
-          filteredTables.map(table => (
-            <button 
-              key={table.id}
-              onClick={() => handleTableClick(table)}
-              className={`p-4 rounded-2xl border-2 text-left transition-all active:scale-95 relative overflow-hidden flex flex-col justify-between min-h-[140px] ${
-                table.status === 'occupied' || table.status === 'alert'
-                  ? 'bg-white border-orange-500 shadow-lg' 
-                  : 'bg-gray-50 border-gray-200 opacity-80'
-              }`}
-            >
-              <div className="w-full">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-3xl font-black text-gray-900">#{table.table_number}</span>
-                  {table.status === 'occupied' && <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>}
-                  {table.status === 'alert' && <div className="w-3 h-3 bg-red-500 rounded-full animate-bounce"></div>}
-                </div>
-
-                {table.active_session ? (
-                  <div className="space-y-1">
-                    <p className="text-xs font-black text-orange-600 uppercase tracking-tighter truncate">{table.active_session.customer_name}</p>
-                    
-                    <div className="flex items-center gap-1 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 w-fit">
-                        <Key size={10} className="text-blue-500" />
-                        <span className="text-[10px] font-mono font-black text-blue-700">{table.active_session.access_pin}</span>
-                    </div>
-
-                    <p className="text-[10px] text-gray-400 flex items-center gap-1 mt-1">
-                      <Clock size={10}/> {new Date(table.active_session.start_time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
-                    </p>
-                    <p className="text-lg font-black text-green-600 mt-1">R$ {Number(table.active_session.total_spent).toFixed(2)}</p>
-                  </div>
-                ) : (
-                  <div className="h-12 flex items-center text-gray-400 text-xs font-bold uppercase tracking-widest">
-                    Livre
-                  </div>
-                )}
-              </div>
-
-              <div className="absolute bottom-2 right-2 text-gray-200">
-                <ChevronRight size={20} />
-              </div>
-            </button>
-          ))
+          <span className="text-xs font-bold uppercase tracking-widest opacity-50">Livre</span>
         )}
       </div>
 
+      {/* Background Pattern for Occupied */}
+      {isOccupied && !isAlert && !isPayment && (
+        <div className="absolute bottom-0 right-0 opacity-5 pointer-events-none">
+          <User size={64} />
+        </div>
+      )}
+    </motion.button>
+  );
+};
+
+export default function WaiterPage({ params: paramsPromise }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(paramsPromise);
+  const router = useRouter();
+  
+  // 1. Lógica de Negócio (Controller)
+  const { tables, stats, loading, filter, setFilter, actions } = useWaiterController(slug);
+  
+  // 2. Estado de UI Local
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  // --- HAPTICS ---
+  const handleTableClick = (tableId: number) => {
+    if (navigator.vibrate) navigator.vibrate(50);
+    router.push(`/admin/${slug}/waiter/pos/${tableId}`);
+  };
+
+  // --- FILTERING ---
+  const filteredTables = tables.filter(t => {
+    const matchesSearch = t.table_number.toString().includes(searchTerm) || 
+                          t.active_session?.customer_name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
+
+  return (
+    <div className="min-h-screen bg-slate-100 pb-32 font-sans selection:bg-orange-500 selection:text-white">
+      <Toaster position="top-center" />
+      
+      {/* HEADER FIXO (Sticky) */}
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 p-4 shadow-sm transition-all">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-xl font-black uppercase tracking-tight text-slate-900">Salão</h1>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              {stats.occupied} Ocupadas • {stats.alerts} Chamados
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button 
+              onClick={actions.refresh} 
+              className="p-2 bg-slate-100 rounded-xl text-slate-600 hover:bg-slate-200 active:rotate-180 transition-all"
+            >
+              <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
+            </button>
+            <button 
+              onClick={() => setViewMode(v => v === 'grid' ? 'list' : 'grid')} 
+              className="p-2 bg-slate-100 rounded-xl text-slate-600 hover:bg-slate-200 active:scale-95 transition-transform"
+            >
+              {viewMode === 'grid' ? <List size={20} /> : <Grid size={20} />}
+            </button>
+          </div>
+        </div>
+
+        {/* BARRA DE FILTROS & BUSCA */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 items-center">
+          <div className="relative flex-1 min-w-[140px]">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Buscar mesa..." 
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-xs font-bold focus:border-orange-500 outline-none transition-colors text-slate-900 placeholder:text-slate-400"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button 
+            onClick={() => setFilter('ALL')}
+            className={cn(
+              "px-4 py-2.5 rounded-xl text-xs font-black uppercase transition-all whitespace-nowrap shadow-sm",
+              filter === 'ALL' ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-500"
+            )}
+          >
+            Todas
+          </button>
+          <button 
+            onClick={() => setFilter('ALERTS')}
+            className={cn(
+              "px-4 py-2.5 rounded-xl text-xs font-black uppercase transition-all whitespace-nowrap flex items-center gap-1 shadow-sm",
+              filter === 'ALERTS' ? "bg-red-600 text-white animate-pulse" : "bg-white border border-slate-200 text-slate-500"
+            )}
+          >
+            <BellRing size={12} /> Atenção
+          </button>
+        </div>
+      </header>
+
+      {/* GRID DE MESAS */}
+      <main className="p-4">
+        {loading && tables.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <RefreshCw className="animate-spin text-orange-500" size={32} />
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Sincronizando...</p>
+          </div>
+        ) : (
+          <div className={cn("grid gap-3", viewMode === 'grid' ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-1")}>
+            <AnimatePresence mode="popLayout">
+              {filteredTables.map(table => (
+                <TableCard 
+                  key={table.id} 
+                  table={table} 
+                  onClick={() => handleTableClick(table.id)}
+                />
+              ))}
+            </AnimatePresence>
+            
+            {/* BOTÃO DE VENDA RÁPIDA (BALCÃO) */}
+            <button
+              onClick={() => router.push(`/admin/${slug}/waiter/pos/quick`)}
+              className="flex flex-col justify-center items-center p-4 rounded-3xl border-2 border-dashed border-slate-300 text-slate-400 hover:bg-slate-50 active:scale-95 transition-all h-32 group"
+            >
+              <div className="bg-slate-200 p-3 rounded-full mb-2 group-hover:bg-orange-100 group-hover:text-orange-600 transition-colors">
+                <Plus size={24} />
+              </div>
+              <span className="text-xs font-black uppercase tracking-widest group-hover:text-orange-600 transition-colors">Venda Rápida</span>
+            </button>
+          </div>
+        )}
+        
+        {filteredTables.length === 0 && !loading && (
+          <div className="text-center py-20 text-slate-400">
+            <p className="font-medium">Nenhuma mesa encontrada.</p>
+          </div>
+        )}
+      </main>
+
       <WaiterBottomNav slug={slug} />
-    </>
+    </div>
   );
 }

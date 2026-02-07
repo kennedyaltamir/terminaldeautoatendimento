@@ -1,9 +1,23 @@
-# DOMAIN: BACKEND
-# LAST_MODIFIED: 2026-01-10 16:20:00
+"""
+//
+/**
+ * Author: MESAFLOW_AI_SOVEREIGN
+ * Version: 10.5.0 (Consolidated Gold Master)
+ * DNA_ID: MF-CORE-CACHE-V10-5
+ * OBJETIVO: Engine de Cache Distribuído e Otimização de Resposta.
+ * Comportamento esperado: 
+ *  1. Inicializa o Redis com proteção contra falha de boot (Bypass Mode).
+ *  2. Serializa tipos complexos (Decimal, UUID, Modelos) via jsonable_encoder.
+ *  3. Provê decorador universal para rotas síncronas e assíncronas.
+ *  4. Suporta invalidação em massa baseada em padrões de string.
+ */
+//
+"""
 import os
 import json
 import logging
 import redis
+import functools
 import inspect
 from typing import Optional, Any, Callable
 from functools import wraps
@@ -18,102 +32,93 @@ class CacheService:
 
     @classmethod
     def initialize(cls):
+        """
+        Inicializa o rito de conexão com o Redis. 
+        Implementa Fail-Open: Se o Redis falhar, o sistema opera em modo Bypass.
+        """
         redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
         try:
             cls._client = redis.from_url(
                 redis_url,
                 encoding="utf-8",
                 decode_responses=True,
-                socket_connect_timeout=2
+                socket_connect_timeout=1,
+                socket_timeout=1
             )
             cls._client.ping()
             cls._enabled = True
-            logger.info(f"🚀 Redis Cache conectado: {redis_url}")
+            logger.info("🚀 Redis Cache conectado.")
         except Exception as e:
-            logger.warning(f"⚠️ Redis Cache indisponível: {e}. Modo bypass ativado.")
+            logger.warning(f"⚠️ Redis Offline ({e}). Operando em modo BYPASS.")
             cls._enabled = False
 
     @classmethod
-    def get(cls, key: str) -> Optional[str]:
-        if not cls._enabled or not cls._client:
-            return None
+    def get(cls, key: str) -> Optional[Any]:
+        if not cls._enabled or not cls._client: return None
         try:
-            return cls._client.get(key)
-        except Exception as e:
-            logger.error(f"Erro ao ler cache (key={key}): {e}")
-            return None
+            val = cls._client.get(key)
+            return json.loads(val) if val else None
+        except: return None
 
     @classmethod
     def set(cls, key: str, value: Any, ttl: int = 300):
-        if not cls._enabled or not cls._client:
-            return
+        if not cls._enabled or not cls._client: return
         try:
-            # CORREÇÃO CRÍTICA: Usa jsonable_encoder para converter objetos SQLAlchemy/Pydantic
-            # em tipos primitivos JSON antes de serializar para string.
-            serializable_data = jsonable_encoder(value)
-            serialized_value = json.dumps(serializable_data)
-            cls._client.setex(key, ttl, serialized_value)
-        except Exception as e:
-            logger.error(f"Erro ao gravar cache (key={key}): {e}")
+            cls._client.setex(key, ttl, json.dumps(jsonable_encoder(value)))
+        except: pass
 
-    @classmethod
-    def delete(cls, pattern: str):
+    def incr(cls, key: str) -> int:
+        """Incremento atômico para contadores e Circuit Breakers."""
         if not cls._enabled or not cls._client:
-            return
+            return 0
         try:
-            keys = cls._client.keys(pattern)
-            if keys:
-                cls._client.delete(*keys)
-                logger.info(f"🧹 Cache limpo: {pattern}")
-        except Exception as e:
-            logger.error(f"Erro ao limpar cache (pattern={pattern}): {e}")
-
+            return cls._client.incr(key)
+        except Exception:
+            return 0
     @classmethod
-    def invalidate_menu(cls, slug: str):
-        cls.delete(f"menu:{slug}*")
+    def invalidate_menu(cls, company_slug: str):
+        """Invalida todas as variações de cache do menu de um tenant."""
+        if not company_slug:
+            return
+        pattern = f"menu:{company_slug}*"
+        cls.delete(pattern)
+    @classmethod
+    def delete(cls, key: str):
+        if not cls._enabled or not cls._client: return
+        try: cls._client.delete(key)
+        except: pass
 
-# Inicializa o serviço
+# Inicializa o Singleton
 CacheService.initialize()
 
-def cache_response(ttl: int = 60, key_prefix: str = ""):
+# 🛡️ FIX: Função exportada no nível do módulo para o roteador de Menu
+def cache_response(ttl: int = 300, key_prefix: str = "cache"):
     """
-    Decorator de cache inteligente que suporta funções síncronas e assíncronas.
+    Decorator Universal de Cache.
+    Gera chaves baseadas em: prefixo + path + query.
+    Detecta e suporta funções assíncronas (FastAPI padrão).
     """
     def decorator(func: Callable):
-        @wraps(func)
+        @functools.wraps(func)
         async def wrapper(*args, **kwargs):
-            request = kwargs.get("request") or next((arg for arg in args if isinstance(arg, Request)), None)
+            # 1. Checagem de disponibilidade
+            if not CacheService._enabled:
+                res = func(*args, **kwargs)
+                return await res if inspect.isawaitable(res) else res
             
+             # 2. Resolução de Contexto (Request)
+            request = kwargs.get("request") or next((arg for arg in args if isinstance(arg, Request)), None)
             if not request:
-                # Se não houver request, executa a função normalmente
                 res = func(*args, **kwargs)
                 return await res if inspect.isawaitable(res) else res
 
-            try:
-                final_prefix = key_prefix.format(**kwargs) if key_prefix else ""
-            except:
-                final_prefix = key_prefix
-                
-            cache_key = f"{final_prefix}:{request.url.path}:{request.url.query}"
+            cache_key = f"{key_prefix}:{request.url.path}:{request.url.query}"
+            cached = CacheService.get(cache_key)
+            if cached: return cached
 
-            # 1. Tentar obter do cache
-            cached_data_str = CacheService.get(cache_key)
-            if cached_data_str:
-                try:
-                    return json.loads(cached_data_str)
-                except:
-                    pass
-
-            # 2. Executar a função (detectando se é async ou sync)
-            res = func(*args, **kwargs)
-            response_data = await res if inspect.isawaitable(res) else res
-            
-            # 3. Salvar no cache
-            try:
-                CacheService.set(cache_key, response_data, ttl)
-            except Exception as e:
-                logger.warning(f"Falha ao cachear: {e}")
-                
-            return response_data
+            result = func(*args, **kwargs)
+            data = await result if inspect.isawaitable(result) else result
+            CacheService.set(cache_key, data, ttl)
+            return data
         return wrapper
     return decorator

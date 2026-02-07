@@ -1,237 +1,214 @@
 # DOMAIN: BACKEND
-# LAST_MODIFIED: 2026-01-18 08:45:00
+# LAST_MODIFIED: 2026-02-05 07:10:00
+"""
+//
+/**
+ * Author: MESAFLOW_AI_SOVEREIGN
+ * Version: 4.5.0 (CORS Hardened)
+ * DNA_ID: MF-KERNEL-CORE-V4-5
+ * OBJETIVO: Kernel Central de Orquestração do MesaFlow OS.
+ * Comportamento esperado: 
+ *  1. Orquestra o Ciclo de Vida (Lifespan) do servidor, WebSockets e Polling iFood.
+ *  2. Gerencia a pilha de Middlewares: Rate Limiting -> CORS -> Circuit Breaker.
+ *  3. Garante que erros sistêmicos (500/503) retornem headers CORS para leitura do Frontend.
+ *  4. Registra integralmente a malha de roteamento administrativa e pública.
+ */
+//
+"""
 import os
 import json
-import time
 import asyncio
-import sentry_sdk
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Request, Response
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request, Response, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from sqlalchemy import text
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from contextlib import asynccontextmanager
-from app.database import get_db, SessionLocal
+
+# --- CORE INFRASTRUCTURE ---
 from app.websockets import manager
 from app.core.limiter import limiter
-from app.core.docs import tags_metadata, api_description
+from app.core.config import settings
 from app.core.logger import logger
-from app.services.ifood_service import IfoodService
 from app.core.circuit_breaker import CircuitBreaker
-# Importações de Rotas
-from app.routers import (
-    auth, public, upload, admin_delivery, admin_logistics,
-    admin_menu, admin_company, admin_tables, admin_metrics,
-    admin_inventory, admin_employees, admin_billing, admin_audit,
-    admin_fiscal, admin_financial, admin_marketing, admin_franchise,
-    admin_integrations, admin_features, admin_ai, admin_history, 
-    payments, webhooks, admin_payment, admin as admin_orders,
-    webhooks_ifood
-)
+from app.services.ifood_service import IfoodService
 
-# Configuração Sentry (Produção)
-sentry_dsn = os.getenv("SENTRY_DSN_BACKEND")
-environment = os.getenv("ENVIRONMENT", "production")
-if sentry_dsn:
-    sentry_sdk.init(
-        dsn=sentry_dsn,
-        environment=environment,
-        traces_sample_rate=1.0 if environment == "development" else 0.1,
-        profiles_sample_rate=1.0 if environment == "development" else 0.1,
-        send_default_pii=False,
-    )
-    logger.info(f"Sentry inicializado no ambiente: {environment}")
-else:
-    logger.warning("SENTRY_DSN_BACKEND não configurado. Observabilidade reduzida.")
+# --- ROUTER ARCHITECTURE ---
+from app.routers import (
+    auth_router, public_router, public_utils_router, upload_router,
+    admin_router, admin_delivery_router, admin_logistics_router,
+    admin_menu_router, admin_company_router, admin_tables_router,
+    admin_metrics_router, admin_inventory_router, admin_employees_router,
+    admin_billing_router, admin_payment_router, admin_audit_router,
+    admin_fiscal_router, admin_financial_router, admin_marketing_router,
+    admin_franchise_router, admin_integrations_router, admin_features_router,
+    admin_ai_router, admin_history_router, payments_router,
+    webhooks_router, webhooks_ifood_router, logistics_mobile_router
+)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Iniciando MesaFlow API...")
+    """Orquestrador de ritos de entrada e saída do Kernel."""
+    # Startup: Inicializa malha de WebSockets e serviços de integração
     await manager.startup()
     ifood = IfoodService()
     asyncio.create_task(ifood.start_polling())
     yield
-    logger.info("Encerrando MesaFlow API...")
+    # Shutdown: Encerramento gracioso de conexões persistentes
     await manager.shutdown()
 
+# --- APP INITIALIZATION ---
 app = FastAPI(
-    title="MesaFlow Enterprise API",
-    description=api_description,
-    version="3.3.8",
-    openapi_tags=tags_metadata,
-    lifespan=lifespan,
-    docs_url="/docs",
-    redoc_url="/redoc",
-    contact={
-        "name": "MesaFlow Developer Support",
-        "url": "https://mesaflow.com.br/developers",
-        "email": "api@mesaflow.com.br",
-    }
+    title="MesaFlow API", 
+    version="4.5.0", 
+    description="Sistema Operacional Enterprise para Food Service",
+    lifespan=lifespan
 )
 
+# --- RATE LIMITER CONFIG ---
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Middleware de Segurança (Enterprise Hardening - TASK-GTM-07)
-@app.middleware("http")
-async def security_headers_middleware(request: Request, call_next):
-    response = await call_next(request)
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    csp_policy = (
-        "default-src 'self'; "
-        "object-src 'none'; "
-        "base-uri 'self'; "
-        "form-action 'self'; "
-        "frame-ancestors 'self';"
-    )
-    response.headers["Content-Security-Policy"] = csp_policy
-    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(), payment=()"
-    return response
-
-# Middleware de Contexto para Sentry e Logs
-@app.middleware("http")
-async def add_process_context(request: Request, call_next):
-    if request.url.path.endswith(("/health", "/docs", "/openapi.json", "/favicon.ico")):
-        return await call_next(request)
-    
-    try:
-        await CircuitBreaker.check_health()
-    except Exception as e:
-        return Response(
-            content=json.dumps({"detail": str(e), "code": "CIRCUIT_OPEN"}),
-            status_code=503,
-            media_type="application/json"
-        )
-        
-    start_time = time.time()
-    try:
-        response = await call_next(request)
-        process_time = time.time() - start_time
-        
-        log_data = {
-            "method": request.method,
-            "path": request.url.path,
-            "status_code": response.status_code,
-            "duration": f"{process_time:.4f}s",
-            "client_ip": request.client.host if request.client else "unknown"
-        }
-        
-        if response.status_code >= 400:
-            logger.warning(f"Request Failed: {json.dumps(log_data)}")
-            if response.status_code >= 500:
-                CircuitBreaker.record_error()
-            elif response.status_code >= 400 and response.status_code not in [401, 403, 404]:
-                CircuitBreaker.record_error()
-        else:
-            logger.info(f"Request Processed: {json.dumps(log_data)}")
-            CircuitBreaker.record_success()
-            
-        return response
-    except Exception as e:
-        CircuitBreaker.record_error()
-        logger.error(f"💥 UNHANDLED_EXCEPTION: {str(e)}")
-        raise e
-
-# Configuração CORS Permissiva para Desenvolvimento
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://192.168.0.150:3000",
-    "https://mesaflow.com.br",
-    "https://*.vercel.app",
-    "*" # Em dev, permitir tudo para evitar bloqueio de IP dinâmico
-]
+# --- MIDDLEWARE 1: CORS POLICY (PRIORIDADE ABSOLUTA) ---
+# A ordem importa: CORS deve ser o primeiro middleware a processar a request
+# para garantir que o browser receba os headers corretos mesmo em caso de erro 401/500.
+origins = settings.BACKEND_CORS_ORIGINS
+if settings.ENVIRONMENT == "development":
+    # Em dev, permitimos wildcard se configurado, ou garantimos localhost
+    if "*" not in origins:
+        origins.append("http://localhost:3000")
+        origins.append("http://127.0.0.1:3000")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=origins if settings.ENVIRONMENT != "development" else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
-# --- HEALTH CHECK ---
-@app.get("/health", tags=["Infrastructure"], include_in_schema=False)
-@app.get("/api/health", tags=["Infrastructure"], include_in_schema=False)
-async def health_check():
-    health_status = {
-        "status": "healthy",
-        "timestamp": time.time(),
-        "services": {"database": "down", "redis": "down"}
-    }
+# --- MIDDLEWARE 2: RESILIÊNCIA E SEGURANÇA (CIRCUIT BREAKER) ---
+@app.middleware("http")
+async def security_middleware(request: Request, call_next):
+    """
+    Controlador de fluxo e resiliência.
+    Garante integridade de transações e injeção de CORS em falhas fatais.
+    """
+    path = request.url.path
+    
+    # 🛡️ PROTOCOLO DE BYPASS: Infraestrutura e Autenticação ignoram o disjuntor
+    # Isso evita que um travamento no banco bloqueie o login ou healthcheck
+    is_infra = path.endswith(("/health", "/docs", "/openapi.json"))
+    is_auth = "/api/auth/" in path
+    
+    if is_infra or is_auth:
+        return await call_next(request)
+
     try:
-        db = SessionLocal()
-        try:
-            db.execute(text("SELECT 1"))
-            health_status["services"]["database"] = "up"
-        finally:
-            db.close()
-    except Exception as e:
-        health_status["status"] = "unhealthy"
-        health_status["services"]["database"] = f"error: {str(e)}"
-        logger.error(f"Health Check DB Failed: {e}")
+        # 1. Health Check do Disjuntor (FSM do Sistema)
+        await CircuitBreaker.check_health(request)
         
-    if manager.use_redis and manager.redis_client:
-        try:
-            await manager.redis_client.ping()
-            health_status["services"]["redis"] = "up"
-        except Exception as e:
-            health_status["services"]["redis"] = "down"
-            logger.error(f"Health Check Redis Failed: {e}")
+        # 2. Processamento da Request
+        response = await call_next(request)
+        
+        # 3. Monitoramento de Sucesso (Filtro de Erros 5xx)
+        if response.status_code >= 500:
+            CircuitBreaker.record_error()
+        else:
+            CircuitBreaker.record_success()
             
-    return health_status
+        return response
 
-# --- INCLUSÃO DE ROTAS ---
-app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+    except Exception as e:
+        # 4. Registro de Falha Sistêmica
+        CircuitBreaker.record_error()
+        logger.error(f"🚨 KERNEL_PANIC em {path}: {str(e)}")
+        
+        # 5. Rito de Resposta com Injeção Manual de CORS (Garante leitura no Frontend)
+        # Mesmo que o middleware de CORS falhe ou seja ignorado por exceção não tratada,
+        # garantimos os headers aqui.
+        is_cb_open = "CIRCUIT_BREAKER_OPEN" in str(e)
+        
+        request_origin = request.headers.get("Origin", "*")
+        
+        return Response(
+            content=json.dumps({
+                "detail": str(e),
+                "status": "CB_LOCKED" if is_cb_open else "INTERNAL_ERROR",
+                "fix": "Execute reset_circuit_breaker.py em caso de falso-positivo."
+            }),
+            status_code=503 if is_cb_open else 500,
+            media_type="application/json",
+            headers={
+                "Access-Control-Allow-Origin": request_origin,
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "*",
+                "Access-Control-Allow-Headers": "*"
+            }
+        )
 
-# FIX: Prefixo /api/public para alinhar com o Frontend
-app.include_router(public.router, prefix="/api/public", tags=["Public API"])
+# --- ROUTER REGISTRATION ---
+# Grupo 1: Identidade, Sessão e Mobile
+app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(logistics_mobile_router, prefix="/api/mobile/logistics", tags=["Logistics Mobile"])
 
-app.include_router(upload.router, prefix="/api/upload", tags=["Media & Uploads"])
-app.include_router(admin_features.router, prefix="/api/admin/features", tags=["Admin - Features"])
-app.include_router(admin_orders.router, prefix="/api/admin", tags=["Admin - Orders"])
-app.include_router(admin_menu.router, prefix="/api/admin/menu", tags=["Admin - Menu"])
-app.include_router(admin_tables.router, prefix="/api/admin", tags=["Admin - Tables"]) 
-app.include_router(admin_inventory.router, prefix="/api/admin/inventory", tags=["Admin - Inventory"])
-app.include_router(admin_delivery.router, prefix="/api/admin/delivery", tags=["Admin - Logistics"])
-app.include_router(admin_logistics.router, prefix="/api/admin/logistics", tags=["Admin - Logistics"])
-app.include_router(admin_employees.router, prefix="/api/admin/employees", tags=["Admin - Team"])
-app.include_router(admin_audit.router, prefix="/api/admin/audit", tags=["Admin - BI & Metrics"])
-app.include_router(admin_metrics.router, prefix="/api/admin/metrics", tags=["Admin - BI & Metrics"])
-app.include_router(admin_marketing.router, prefix="/api/admin/marketing", tags=["Admin - Marketing"])
-app.include_router(admin_franchise.router, prefix="/api/admin/franchise", tags=["Admin - Franchise"])
-app.include_router(admin_integrations.router, prefix="/api/admin/integrations", tags=["Admin - Integrations & Webhooks"])
-app.include_router(admin_company.router, prefix="/api/admin/company", tags=["SaaS - Billing & Settings"])
-app.include_router(admin_billing.router, prefix="/api/admin/billing", tags=["SaaS - Billing & Settings"])
-app.include_router(admin_payment.router, prefix="/api/admin/payment", tags=["SaaS - Billing & Settings"])
-app.include_router(admin_fiscal.router, prefix="/api/admin/fiscal", tags=["SaaS - Fiscal"])
-app.include_router(admin_financial.router, prefix="/api/admin/financial", tags=["SaaS - Financial Reports"])
-app.include_router(admin_ai.router, prefix="/api/admin/ai", tags=["Admin - Intelligence"])
-app.include_router(admin_history.router, prefix="/api/admin", tags=["Admin - History"]) 
-app.include_router(webhooks.router, prefix="/api/webhooks", tags=["Inbound Webhooks"])
-app.include_router(webhooks_ifood.router, prefix="/api/webhooks", tags=["Inbound Webhooks"])
-app.include_router(payments.router, prefix="/api/payments", tags=["Inbound Webhooks"])
+# Grupo 2: Público, Upload e Utilitários
+app.include_router(public_router, prefix="/api/public", tags=["Public API"])
+app.include_router(upload_router, prefix="/api/upload", tags=["Upload"])
+app.include_router(public_utils_router, prefix="/api/utils", tags=["Public Utils"])
 
-@app.websocket("/ws/{company_slug}")
-async def websocket_endpoint(websocket: WebSocket, company_slug: str):
-    await manager.connect(websocket, company_slug)
+# Grupo 3: Administração e Operação de Salão/Cozinha
+app.include_router(admin_router, prefix="/api/admin", tags=["Admin Orders"])
+app.include_router(admin_delivery_router, prefix="/api/admin/delivery", tags=["Admin Delivery"])
+app.include_router(admin_logistics_router, prefix="/api/admin/logistics", tags=["Admin Logistics"])
+app.include_router(admin_menu_router, prefix="/api/admin/menu", tags=["Admin Menu"])
+app.include_router(admin_tables_router, prefix="/api/admin/tables", tags=["Admin Tables"])
+app.include_router(admin_inventory_router, prefix="/api/admin/inventory", tags=["Admin Inventory"])
+app.include_router(admin_company_router, prefix="/api/admin/company", tags=["Admin Company"])
+app.include_router(admin_employees_router, prefix="/api/admin/employees", tags=["Admin Staff"])
+
+# Grupo 4: Fintech, BI e Fiscal
+app.include_router(admin_billing_router, prefix="/api/admin/billing", tags=["Admin Finance"])
+app.include_router(admin_payment_router, prefix="/api/admin/payment", tags=["Admin Finance"])
+app.include_router(admin_fiscal_router, prefix="/api/admin/fiscal", tags=["Admin Finance"])
+app.include_router(admin_financial_router, prefix="/api/admin/financial", tags=["Admin Finance"])
+app.include_router(admin_metrics_router, prefix="/api/admin/metrics", tags=["Admin Metrics"])
+app.include_router(admin_ai_router, prefix="/api/admin/ai", tags=["Admin Intelligence"])
+app.include_router(admin_history_router, prefix="/api/admin/history", tags=["Admin History"])
+
+# Grupo 5: Governança, Integrações e Webhooks
+app.include_router(admin_audit_router, prefix="/api/admin/audit", tags=["Admin Audit"])
+app.include_router(admin_marketing_router, prefix="/api/admin/marketing", tags=["Admin Marketing"])
+app.include_router(admin_franchise_router, prefix="/api/admin/franchise", tags=["Admin Franchise"])
+app.include_router(admin_integrations_router, prefix="/api/admin/integrations", tags=["Admin System"])
+app.include_router(admin_features_router, prefix="/api/admin/features", tags=["Admin System"])
+app.include_router(webhooks_router, prefix="/api/webhooks", tags=["Integrations"])
+app.include_router(webhooks_ifood_router, prefix="/api/webhooks/ifood", tags=["Integrations"])
+app.include_router(payments_router, prefix="/api/payments", tags=["Integrations"])
+
+# --- WEBSOCKET GATEWAY ---
+@app.websocket("/api/ws/{slug}")
+async def websocket_endpoint(websocket: WebSocket, slug: str):
+    """Ponto de entrada de comunicação bi-direcional em tempo real."""
+    await manager.connect(websocket, slug)
     try:
         while True:
-            data_str = await websocket.receive_text()
-            data = json.loads(data_str)
-            if data.get("type") == "ping":
-                await websocket.send_json({"type": "pong"})
-    except WebSocketDisconnect:
-        manager.disconnect(websocket, company_slug)
-    except Exception as e:
-        logger.error(f"WebSocket Error: {e}")
-        manager.disconnect(websocket, company_slug)
+            data = await websocket.receive_text()
+            # Protocolo de Keep-Alive para infraestruturas Cloud
+            if data == '{"type":"ping"}': 
+                await websocket.send_text('{"type":"pong"}')
+    except WebSocketDisconnect: 
+        manager.disconnect(websocket, slug)
+    except Exception: 
+        manager.disconnect(websocket, slug)
 
-@app.get("/", include_in_schema=False)
-def root():
-    return {"message": "MesaFlow Enterprise API v3.3.8 🚀", "docs": "/docs"}
+# --- ROOT & HEALTHCHECK ---
+@app.get("/api/health")
+async def health(): 
+    """Interface de diagnóstico de vitalidade."""
+    return {"status": "healthy", "version": "4.5.0", "env": settings.ENVIRONMENT}
 
+@app.get("/")
+def root(): 
+    """Interface de documentação rápida."""
+    return {"message": "MesaFlow OS API v4.5.0 Online", "docs": "/docs"}

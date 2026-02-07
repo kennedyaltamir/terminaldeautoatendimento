@@ -1,112 +1,77 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { ChefHat, Touchpad, Utensils, Zap, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
-import Logo from "@/components/ui/Logo";
-
 /**
- * KioskAttractScreen (v5.0 - Gold Master)
- * Tela de proteção e atração para Totens de Autoatendimento.
- * 
- * REGRAS DE NEGÓCIO:
- * 1. Bloqueio de Gestos: Impede scroll e navegação acidental.
- * 2. Gatilho de Início: Qualquer toque na tela redireciona para o cardápio em modo kiosk.
- * 3. Branding Dinâmico: Utiliza o sistema de cores do Tenant.
+ * DOMAIN: FRONTEND / KIOSK
+ * LAST_MODIFIED: 2026-01-27 23:30:00
+ * DESCRIPTION: Kiosk Page - FIX: Hydration Mismatch resolvido.
  */
-export default function KioskAttractScreen({ params }: { params: { slug: string } }) {
+"use client";
+import React, { useEffect, useState, useMemo, use } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Touchpad, Sparkles, WifiOff, Globe } from "lucide-react";
+import { useKiosk } from "@/context/KioskContext";
+import { useLanguage } from "@/context/LanguageContext";
+import Logo from "@/components/ui/Logo";
+import KioskStealthTrigger from "@/components/kiosk/KioskStealthTrigger";
+
+export default function KioskAttractScreen({ params: paramsPromise }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(paramsPromise);
   const router = useRouter();
+  const { state, isOffline } = useKiosk();
+  const { t, locale } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+  const [particleData, setParticleData] = useState<any[]>([]);
+
+  useEffect(() => {
+    setMounted(true);
+    const data = [...Array(6)].map((_, i) => ({
+      id: i,
+      size: Math.random() * 400 + 100,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      duration: Math.random() * 15 + 10,
+      xMove: Math.random() * 150 - 75,
+      yMove: Math.random() * 150 - 75,
+    }));
+    setParticleData(data);
+  }, []);
 
   const handleStart = () => {
-    // Redireciona com flag kiosk=true para ajustar comportamento do carrinho e pagamentos
-    router.push(`/${params.slug}/menu?kiosk=true`);
+    if (state === "BREACHED" || state === "UNLOCKING") return;
+    router.push(`/${slug}/menu?kiosk=true`);
   };
 
+  if (!mounted) return <div className="h-screen w-screen bg-slate-950" />;
+
   return (
-    <div 
-      onClick={handleStart}
-      role="button"
-      aria-label="Toque na tela para iniciar o pedido"
-      className="relative h-screen w-screen flex flex-col items-center justify-center cursor-pointer overflow-hidden bg-slate-950"
-    >
-      {/* Background Cinematográfico */}
+    <div onClick={handleStart} className="relative h-screen w-screen flex flex-col items-center justify-center cursor-pointer overflow-hidden bg-slate-950 select-none touch-none">
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent z-10" />
-        <motion.img 
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 20, repeat: Infinity, repeatType: "reverse" }}
-          src="https://images.pexels.com/photos/1639562/pexels-photo-1639562.jpeg?auto=compress&cs=tinysrgb&w=1920" 
-          className="w-full h-full object-cover opacity-30"
-          alt="Branding Background"
-        />
+        <motion.img initial={{ scale: 1.0 }} animate={{ scale: 1.15 }} transition={{ duration: 30, repeat: Infinity, repeatType: "reverse" }} src="https://images.pexels.com/photos/1639562/pexels-photo-1639562.jpeg?auto=compress&cs=tinysrgb&w=1920" className="w-full h-full object-cover opacity-40" alt="Background" />
       </div>
-
-      {/* Floating Particles (Decorativo) */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(5)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute bg-orange-500/20 rounded-full blur-xl"
-            animate={{
-              x: [Math.random() * 100, Math.random() * 500, Math.random() * 100],
-              y: [Math.random() * 100, Math.random() * 800, Math.random() * 100],
-            }}
-            transition={{ duration: 15 + i, repeat: Infinity }}
-            style={{ width: 200 + i * 50, height: 200 + i * 50 }}
-          />
+      <div className="absolute inset-0 z-1 overflow-hidden pointer-events-none">
+        {particleData.map((p) => (
+          <div key={p.id} className="absolute" style={{ left: p.left, top: p.top }}>
+            <motion.div className="bg-orange-500/10 rounded-full blur-[100px]" animate={{ width: p.size, height: p.size, x: [0, p.xMove, 0], y: [0, p.yMove, 0], opacity: [0.2, 0.4, 0.2] }} transition={{ duration: p.duration, repeat: Infinity, ease: "easeInOut" }} />
+          </div>
         ))}
       </div>
-
-      <div className="relative z-20 text-center px-10">
-        {/* Logo de Alta Visibilidade */}
-        <motion.div 
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="mb-12 flex justify-center"
-        >
+      <div className="relative z-10 text-center px-10 flex flex-col items-center">
+        <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mb-16">
           <Logo size="xl" variant="light" animated={true} />
         </motion.div>
-
-        {/* Chamada Principal (Hero Title) */}
-        <div className="space-y-6 mb-20">
-          <motion.h1 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="text-7xl md:text-9xl font-black text-white tracking-tighter drop-shadow-2xl"
-          >
-            PEÇA <span className="text-orange-600">AQUI</span>
+        <div className="space-y-6 mb-24">
+          <motion.h1 className="text-8xl md:text-[10rem] font-black text-white tracking-tighter leading-none">
+            {t.kiosk.attract_title} <br />
+            <span className="text-orange-600">{t.kiosk.attract_highlight}</span>
           </motion.h1>
-          <p className="text-2xl md:text-4xl text-slate-300 font-light tracking-wide uppercase">
-            Rápido • Digital • Sem Filas
-          </p>
         </div>
-
-        {/* Call to Action (CTA) Pulsante */}
-        <motion.div 
-          animate={{ y: [0, 15, 0], scale: [1, 1.05, 1] }}
-          transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-          className="flex flex-col items-center gap-6"
-        >
-          <div className="bg-white text-slate-950 px-16 py-8 rounded-[3rem] text-3xl font-black shadow-[0_20px_50px_rgba(234,88,12,0.3)] flex items-center gap-6">
-            <Touchpad size={48} className="text-orange-600" />
-            TOQUE PARA COMEÇAR
-          </div>
-          
-          <div className="flex gap-8 text-slate-500 font-black text-sm uppercase tracking-[0.3em]">
-            <span className="flex items-center gap-2"><Utensils size={16} /> Consumo Local</span>
-            <span className="flex items-center gap-2"><Zap size={16} /> Retirada</span>
+        <motion.div animate={{ scale: [1, 1.03, 1] }} transition={{ repeat: Infinity, duration: 2.5 }}>
+          <div className="bg-white text-slate-950 px-20 py-10 rounded-[4rem] text-4xl font-black shadow-2xl flex items-center gap-8 hover:bg-gray-50 transition-all active:scale-95">
+            <Touchpad size={56} className="text-orange-600" /> {t.kiosk.tap_to_start}
           </div>
         </motion.div>
       </div>
-
-      {/* Footer / Badge de Segurança */}
-      <div className="absolute bottom-12 left-0 w-full text-center opacity-30">
-        <div className="flex items-center justify-center gap-2 text-white font-mono text-xs uppercase tracking-widest">
-          <Sparkles size={14} className="text-orange-500" /> MesaFlow Totem Intelligence v5.0
-        </div>
-      </div>
-    </div>
+      <KioskStealthTrigger />
+    </div> 
   );
 }
-

@@ -1,561 +1,271 @@
-// DOMAIN: FRONTEND
-// LAST_MODIFIED: 2026-01-16 20:05:00
+/**
+ * Author: MESAFLOW_AI_SOVEREIGN
+ * Version: 3.9.0 (Auth Contract Fixed)
+ * DNA_ID: MF-API-LIB-V3-9-GOLD
+ * Objective: Client de comunicação resiliente com correção de contrato OAuth2 (Form Data).
+ */
 import { getToken, getRefreshToken, setTokens, removeTokens } from "./auth";
-import { Company, Ingredient, RecipeItem, Promotion, CouponValidationResponse, TableSession, Order, Product } from "@/types";
+import { 
+  Order, MenuResponse, TableDashboard, TableSession, Product,
+  Employee, Ingredient, RecipeItem, Promotion, CouponValidationResponse,
+  AuditLog, Company, ServiceRequest, WebhookResponse, Metrics, Category
+} from "@/types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+// --- 🛡️ INFRASTRUCTURE RESOLVER ---
+const getBaseUrl = (): string => {
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    // Fallback inteligente para desenvolvimento local via Sentinel
+    if (host === 'localhost' || host === '127.0.0.1') return "http://localhost:8001/api"; 
+    return `http://${host}:8001/api`;
+  }
+  return "http://127.0.0.1:8001/api";
+};
 
-class ApiError extends Error {
+const API_BASE_URL = getBaseUrl();
+
+/**
+ * Classe de erro customizada para facilitar o catch semântico na UI.
+ */
+export class ApiError extends Error {
   status: number;
-  constructor(message: string, status: number) {
+  code?: string;
+  constructor(message: string, status: number, code?: string) {
     super(message);
+    this.name = "ApiError";
     this.status = status;
+    this.code = code;
   }
 }
 
-async function fetchClient(endpoint: string, options: RequestInit = {}) {
+// --- 🛠️ CORE REQUEST ENGINE ---
+/**
+ * Executor central de requisições com interceptação de segurança.
+ */
+async function fetchClient<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
-  const headers: any = { "Content-Type": "application/json", ...options.headers };
+  
+  // Default headers (JSON), mas permite override (ex: para multipart ou form-data)
+  const defaultHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Se o body for FormData ou URLSearchParams, o browser/fetch define o Content-Type automaticamente
+  // ou devemos defini-lo explicitamente se passado nas options.
+  if (options.body instanceof FormData || options.body instanceof URLSearchParams) {
+      delete defaultHeaders["Content-Type"];
+  }
+
+  const headers: Record<string, string> = {
+    ...defaultHeaders,
+    ...(options.headers as Record<string, string>),
+  };
+
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  let response;
-  try {
-    response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
-  } catch (error) {
-    throw new ApiError("Servidor indisponível.", 0);
-  }
+  const executeFetch = async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, { 
+        ...options, 
+        headers,
+        signal: controller.signal 
+      });
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') throw new ApiError("A requisição excedeu o tempo limite", 408);
+      if (error.message === "Failed to fetch") throw new ApiError("Servidor Indisponível (Erro de Conexão)", 503);
+      throw error;
+    }
+  };
 
+  let response = await executeFetch();
+
+  // 🔄 AUTO-REFRESH PROTOCOL: Tratamento de Token Expirado (401)
   if (response.status === 401) {
     const refreshToken = getRefreshToken();
-    if (!refreshToken) {
-      removeTokens();
-      if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
-        window.location.href = "/admin/login";
+    if (refreshToken) {
+      try {
+        const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refresh_token: refreshToken })
+        });
+
+        if (refreshRes.ok) {
+          const data = await refreshRes.json();
+          setTokens(data.access_token, data.refresh_token);
+          headers["Authorization"] = `Bearer ${data.access_token}`;
+          response = await executeFetch(); // Tenta a requisição original novamente
+        } else {
+          removeTokens();
+          throw new ApiError("Sessão Expirada", 401);
+        }
+      } catch (e) {
+        removeTokens();
+        throw new ApiError("Falha na renovação de sessão", 401);
       }
-      throw new ApiError("Sessão expirada", 401);
-    }
-    try {
-      const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
-        method: "POST",
-        headers: { "X-Refresh-Token": refreshToken },
-      });
-      if (refreshRes.ok) {
-        const data = await refreshRes.json();
-        setTokens(data.access_token, data.refresh_token);
-        headers["Authorization"] = `Bearer ${data.access_token}`;
-        response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
-      }
-    } catch (e) {
-      removeTokens();
-      throw new ApiError("Sessão expirada", 401);
     }
   }
 
+  // 🛡️ EXCEPTION HANDLING: Tratamento de Erros HTTP
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new ApiError(errorData.detail || "Erro na requisição", response.status);
+    let errorData: any = {};
+    try {
+        errorData = await response.json();
+    } catch (e) {
+        // Fallback para quando o servidor retorna erro 500 em texto puro
+        errorData = { detail: response.statusText || "Erro interno do servidor" };
+    }
+    
+    // Tratamento específico para Circuit Breaker (Disjuntor Aberto)
+    if (response.status === 503) {
+        const msg = errorData.detail || "O sistema está temporariamente em modo de proteção. Tente em 30s.";
+        throw new ApiError(msg, 503, "CIRCUIT_BREAKER");
+    }
+
+    throw new ApiError(errorData.detail || "Erro desconhecido na API", response.status);
   }
-  return response;
-}
-
-export async function validateKioskPassword(slug: string, password: string) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/public/${slug}/kiosk/validate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password })
-    });
-    if (!response.ok) return { valid: false, error: "Security service unavailable" };
-    return response.json();
-  } catch (e) {
-    return { valid: false, error: "Connection refused" };
-  }
-}
-
-// --- ADMIN API ---
-export async function getCompanySettings() {
-  const res = await fetchClient(`/admin/company/me`);
-  return res.json();
-}
-
-export async function updateCompanySettings(data: Partial<Company>) {
-  const res = await fetchClient(`/admin/company/me`, {
-    method: "PATCH",
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
-
-export async function updatePassword(data: any) {
-  const res = await fetchClient(`/admin/company/me/password`, {
-    method: "PATCH",
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
-
-export async function getDashboardMetrics(startDate?: string, endDate?: string) {
-  let query = "";
-  const params = new URLSearchParams();
-  if (startDate) params.append("start_date", startDate);
-  if (endDate) params.append("end_date", endDate);
-  if (params.toString()) query = `?${params.toString()}`;
-  const res = await fetchClient(`/admin/metrics${query}`);
-  return res.json();
-}
-
-export async function getKitchenOrders(slug: string) {
-  const res = await fetchClient(`/admin/${slug}/orders`);
-  return res.json();
-}
-
-export async function updateOrderStatus(slug: string, orderId: string, newStatus: string) {
-  const res = await fetchClient(`/admin/orders/${orderId}`, {
-    method: "PATCH",
-    body: JSON.stringify({ status: newStatus }),
-  });
-  return res.json();
-}
-
-export async function updateOrderPayment(orderId: string, newStatus: string) {
-  const res = await fetchClient(`/admin/orders/${orderId}/payment`, {
-    method: "PATCH",
-    body: JSON.stringify({ payment_status: newStatus }),
-  });
-  return res.json();
-}
-
-export async function getOrderHistory(slug: string, page = 1, limit = 10) {
-  const res = await fetchClient(`/admin/${slug}/history?page=${page}&limit=${limit}`);
-  return res.json();
-}
-
-export async function getIngredients() {
-  const res = await fetchClient(`/admin/inventory/ingredients`);
-  return res.json();
-}
-
-export async function createIngredient(data: Partial<Ingredient>) {
-  const res = await fetchClient(`/admin/inventory/ingredients`, {
-    method: "POST",
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
-
-export async function updateIngredient(id: number, data: Partial<Ingredient>) {
-  const res = await fetchClient(`/admin/inventory/ingredients/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
-
-export async function deleteIngredient(id: number) {
-  const res = await fetchClient(`/admin/inventory/ingredients/${id}`, { method: "DELETE" });
-  return res.ok;
-}
-
-export async function updateProductRecipe(productId: number, ingredients: RecipeItem[]) {
-  const res = await fetchClient(`/admin/inventory/recipes`, {
-    method: "POST",
-    body: JSON.stringify({ product_id: productId, ingredients })
-  });
-  return res.json();
-}
-
-export async function getAuditLogs(limit = 50) {
-  const res = await fetchClient(`/admin/audit?limit=${limit}`);
-  return res.json();
-}
-
-export async function getFranchiseDashboard() {
-  const res = await fetchClient(`/admin/franchise/dashboard`);
-  return res.json();
-}
-
-export async function generateRecommendations() {
-  const res = await fetchClient(`/admin/marketing/recommendations/generate`, { method: "POST" });
-  return res.json();
-}
-
-export async function getPromotions() {
-  const res = await fetchClient(`/admin/marketing/promotions`);
-  return res.json();
-}
-
-export async function createPromotion(data: any) {
-  const res = await fetchClient(`/admin/marketing/promotions`, {
-    method: "POST",
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
-
-export async function updatePromotion(id: string, data: any) {
-  const res = await fetchClient(`/admin/marketing/promotions/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
-
-export async function deletePromotion(id: string) {
-  const res = await fetchClient(`/admin/marketing/promotions/${id}`, { method: "DELETE" });
-  return res.ok;
-}
-
-export async function getWebhooks() {
-  const res = await fetchClient(`/admin/integrations/webhooks`);
-  return res.json();
-}
-
-export async function createWebhook(data: any) {
-  const res = await fetchClient(`/admin/integrations/webhooks`, {
-    method: "POST",
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
-
-export async function deleteWebhook(id: number) {
-  const res = await fetchClient(`/admin/integrations/webhooks/${id}`, { method: "DELETE" });
-  return res.ok;
-}
-
-export async function getWhatsappStatus() {
-  const res = await fetchClient(`/admin/marketing/whatsapp/status`);
-  return res.json();
-}
-
-export async function getFeatureFlags() {
-  const res = await fetchClient(`/admin/features`);
-  return res.json();
-}
-
-export async function updateFeatureFlag(key: string, isEnabled: boolean) {
-  const res = await fetchClient(`/admin/features`, {
-    method: "POST",
-    body: JSON.stringify({ key, is_enabled: isEnabled })
-  });
-  return res.json();
-}
-
-export async function getSalesForecast(days: number = 7) {
-  const res = await fetchClient(`/admin/ai/forecast?days=${days}`);
-  return res.json();
-}
-
-export async function getLedgerHistory(limit = 50) {
-  const res = await fetchClient(`/admin/audit/financial/ledger?limit=${limit}`);
-  return res.json();
-}
-
-export async function getReconciliationReport() {
-  const res = await fetchClient(`/admin/audit/financial/reconciliation`);
-  return res.json();
-}
-
-export async function verifyLedgerIntegrity() {
-  const res = await fetchClient(`/admin/audit/financial/verify-integrity`);
-  return res.json();
-}
 
-export async function fixOrphanTransaction(externalId: string) {
-  const res = await fetchClient(`/admin/audit/financial/fix-orphan`, {
-    method: "POST",
-    body: JSON.stringify({ external_id: externalId })
-  });
-  return res.json();
+  // Retorno Seguro: Evita erro de parse em respostas vazias (204 No Content)
+  return response.status === 204 ? ({} as T) : response.json();
 }
 
-export async function getServiceRequestsAdmin(slug: string) {
-  const res = await fetchClient(`/admin/${slug}/service-requests`);
-  return res.json();
-}
-
-export async function resolveServiceRequest(slug: string, requestId: number) {
-  const res = await fetchClient(`/admin/${slug}/service-requests/${requestId}/resolve`, { method: "PATCH" });
-  return res.json();
-}
-
-export async function getRecentCompletedOrders(slug: string) {
-  const res = await fetchClient(`/admin/${slug}/orders/recent-completed`);
-  return res.json();
-}
-
-export async function createCategory(name: string) {
-  const res = await fetchClient(`/admin/menu/categories`, {
-    method: "POST",
-    body: JSON.stringify({ name, order_index: 0 })
-  });
-  return res.json();
-}
-
-export async function createProduct(data: any) {
-  const res = await fetchClient(`/admin/menu/products`, {
-    method: "POST",
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
-
-export async function updateProduct(productId: number, data: any) {
-  const res = await fetchClient(`/admin/menu/products/${productId}`, {
-    method: "PATCH",
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
-
-export async function deleteProduct(productId: number) {
-  const res = await fetchClient(`/admin/menu/products/${productId}`, { method: "DELETE" });
-  return res.ok;
-}
-
-export async function createOptionGroup(productId: number, data: any) {
-  const res = await fetchClient(`/admin/menu/products/${productId}/groups`, {
-    method: "POST",
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
-
-export async function createOption(groupId: number, data: any) {
-  const res = await fetchClient(`/admin/menu/groups/${groupId}/options`, {
-    method: "POST",
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
-
-export async function deleteCategory(categoryId: number) {
-  const res = await fetchClient(`/admin/menu/categories/${categoryId}`, { method: "DELETE" });
-  return res.ok;
-}
-
-export async function deleteOptionGroup(groupId: number) {
-  const res = await fetchClient(`/admin/menu/groups/${groupId}`, { method: "DELETE" });
-  return res.ok;
-}
-
-export async function deleteOption(optionId: number) {
-  const res = await fetchClient(`/admin/menu/options/${optionId}`, { method: "DELETE" });
-  return res.ok;
-}
-
-export async function getTablesDashboard(slug?: string) {
-  const res = await fetchClient(`/admin/tables/dashboard`);
-  return res.json();
-}
-
-export async function createTable(tableNumber: number) {
-  const res = await fetchClient(`/admin/tables`, {
-    method: "POST",
-    body: JSON.stringify({ table_number: tableNumber })
-  });
-  return res.json();
-}
-
-export async function deleteTable(tableId: number) {
-  const res = await fetchClient(`/admin/tables/${tableId}`, { method: "DELETE" });
-  return res.ok;
-}
-
-export async function openTable(tableId: number, customerName: string) {
-  const res = await fetchClient(`/admin/tables/${tableId}/open`, {
-    method: "POST",
-    body: JSON.stringify({ customer_name: customerName })
-  });
-  return res.json();
-}
-
-export async function createTablesBulk(start: number, end: number) {
-  const res = await fetchClient(`/admin/tables/bulk`, {
-    method: "POST",
-    body: JSON.stringify({ start, end })
-  });
-  return res.json();
-}
-
-export async function getPaymentAuthUrl(provider: string) {
-  const res = await fetchClient(`/admin/payment/auth-url/${provider}`);
-  return res.json();
-}
-
-export async function disconnectPaymentProvider() {
-  const res = await fetchClient(`/admin/payment/disconnect`, { method: "DELETE" });
-  return res.json();
-}
-
-export async function emitFiscalDocument(orderId: string) {
-  const res = await fetchClient(`/admin/fiscal/orders/${orderId}/emit`, { method: "POST" });
-  return res.json();
-}
-
-export async function getDriversWithBalance() {
-  const res = await fetchClient(`/admin/logistics/drivers`);
-  return res.json();
-}
-
-export async function settleDriverDebt(driverId: number, amount: number, description: string) {
-  const res = await fetchClient(`/admin/logistics/drivers/${driverId}/settle`, {
-    method: "POST",
-    body: JSON.stringify({ amount, description })
-  });
-  return res.json();
-}
-
-export async function getQuickProducts(slug: string) {
-  const res = await fetchClient(`/admin/inventory/quick-products?slug=${slug}`);
-  return res.json();
-}
-
-export async function transferTable(data: any) {
-  const res = await fetchClient(`/admin/tables/transfer`, {
-    method: "POST",
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
-
-// --- PUBLIC API ---
-export async function getMenu(slug: string) {
-  const res = await fetch(`${API_BASE_URL}/public/${slug}/menu`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Falha ao carregar cardápio");
-  return res.json();
-}
-
-export async function createOrder(slug: string, data: any) {
-  const res = await fetch(`${API_BASE_URL}/public/${slug}/orders`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  return res.json();
-}
-
-export async function getSessionDetails(sessionToken: string) {
-  const res = await fetchClient(`/admin/tables/sessions/${sessionToken}/details`);
-  return res.json();
-}
-
-export async function getTableSession(slug: string, sessionToken: string): Promise<TableSession> {
-  const res = await fetchClient(`/admin/tables/sessions/${sessionToken}/details`);
-  return res.json();
-}
-
-export async function payTableSession(tableId: number, amount: number, method: string) {
-  const res = await fetchClient(`/admin/tables/${tableId}/pay`, {
-    method: "POST",
-    body: JSON.stringify({ amount, payment_method: method })
-  });
-  return res.json();
-}
-
-export async function closeTable(tableId: number, paymentMethod: string, customServiceFee?: number) {
-  const res = await fetchClient(`/admin/tables/${tableId}/close`, {
-    method: "POST",
-    body: JSON.stringify({ payment_method: paymentMethod, custom_service_fee: customServiceFee })
-  });
-  return res.json();
-}
-
-export async function getDrivers() {
-  const res = await fetchClient(`/admin/employees?role=driver`);
-  return res.json();
-}
-
-export async function dispatchOrder(orderId: string, driverId?: number) {
-  const res = await fetchClient(`/admin/delivery/orders/${orderId}/dispatch`, {
-    method: "PATCH",
-    body: JSON.stringify({ driver_id: driverId })
-  });
-  return res.json();
-}
+// =============================================================================
+// 🔐 DOMAIN: AUTHENTICATION & IDENTITY
+// =============================================================================
 
-export async function login(username: string, password: string) {
+export const login = async (credentials: { email: string; password: string }) => {
+  // 🛡️ CONTRATO OAUTH2: Transformando JSON em Form-Data URL Encoded exigido pelo FastAPI
   const formData = new URLSearchParams();
-  formData.set("username", username);
-  formData.set("password", password);
-  
+  formData.append("username", credentials.email);
+  formData.append("password", credentials.password);
+
   const res = await fetch(`${API_BASE_URL}/auth/token`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: formData,
-  });
-  
-  if (!res.ok) throw new Error("Login falhou.");
-  const data = await res.json();
-  setTokens(data.access_token, data.refresh_token);
-  return data;
-}
-
-export async function register(data: any) {
-  const res = await fetch(`${API_BASE_URL}/auth/register`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Accept": "application/json"
+    },
+    body: formData.toString(),
   });
-  if (!res.ok) throw new Error("Falha no registro");
-  return res.json();
-}
 
-export async function connectPaymentProvider(provider: string, code: string) {
-  const res = await fetchClient(`/admin/payment/callback/${provider}?code=${code}`, {
-    method: "POST"
-  });
-  return res.json();
-}
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ detail: "Credenciais inválidas" }));
+    throw new ApiError(errorData.detail || "Falha na autenticação", res.status);
+  }
 
-export async function getPublicMonitorOrders(slug: string) {
-  const res = await fetch(`${API_BASE_URL}/public/${slug}/monitor`);
   return res.json();
-}
+};
 
-export async function checkTableStatus(slug: string, tableId: number, qrToken: string, sessionToken?: string) {
-  const res = await fetch(`${API_BASE_URL}/public/${slug}/check-table`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ table_id: tableId, qr_token: qrToken, session_token: sessionToken })
-  });
-  return res.json();
-}
+export const register = (data: any) => fetchClient("/auth/register", { method: "POST", body: JSON.stringify(data) });
+export const updatePassword = (data: any) => fetchClient(`/admin/company/me/password`, { method: "PATCH", body: JSON.stringify(data) });
+export const getCompanySettings = (): Promise<Company> => fetchClient(`/admin/company/me`);
+export const updateCompanySettings = (data: any) => fetchClient(`/admin/company/me`, { method: "PATCH", body: JSON.stringify(data) });
+export const validateKioskPassword = (slug: string, password: string) => fetchClient(`/admin/company/kiosk/validate`, { method: "POST", body: JSON.stringify({ password }) });
 
-export async function getWallet(slug: string, phone: string) {
-  const res = await fetch(`${API_BASE_URL}/public/${slug}/wallet/${phone}`);
-  return res.json();
-}
+// =============================================================================
+// 🚚 DOMAIN: LOGISTICS & DRIVER MOBILE
+// =============================================================================
 
-export async function getOrder(orderId: string) {
-  const res = await fetch(`${API_BASE_URL}/public/orders/${orderId}`);
-  return res.json();
-}
+export const startDriverShift = (data: any) => fetchClient("/mobile/logistics/shift/start", { method: "POST", body: JSON.stringify(data) });
+export const endDriverShift = (data: any) => fetchClient("/mobile/logistics/shift/end", { method: "POST", body: JSON.stringify(data) });
+export const acceptJourney = (orderId: string) => fetchClient(`/mobile/logistics/journey/${orderId}/accept`, { method: "POST" });
+export const updateJourneyStatus = (journeyId: string, status: string, podCode?: string) => fetchClient(`/mobile/logistics/journey/${journeyId}/status`, { method: "PATCH", body: JSON.stringify({ status, pod_code: podCode }) });
+export const updateActiveVehicle = (data: any) => fetchClient("/mobile/logistics/vehicle/active", { method: "PATCH", body: JSON.stringify(data) });
+export const ingestTelemetry = (data: any) => fetchClient("/mobile/logistics/telemetry", { method: "POST", body: JSON.stringify(data) });
 
-export async function requestService(slug: string, tableId: number, type: string, notes?: string) {
-  const res = await fetch(`${API_BASE_URL}/public/${slug}/service-request`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ table_id: tableId, service_type: type, notes })
-  });
-  return res.json();
-}
+// =============================================================================
+// 🏢 DOMAIN: ADMINISTRATIVE OPERATIONS (KDS, BI, AUDIT)
+// =============================================================================
 
-export async function joinTable(slug: string, tableId: number, qrToken: string, customerName: string, pin?: string) {
-  const res = await fetch(`${API_BASE_URL}/public/${slug}/join-table`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ table_id: tableId, qr_token: qrToken, customer_name: customerName, pin })
-  });
-  return res.json();
-}
+export const getKitchenOrders = (slug: string): Promise<Order[]> => fetchClient(`/admin/${slug}/orders`);
+export const getRecentCompletedOrders = (slug: string): Promise<Order[]> => fetchClient(`/admin/${slug}/orders?status=ready&limit=20`);
+export const getOrderHistory = (slug: string, page: number = 1, limit: number = 10) => fetchClient(`/admin/history?slug=${slug}&page=${page}&limit=${limit}`);
+export const getDashboardMetrics = (start?: string, end?: string): Promise<Metrics> => fetchClient(`/admin/metrics?start_date=${start}&end_date=${end}`);
+export const getFranchiseDashboard = () => fetchClient(`/admin/franchise/dashboard`);
+export const getSalesForecast = (days: number = 7) => fetchClient(`/admin/ai/forecast?days=${days}`);
+export const getAuditLogs = (limit: number = 50): Promise<AuditLog[]> => fetchClient(`/admin/audit?limit=${limit}`);
+export const updateOrderStatus = (slug: string, orderId: string, status: string) => fetchClient(`/admin/orders/${orderId}`, { method: "PATCH", body: JSON.stringify({ status }) });
 
-export async function validateCoupon(slug: string, code: string, total: number) {
-  const res = await fetch(`${API_BASE_URL}/public/${slug}/validate-coupon`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code, total_amount: total })
-  });
-  return res.json();
-}
+// =============================================================================
+// 🪑 DOMAIN: TABLES & WAITER MANAGEMENT
+// =============================================================================
 
+export const getTablesDashboard = (): Promise<TableDashboard[]> => fetchClient(`/admin/tables/dashboard`);
+export const createTable = (data: any) => fetchClient(`/admin/tables`, { method: "POST", body: JSON.stringify(data) });
+export const updateTablePositions = (positions: any[]) => fetchClient(`/admin/tables/positions`, { method: "PATCH", body: JSON.stringify(positions) });
+export const deleteTable = (id: number) => fetchClient(`/admin/tables/${id}`, { method: "DELETE" });
+export const createBulkTables = (data: any) => fetchClient(`/admin/tables/bulk`, { method: "POST", body: JSON.stringify(data) });
+export const openTable = (id: number, customerName: string) => fetchClient(`/admin/tables/${id}/open`, { method: "POST", body: JSON.stringify({ customer_name: customerName }) });
+export const closeTable = (id: number, method: string, tip: number = 0) => fetchClient(`/admin/tables/${id}/close`, { method: "POST", body: JSON.stringify({ payment_method: method, custom_service_fee: tip }) });
+export const payTableSession = (id: number, amount: number, method: string) => fetchClient(`/admin/tables/${id}/pay`, { method: "POST", body: JSON.stringify({ amount, payment_method: method }) });
+export const transferTable = (data: any) => fetchClient(`/admin/tables/transfer`, { method: "POST", body: JSON.stringify(data) });
+export const getTableActiveSession = (tableId: number): Promise<TableSession> => fetchClient(`/admin/tables/${tableId}/active-session`);
+
+// =============================================================================
+// 🍔 DOMAIN: PUBLIC CUSTOMER FACING
+// =============================================================================
+
+export const getMenu = (slug: string): Promise<MenuResponse> => fetchClient(`/public/${slug}/menu`);
+export const getPublicOrder = (orderId: string): Promise<Order> => fetchClient(`/public/orders/${orderId}`);
+export const createOrder = (slug: string, data: any): Promise<Order> => fetchClient(`/public/${slug}/orders`, { method: "POST", body: JSON.stringify(data) });
+export const checkTableStatus = (slug: string, tableId: number, qrToken?: string, sessionToken?: string | null) => fetchClient(`/public/${slug}/check-table`, { method: "POST", body: JSON.stringify({ table_id: tableId, qr_token: qrToken, session_token: sessionToken }) });
+export const joinTable = (slug: string, data: any) => fetchClient(`/public/${slug}/join-table`, { method: "POST", body: JSON.stringify(data) });
+export const getPublicMonitorOrders = (slug: string) => fetchClient(`/public/${slug}/monitor`);
+export const getSessionDetails = (sessionId: string | number): Promise<TableSession> => fetchClient(`/public/session/${sessionId}`);
+export const getTableSession = (sessionId: string | number): Promise<TableSession> => fetchClient(`/public/session/${sessionId}`);
+export const sendOrderFeedback = (slug: string, orderId: string, score: number, comment: string) => fetchClient(`/public/${slug}/orders/${orderId}/feedback`, { method: "POST", body: JSON.stringify({ score, comment }) });
+export const requestService = (slug: string, data: any) => fetchClient(`/public/${slug}/service-request`, { method: "POST", body: JSON.stringify(data) });
+export const getWallet = (slug: string, phone: string) => fetchClient(`/public/${slug}/wallet/${phone}`);
+export const validateCoupon = (slug: string, code: string, total: number): Promise<CouponValidationResponse> => fetchClient(`/public/${slug}/coupon/validate`, { method: "POST", body: JSON.stringify({ code, total_amount: total }) });
+
+// =============================================================================
+// 📦 DOMAIN: INVENTORY & PRODUCT MGMT
+// =============================================================================
+
+export const getIngredients = (): Promise<Ingredient[]> => fetchClient(`/admin/inventory/ingredients`);
+export const createIngredient = (data: any) => fetchClient(`/admin/inventory/ingredients`, { method: "POST", body: JSON.stringify(data) });
+export const updateIngredient = (id: number, data: any) => fetchClient(`/admin/inventory/ingredients/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+export const deleteIngredient = (id: number) => fetchClient(`/admin/inventory/ingredients/${id}`, { method: "DELETE" });
+
+export const getQuickProducts = (): Promise<Product[]> => fetchClient(`/admin/menu/products`);
+export const createProduct = (data: any): Promise<Product> => fetchClient(`/admin/menu/products`, { method: "POST", body: JSON.stringify(data) });
+export const updateProduct = (id: number, data: any): Promise<Product> => fetchClient(`/admin/menu/products/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+export const deleteProduct = (id: number) => fetchClient(`/admin/menu/products/${id}`, { method: "DELETE" });
+export const updateProductRecipe = (data: any) => fetchClient(`/admin/menu/recipes`, { method: "PATCH", body: JSON.stringify(data) });
+
+export const createCategory = (data: any): Promise<Category> => fetchClient(`/admin/menu/categories`, { method: "POST", body: JSON.stringify(data) });
+export const updateCategory = (id: number, data: any): Promise<Category> => fetchClient(`/admin/menu/categories/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+export const deleteCategory = (id: number): Promise<void> => fetchClient(`/admin/menu/categories/${id}`, { method: "DELETE" });
+
+// =============================================================================
+// 📣 DOMAIN: MARKETING & INTEGRATIONS
+// =============================================================================
+export const generateRecommendations = () => fetchClient(`/admin/marketing/recommendations/generate`, { method: "POST" });
+export const getPromotions = (): Promise<Promotion[]> => fetchClient(`/admin/marketing/promotions`);
+export const createPromotion = (data: any): Promise<Promotion> => fetchClient(`/admin/marketing/promotions`, { method: "POST", body: JSON.stringify(data) });
+export const updatePromotion = (id: string, data: any): Promise<Promotion> => fetchClient(`/admin/marketing/promotions/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+export const deletePromotion = (id: string): Promise<void> => fetchClient(`/admin/marketing/promotions/${id}`, { method: "DELETE" });
+export const getWebhooks = (): Promise<WebhookResponse[]> => fetchClient(`/admin/integrations/webhooks`);
+export const createWebhook = (data: any): Promise<WebhookResponse> => fetchClient(`/admin/integrations/webhooks`, { method: "POST", body: JSON.stringify(data) });
+export const deleteWebhook = (id: number): Promise<void> => fetchClient(`/admin/integrations/webhooks/${id}`, { method: "DELETE" });
+export const getFeatureFlags = () => fetchClient("/admin/features");
+export const updateFeatureFlag = (key: string, isEnabled: boolean) => fetchClient("/admin/features", { method: "POST", body: JSON.stringify({ key, is_enabled: isEnabled }) });
+export const getWhatsappStatus = () => fetchClient(`/admin/integrations/whatsapp/status`);
+export const emitFiscalDocument = (orderId: string) => fetchClient(`/admin/fiscal/orders/${orderId}/emit`, { method: "POST" });
+export const getPaymentAuthUrl = (provider: string) => fetchClient(`/admin/payment/auth-url/${provider}`);
+export const connectPaymentProvider = (provider: string, code: string) => fetchClient(`/admin/payment/callback/${provider}?code=${code}`, { method: "POST" });
+export const disconnectPaymentProvider = () => fetchClient(`/admin/payment/disconnect`, { method: "DELETE" });
+export const getDrivers = () => fetchClient(`/admin/logistics/drivers`);
+export const dispatchOrder = (orderId: string, driverId?: number) => fetchClient(`/admin/delivery/orders/${orderId}/dispatch`, { method: "PATCH", body: JSON.stringify({ driver_id: driverId }) });
+export const getDriversWithBalance = () => fetchClient(`/admin/logistics/drivers/balance`);
+export const settleDriverDebt = (driverId: number, amount: number, description: string) => fetchClient(`/admin/logistics/drivers/${driverId}/settle`, { method: "POST", body: JSON.stringify({ amount, description }) });
+export const getLedgerHistory = () => fetchClient(`/admin/audit/financial/ledger`);
+export const getReconciliationReport = () => fetchClient(`/admin/audit/financial/reconciliation`);
+export const verifyLedgerIntegrity = () => fetchClient(`/admin/audit/financial/verify-integrity`);
+export const fixOrphanTransaction = (externalId: string) => fetchClient(`/admin/audit/financial/fix-orphan`, { method: "POST", body: JSON.stringify({ external_id: externalId }) });

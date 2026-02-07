@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ForensicScriptProtocol 
+    xmlns="http://mesaflow.com/schemas/forensic/v4"
+    version="4.1" 
+    classification="RESTRICTED" 
+    hashAlgorithm="SHA-256">
+
+    <Configuration>
+        <Meta name="MaxRecursionDepth" value="5" />
+        <Meta name="DefaultTimeout" value="30000" unit="ms" />
+        <Meta name="StopOnFailure" value="true" />
+        <Meta name="ResultsFolder" value="resultados" />
+        <Enums>
+            <Enum name="LogLevel">CRITICAL, ERROR, WARN, INFO, DEBUG, TRACE</Enum>
+            <Enum name="ExecutionStatus">PENDING, RUNNING, PASSED, FAILED, FLAKY, BLOCKED, SKIPPED</Enum>
+        </Enums>
+    </Configuration>
+
+    <Secrets provider="EnvironmentVariables">
+        <Secret key="ADMIN_EMAIL" ref="MESAFLOW_ADMIN_EMAIL" />
+        <Secret key="ADMIN_PASS" ref="MESAFLOW_ADMIN_PASS" />
+        <Secret key="DB_URL" ref="DATABASE_URL" />
+    </Secrets>
+
+    <Architecture>
+        <Layer type="INTERCEPTION" name="NetworkMonitor" active="true" priority="0">
+            <Capture target="Headers" filter="Auth, User-Agent" />
+        </Layer>
+        <Layer type="SIMULATION" name="UserActor" active="true" priority="50">
+            <Behavior profile="HumanLike" jitter="true" />
+        </Layer>
+        <Layer type="EXTRACTION" name="EvidenceCollector" active="true" priority="100">
+            <Trigger on="STEP_COMPLETE" action="ElementDumpJson" />
+        </Layer>
+    </Architecture>
+
+    <ExecutionFlow>
+        <Step id="INIT" name="Setup" actor="SYSTEM">
+            <Action command="EnsureFolder" path="${Meta:ResultsFolder}" />
+        </Step>
+
+        <Step id="AUDIT_CYCLE" name="FullPageAudit" actor="HUMAN_SIMULATOR" timeout="60000">
+            
+            <Step id="CAPTURE" name="DOM_Extraction">
+                <Action command="CaptureElements" output="${Meta:ResultsFolder}/elements_dump.json" />
+            </Step>
+            
+            <Step id="INTERACT" name="UI_Stress">
+                <Action command="InteractAll" mode="CLICK_AND_FILL" />
+            </Step>
+            
+            <Step id="VALIDATE_DB" name="Data_Integrity">
+                <Action command="CompareDB" connection="${SECRET:DB_URL}" output="${Meta:ResultsFolder}/db_diff.json" />
+            </Step>
+
+            <Step id="CHECK_ROUTES" name="Route_Verification">
+                <Action command="ValidateRoutes" output="${Meta:ResultsFolder}/route_audit.json" />
+            </Step>
+
+            <Step id="DOC_UPDATE" name="Documentation">
+                <Action command="UpdateDoc" path="${Meta:ResultsFolder}/AUDIT_SUMMARY.md" />
+            </Step>
+
+            <Step id="EVIDENCE" name="Artifacts">
+                <Action command="Screenshot" path="${Meta:ResultsFolder}/evidence.png" />
+                <Action command="GenerateReport" path="${Meta:ResultsFolder}/final_report.json" />
+            </Step>
+
+        </Step>
+    </ExecutionFlow>
+
+    <OutputSchema>
+        <Report format="JSON">
+            <Field key="execution_id" type="UUID" required="true" />
+            <Field key="verdict" type="Enum" ref="ExecutionStatus" required="true" />
+            <Artifacts required="true">
+                <Artifact type="JSON" path="${Meta:ResultsFolder}/elements_dump.json" />
+                <Artifact type="JSON" path="${Meta:ResultsFolder}/db_diff.json" />
+                <Artifact type="MD" path="${Meta:ResultsFolder}/AUDIT_SUMMARY.md" />
+                <Artifact type="PNG" path="${Meta:ResultsFolder}/evidence.png" />
+            </Artifacts>
+        </Report>
+    </OutputSchema>
+
+    <Security>
+        <DigitalSignature algorithm="RSA-SHA256">
+            <SignatureValue>[PENDING_SIGNATURE]</SignatureValue>
+        </DigitalSignature>
+    </Security>
+
+</ForensicScriptProtocol>
+

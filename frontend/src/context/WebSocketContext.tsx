@@ -1,5 +1,4 @@
 "use client";
-
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 
 interface WebSocketContextType {
@@ -10,20 +9,23 @@ interface WebSocketContextType {
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws";
-
-export function WebSocketProvider({ children, slug }: { children: React.ReactNode, slug?: string }) {
+export function WebSocketProvider({ children, slug }: { children: React.ReactNode, slug: string }) {
   const [isConnected, setIsConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<any>(null);
-  
   const ws = useRef<WebSocket | null>(null);
-  const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
-  const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
   const isMounted = useRef(false);
+  
+  // 🛡️ Gestão de Timers com Tipagem Cross-Platform
+  const reconnectTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartbeatInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  /**
+   * Rito de Conexão Soberana
+   */
   const connect = useCallback(() => {
-    if (!slug || !isMounted.current) return;
+    if (!slug || slug === "undefined" || !isMounted.current) return;
 
+    // Limpeza de instâncias fantasmas antes de nova tentativa
     if (ws.current) {
       if (ws.current.readyState === WebSocket.OPEN || ws.current.readyState === WebSocket.CONNECTING) {
         return;
@@ -31,34 +33,43 @@ export function WebSocketProvider({ children, slug }: { children: React.ReactNod
       ws.current.close();
     }
 
-    const socket = new WebSocket(`${WS_URL}/${slug}`);
+    // Resolução de URL: Prioriza ENV, Fallback para Sentinel (8001)
+    const API_HOST = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+    const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || `ws://${API_HOST}:8001/api/ws`;
+    const finalUrl = `${WS_BASE_URL}/${slug}`;
+
+    // 🛡️ FIX: Removido log de debug
+    
+    const socket = new WebSocket(finalUrl);
     ws.current = socket;
 
     socket.onopen = () => {
-      if (isMounted.current) {
-        console.log("🟢 WS Conectado:", slug);
-        setIsConnected(true);
-        
-        // Iniciar Heartbeat (Batida de coração) para evitar timeout de inatividade (1012)
-        if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
-        heartbeatInterval.current = setInterval(() => {
-          if (socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({ type: "ping" }));
-          }
-        }, 30000); // 30 segundos
-      } else {
+      if (!isMounted.current) {
         socket.close();
+        return;
       }
+      // 🛡️ FIX: console.log -> console.info para status de conexão
+      console.info(`✅ [WS_CONNECT] Canal sincronizado: ${slug}`);
+      setIsConnected(true);
+
+      // Iniciar rito de Heartbeat (Mantém o túnel aberto)
+      if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
+      heartbeatInterval.current = setInterval(() => {
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({ type: "ping" }));
+        }
+      }, 30000);
     };
 
     socket.onmessage = (event) => {
       if (!isMounted.current) return;
       try {
         const data = JSON.parse(event.data);
-        if (data.type === "pong") return; // Ignora resposta de heartbeat
+        // Ignora respostas de heartbeat no estado global para evitar re-renders inúteis
+        if (data.type === "pong") return;
         setLastMessage(data);
       } catch (e) {
-        console.error("Erro ao processar mensagem WS", e);
+        console.error("🚨 [WS_PARSE_ERROR] Falha ao processar payload:", e);
       }
     };
 
@@ -66,8 +77,10 @@ export function WebSocketProvider({ children, slug }: { children: React.ReactNod
       if (!isMounted.current) return;
       setIsConnected(false);
       if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
-      
+
+      // Rito de Reconexão (Não reconecta se o fechamento for intencional - código 1000)
       if (event.code !== 1000) {
+        console.warn(`⚠️ [WS_DISCONNECT] Conexão perdida (Código: ${event.code}). Tentando em 3s...`);
         if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
         reconnectTimeout.current = setTimeout(() => {
           if (isMounted.current) connect();
@@ -75,39 +88,40 @@ export function WebSocketProvider({ children, slug }: { children: React.ReactNod
       }
     };
 
-    socket.onerror = () => {
-        // Erros são tratados pelo onclose
+    socket.onerror = (err) => {
+      console.error("❌ [WS_CRITICAL_ERROR] Falha física no soquete:", err);
+      socket.close();
     };
-
   }, [slug]);
 
   useEffect(() => {
     isMounted.current = true;
-    
-    const connectionTimer = setTimeout(() => {
-      if (slug) connect();
-    }, 150);
+    // Pequeno atraso para garantir que o rito de hidratação do Next.js terminou
+    const initTimer = setTimeout(connect, 100);
 
     return () => {
       isMounted.current = false;
-      clearTimeout(connectionTimer);
+      clearTimeout(initTimer);
       if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
       if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
-      
       if (ws.current) {
-        if (ws.current.readyState === WebSocket.OPEN) {
-            ws.current.close(1000, "Unmount");
-        }
+        // Encerramento Gracioso
+        ws.current.close(1000, "Component Unmounted");
         ws.current = null;
       }
     };
-  }, [connect, slug]);
+  }, [connect]);
 
-  const sendMessage = (msg: any) => {
+  /**
+   * Método de envio seguro.
+   */
+  const sendMessage = useCallback((msg: any) => {
     if (ws.current?.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify(msg));
+    } else {
+      console.warn("📤 [WS_SEND_SKIP] Tentativa de envio com canal fechado.");
     }
-  };
+  }, []);
 
   return (
     <WebSocketContext.Provider value={{ isConnected, lastMessage, sendMessage }}>
@@ -116,10 +130,18 @@ export function WebSocketProvider({ children, slug }: { children: React.ReactNod
   );
 }
 
+/**
+ * Hook de acesso rápido com Fallback de Segurança.
+ */
 export function useWebSocketContext() {
   const context = useContext(WebSocketContext);
   if (!context) {
-    return { isConnected: false, lastMessage: null, sendMessage: () => {} };
+    // Retorna interface nula para não quebrar componentes fora do Provider
+    return { 
+      isConnected: false, 
+      lastMessage: null, 
+      sendMessage: (msg: any) => console.error("WS fora de contexto", msg) 
+    };
   }
   return context;
 }

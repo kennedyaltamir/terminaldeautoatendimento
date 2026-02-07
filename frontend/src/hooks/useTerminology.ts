@@ -1,71 +1,54 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useState, useRef } from "react";
 import { getCompanySettings } from "@/lib/api";
 
 type Segment = "gastro" | "event" | "hotel" | "corp";
 
 interface Terminology {
-  table: string;      // Ex: Mesa, Quarto, Assento
-  tables: string;     // Plural
-  waiter: string;     // Ex: Garçom, Camareira, Staff
-  kitchen: string;    // Ex: Cozinha, Bar, Copa
-  customer: string;   // Ex: Cliente, Hóspede
-  menu: string;       // Ex: Cardápio, Menu de Serviços
+  table: string;
+  tables: string;
+  waiter: string;
+  kitchen: string;
+  customer: string;
+  menu: string;
 }
 
 const DICTIONARY: Record<Segment, Terminology> = {
-  gastro: { 
-    table: "Mesa", 
-    tables: "Mesas", 
-    waiter: "Garçom", 
-    kitchen: "Cozinha", 
-    customer: "Cliente",
-    menu: "Cardápio"
-  },
-  hotel: { 
-    table: "Quarto", 
-    tables: "Quartos", 
-    waiter: "Serviço de Quarto", 
-    kitchen: "Cozinha", 
-    customer: "Hóspede",
-    menu: "Room Service"
-  },
-  event: { 
-    table: "Assento", 
-    tables: "Assentos", 
-    waiter: "Staff", 
-    kitchen: "Bar/Copa", 
-    customer: "Espectador",
-    menu: "Cardápio"
-  },
-  corp: { 
-    table: "Ponto", 
-    tables: "Pontos", 
-    waiter: "Atendente", 
-    kitchen: "Preparo", 
-    customer: "Colaborador",
-    menu: "Catálogo"
-  },
+  gastro: { table: "Mesa", tables: "Mesas", waiter: "Garçom", kitchen: "Cozinha", customer: "Cliente", menu: "Cardápio" },
+  hotel: { table: "Quarto", tables: "Quartos", waiter: "Serviço de Quarto", kitchen: "Cozinha", customer: "Hóspede", menu: "Room Service" },
+  event: { table: "Assento", tables: "Assentos", waiter: "Staff", kitchen: "Bar/Copa", customer: "Espectador", menu: "Cardápio" },
+  corp: { table: "Ponto", tables: "Pontos", waiter: "Atendente", kitchen: "Preparo", customer: "Colaborador", menu: "Catálogo" },
 };
 
 export function useTerminology() {
   const [segment, setSegment] = useState<Segment>("gastro");
+  const hasFetched = useRef(false);
 
   useEffect(() => {
-    // Tenta recuperar do cache local para evitar flicker
+    // 🛡️ ANTI-LOOP: Impede múltiplas chamadas se o componente re-renderizar
+    if (hasFetched.current) return;
+
     const cached = localStorage.getItem("mesaflow_segment") as Segment;
     if (cached && DICTIONARY[cached]) {
       setSegment(cached);
     }
 
-    // Atualiza com dados reais da API
-    getCompanySettings()
-      .then((data) => {
-        if (data.segment && DICTIONARY[data.segment as Segment]) {
+    const fetchSettings = async () => {
+      try {
+        hasFetched.current = true;
+        const data = await getCompanySettings();
+        if (data?.segment && DICTIONARY[data.segment as Segment]) {
           setSegment(data.segment as Segment);
           localStorage.setItem("mesaflow_segment", data.segment);
         }
-      })
-      .catch(() => {}); 
+      } catch (error) {
+        // Falha silenciosa para não interromper a UI
+        console.warn("[Terminology] Usando fallback padrão.");
+      }
+    };
+
+    fetchSettings();
   }, []);
 
   return DICTIONARY[segment];

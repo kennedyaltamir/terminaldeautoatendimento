@@ -1,8 +1,8 @@
-"use client";
 
-import { useState, useEffect } from "react";
-import { X, Plus, Trash2, Save, Search } from "lucide-react";
-import { Product, Ingredient, RecipeItem } from "@/types";
+"use client";
+import { useState, useEffect, useCallback } from "react";
+import { Plus, Trash2, Loader2, Save } from "lucide-react";
+import { Ingredient, RecipeItem, Product } from "@/types";
 import { getIngredients, updateProductRecipe } from "@/lib/api";
 import Modal from "@/components/ui/Modal";
 import { toast } from "sonner";
@@ -10,147 +10,157 @@ import { toast } from "sonner";
 interface RecipeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  product: Product | null;
+  product: Product;
 }
 
 export default function RecipeModal({ isOpen, onClose, product }: RecipeModalProps) {
-  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [allIngredients, setAllIngredients] = useState<Ingredient[]>([]);
   const [recipeItems, setRecipeItems] = useState<RecipeItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await getIngredients();
+      setAllIngredients(data || []);
+      setRecipeItems(product.recipe_items || []);
+    } catch (e) {
+      toast.error("Erro ao carregar ingredientes");
+    } finally {
+      setLoading(false);
+    }
+  }, [product.recipe_items]);
 
   useEffect(() => {
-    if (isOpen && product) {
-      setLoading(true);
-      getIngredients()
-        .then((data) => {
-          setIngredients(data);
-          // Se o produto já tiver receita (precisaria vir do backend, por enquanto simulamos vazio ou carregamos se tiver)
-          // O endpoint de produtos atual não retorna recipe_items por padrão para economizar banda.
-          // Idealmente, faríamos um fetch específico da receita aqui.
-          // Para simplificar, vamos assumir que recipe_items vem vazio e o usuário monta.
-          // Se quisermos persistência real na edição, precisamos que o getMenu ou getProduct traga isso.
-          // Vamos usar o estado local por enquanto.
-          setRecipeItems(product.recipe_items || []);
-        })
-        .catch(() => toast.error("Erro ao carregar ingredientes"))
-        .finally(() => setLoading(false));
+    if (isOpen) {
+      loadData();
     }
-  }, [isOpen, product]);
+  }, [isOpen, loadData]);
 
-  const handleAddIngredient = (ing: Ingredient) => {
-    if (recipeItems.some(item => item.ingredient_id === ing.id)) return;
-    
-    setRecipeItems([...recipeItems, {
-      ingredient_id: ing.id,
-      quantity_required: 0,
-      ingredient: ing
+  const handleAddIngredient = () => {
+    if (allIngredients.length === 0) {
+      toast.warning("Cadastre ingredientes primeiro.");
+      return;
+    }
+    setRecipeItems(prev => [...prev, { 
+      ingredient_id: allIngredients[0].id, 
+      quantity_required: 1 
     }]);
   };
 
-  const handleRemoveItem = (index: number) => {
+  const handleRemove = (index: number) => {
     setRecipeItems(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleUpdateQuantity = (index: number, qty: number) => {
-    setRecipeItems(prev => {
-      const newItems = [...prev];
-      newItems[index].quantity_required = qty;
-      return newItems;
-    });
-  };
-
   const handleSave = async () => {
-    if (!product) return;
+    if (recipeItems.length === 0) {
+      toast.error("Adicione ao menos um ingrediente.");
+      return;
+    }
+    setSaving(true);
     try {
-      await updateProductRecipe(product.id, recipeItems);
-      toast.success("Ficha técnica salva!");
+      await updateProductRecipe({
+        product_id: product.id,
+        ingredients: recipeItems.map(item => ({
+          ingredient_id: item.ingredient_id,
+          quantity_required: item.quantity_required
+        }))
+      });
+      toast.success("Ficha técnica atualizada!");
       onClose();
     } catch (e) {
-      toast.error("Erro ao salvar ficha técnica");
+      toast.error("Erro ao salvar receita");
+    } finally {
+      setSaving(false);
     }
   };
-
-  const filteredIngredients = ingredients.filter(i => 
-    i.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const totalCost = recipeItems.reduce((acc, item) => {
-    const cost = item.ingredient ? Number(item.ingredient.cost_per_unit) : 0;
-    return acc + (cost * item.quantity_required);
-  }, 0);
-
-  if (!isOpen || !product) return null;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Ficha Técnica: ${product.name}`}>
       <div className="space-y-6">
-        
-        {/* Lista de Ingredientes da Receita */}
-        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-          <h4 className="font-bold text-gray-700 mb-3 text-sm uppercase">Composição do Prato</h4>
-          
-          {recipeItems.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-4">Nenhum ingrediente adicionado.</p>
-          ) : (
-            <div className="space-y-2">
-              {recipeItems.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2 bg-white p-2 rounded border border-gray-200">
-                  <span className="flex-1 text-sm font-medium">{item.ingredient?.name}</span>
-                  <div className="flex items-center gap-1">
-                    <input 
-                      type="number" 
-                      className="w-20 p-1 border rounded text-sm text-right"
-                      value={item.quantity_required}
-                      onChange={e => handleUpdateQuantity(idx, parseFloat(e.target.value))}
-                      step="0.001"
-                    />
-                    <span className="text-xs text-gray-500 w-6">{item.ingredient?.unit}</span>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-10 gap-2">
+            <Loader2 className="animate-spin text-orange-500" />
+            <p className="text-xs text-gray-500 font-bold uppercase">Sincronizando Insumos</p>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+              {recipeItems.length === 0 && (
+                <p className="text-center text-gray-500 text-sm py-4 italic">Nenhum ingrediente vinculado.</p>
+              )}
+              {recipeItems.map((item, index) => (
+                <div key={index} className="flex gap-2 items-end bg-gray-900 p-3 rounded-xl border border-gray-700 animate-in fade-in slide-in-from-top-1">
+                  <div className="flex-1">
+                    <label className="block text-[10px] font-black text-gray-500 uppercase mb-1">Ingrediente</label>
+                    <select 
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-sm text-white outline-none focus:border-orange-500 transition-colors"
+                      value={item.ingredient_id}
+                      onChange={(e) => {
+                        const newItems = [...recipeItems];
+                        newItems[index].ingredient_id = parseInt(e.target.value);
+                        setRecipeItems(newItems);
+                      }}
+                    >
+                      {allIngredients.filter(Boolean).map(ing => (
+                        <option key={ing.id} value={ing.id}>
+                          {ing.name || "Sem nome"} ({ing.unit || "un"})
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <button onClick={() => handleRemoveItem(idx)} className="text-red-400 hover:text-red-600 p-1">
-                    <Trash2 size={16} />
+                  <div className="w-24">
+                    <label className="block text-[10px] font-black text-gray-500 uppercase mb-1">Qtd</label>
+                    <input 
+                      type="number"
+                      step="0.001"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-sm text-white outline-none focus:border-orange-500 transition-colors"
+                      value={item.quantity_required}
+                      onChange={(e) => {
+                        const newItems = [...recipeItems];
+                        newItems[index].quantity_required = parseFloat(e.target.value) || 0;
+                        setRecipeItems(newItems);
+                      }}
+                    />
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => handleRemove(index)} 
+                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                  >
+                    <Trash2 size={18} />
                   </button>
                 </div>
               ))}
             </div>
-          )}
-
-          <div className="mt-4 pt-3 border-t border-gray-200 flex justify-between items-center">
-            <span className="text-sm font-bold text-gray-600">Custo Estimado (CMV)</span>
-            <span className="text-lg font-black text-green-600">R$ {totalCost.toFixed(2)}</span>
-          </div>
-        </div>
-
-        {/* Seletor de Ingredientes */}
-        <div>
-          <div className="relative mb-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            <input 
-              type="text" 
-              placeholder="Buscar ingrediente para adicionar..." 
-              className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-orange-500"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg">
-            {filteredIngredients.map(ing => (
-              <button 
-                key={ing.id}
-                onClick={() => handleAddIngredient(ing)}
-                className="w-full text-left px-4 py-2 text-sm hover:bg-orange-50 flex justify-between items-center border-b last:border-0"
-              >
-                <span>{ing.name}</span>
-                <span className="text-xs text-gray-400">{ing.unit}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <button onClick={handleSave} className="w-full bg-orange-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-700 transition-colors">
-          <Save size={18} /> Salvar Ficha Técnica
-        </button>
+            <button 
+              type="button"
+              onClick={handleAddIngredient}
+              className="w-full border-2 border-dashed border-gray-700 hover:border-orange-500 text-gray-500 hover:text-orange-500 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+            >
+              <Plus size={18} /> Adicionar Ingrediente
+            </button>
+            <div className="flex gap-3 pt-4">
+                <button 
+                  type="button"
+                  onClick={onClose} 
+                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-xl font-bold transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="button"
+                  onClick={handleSave} 
+                  disabled={saving}
+                  className="flex-1 bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-orange-900/20 disabled:opacity-50 active:scale-[0.98] transition-all"
+                >
+                  {saving ? <Loader2 className="animate-spin" /> : <Save size={18} />}
+                  Salvar Ficha
+                </button>
+            </div>
+          </>
+        )}
       </div>
     </Modal>
   );

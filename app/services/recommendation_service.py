@@ -1,3 +1,5 @@
+# DOMAIN: BACKEND
+# LAST_MODIFIED: 2026-01-27 18:21:54
 
 from sqlalchemy.orm import Session
 from sqlalchemy import text

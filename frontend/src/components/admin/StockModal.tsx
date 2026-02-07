@@ -1,92 +1,111 @@
 "use client";
-
 import { useState, useEffect } from "react";
-import { X, Search, Box, AlertCircle } from "lucide-react";
-import { Product } from "@/types";
 import { getQuickProducts, updateProduct } from "@/lib/api";
+import { Product } from "@/types";
 import Modal from "@/components/ui/Modal";
+import { toast } from "sonner";
+import { Loader2, Package, AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils"; // FIX: Import adicionado
 
 interface StockModalProps {
   isOpen: boolean;
   onClose: () => void;
-  slug: string;
 }
 
-export default function StockModal({ isOpen, onClose, slug }: StockModalProps) {
+export default function StockModal({ isOpen, onClose }: StockModalProps) {
   const [products, setProducts] = useState<Product[]>([]);
-  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setLoading(true);
-      getQuickProducts(slug)
+      getQuickProducts()
         .then(setProducts)
-        .catch(console.error)
+        .catch((e: Error) => {
+          console.error("Erro ao buscar produtos:", e);
+          toast.error("Falha ao carregar lista de produtos.");
+        })
         .finally(() => setLoading(false));
     }
-  }, [isOpen, slug]);
+  }, [isOpen]);
 
   const toggleAvailability = async (product: Product) => {
-    // Optimistic Update
+    setUpdatingId(product.id);
     const newStatus = !product.is_available;
-    setProducts(prev => prev.map(p => p.id === product.id ? { ...p, is_available: newStatus } : p));
-
     try {
       await updateProduct(product.id, { is_available: newStatus });
+      setProducts(prev => prev.map(p => 
+        p.id === product.id ? { ...p, is_available: newStatus } : p
+      ));
+      toast.success(`${product.name} ${newStatus ? 'ativado' : 'pausado'}`);
     } catch (e) {
-      // Revert on error
-      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, is_available: !newStatus } : p));
-      alert("Erro ao atualizar estoque");
+      toast.error("Erro ao atualizar disponibilidade.");
+    } finally {
+      setUpdatingId(null);
     }
   };
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
-
-  if (!isOpen) return null;
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Gestão Rápida de Estoque (86)">
-      <div className="space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input 
-            type="text" 
-            placeholder="Buscar produto..." 
-            className="w-full bg-gray-900 border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white focus:ring-2 focus:ring-orange-500 outline-none"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            autoFocus
-          />
+    <Modal isOpen={isOpen} onClose={onClose} title="Gestão Rápida de Estoque">
+      <div className="space-y-6">
+        <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl flex gap-3">
+          <AlertCircle className="text-orange-600 shrink-0" size={20} />
+          <p className="text-xs text-orange-800 leading-relaxed font-medium">
+            Pause produtos que acabaram para removê-los instantaneamente do cardápio digital dos clientes.
+          </p>
         </div>
 
-        <div className="max-h-[60vh] overflow-y-auto space-y-2 pr-1">
-          {loading ? (
-            <p className="text-center text-gray-500 py-4">Carregando produtos...</p>
-          ) : filteredProducts.length === 0 ? (
-            <p className="text-center text-gray-500 py-4">Nenhum produto encontrado.</p>
-          ) : (
-            filteredProducts.map(product => (
-              <div key={product.id} className={`flex items-center justify-between p-3 rounded-lg border transition-all ${product.is_available ? 'bg-gray-800 border-gray-700' : 'bg-red-900/20 border-red-800'}`}>
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${product.is_available ? 'bg-gray-700 text-gray-400' : 'bg-red-800 text-red-200'}`}>
-                    {product.is_available ? <Box size={20} /> : <AlertCircle size={20} />}
-                  </div>
-                  <div>
-                    <p className={`font-bold ${product.is_available ? 'text-white' : 'text-red-400 line-through'}`}>{product.name}</p>
-                    <p className="text-xs text-gray-500">R$ {Number(product.price).toFixed(2)}</p>
-                  </div>
-                </div>
-                
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" checked={product.is_available} onChange={() => toggleAvailability(product)} />
-                  <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                </label>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <Loader2 className="animate-spin text-orange-600" size={32} />
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Sincronizando Inventário</p>
+          </div>
+        ) : (
+          <div className="max-h-[50vh] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+            {products.length === 0 ? (
+              <div className="text-center py-10 text-slate-400">
+                <Package size={40} className="mx-auto mb-2 opacity-20" />
+                <p className="text-sm">Nenhum produto cadastrado.</p>
               </div>
-            ))
-          )}
+            ) : (
+              products.map(product => (
+                <div key={product.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl transition-all hover:bg-white hover:shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${product.is_available ? 'bg-green-500' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'}`} />
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">{product.name}</p>
+                      <p className="text-[10px] text-slate-500 font-mono">ID: {product.id}</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => toggleAvailability(product)}
+                    disabled={updatingId === product.id}
+                    className={cn(
+                      "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50",
+                      product.is_available 
+                        ? 'bg-red-100 text-red-700 hover:bg-red-200' 
+                        : 'bg-green-100 text-green-700 hover:bg-green-200'
+                    )}
+                  >
+                    {updatingId === product.id ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      product.is_available ? "Pausar" : "Ativar"
+                    )}
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+        <div className="pt-4 border-t border-slate-100">
+          <button 
+            onClick={onClose} 
+            className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-all shadow-lg active:scale-[0.98]"
+          >
+            Concluir Ajustes
+          </button>
         </div>
       </div>
     </Modal>

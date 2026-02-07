@@ -1,3 +1,8 @@
+/**
+ * DOMAIN: FRONTEND
+ * OBJECTIVE: Gerador de comandos ESC/POS e ZPL para impressão térmica.
+ * FIX: Tipagem explícita no loop de opções para resolver TS7006.
+ */
 import { Order } from "@/types";
 
 const ESC = "\x1B";
@@ -127,7 +132,8 @@ export function generateReceipt(order: Order, companyName: string): string {
     p.line(`${qty}${name}${price}`);
 
     if (item.selected_options?.length) {
-      item.selected_options.forEach(opt => {
+      // FIX: Tipagem explícita para resolver erro TS7006
+      item.selected_options.forEach((opt: { name: string }) => {
         p.line(`   + ${opt.name.substring(0, 25)}`);
       });
     }

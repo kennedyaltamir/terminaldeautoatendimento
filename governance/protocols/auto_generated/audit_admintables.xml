@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ForensicScriptProtocol 
+    xmlns="http://mesaflow.com/schemas/forensic/v4"
+    version="4.4" 
+    classification="INTERNAL">
+
+    <Configuration>
+        <Meta name="TargetUrl" value="http://localhost:3000/admin/hamburgueria-ze/tables" />
+        <Meta name="ResultsFolder" value="resultados/batch_audit" />
+        <Meta name="StopOnFailure" value="false" />
+    </Configuration>
+
+    <Secrets provider="EnvironmentVariables">
+        <Secret key="DB_URL" ref="DATABASE_URL" />
+    </Secrets>
+
+    <ExecutionFlow>
+        <Step id="INIT" name="Setup">
+            <Action command="EnsureFolder" path="${Meta:ResultsFolder}" />
+        </Step>
+
+        <Step id="AUDIT" name="PageAudit">
+            <Action command="Screenshot" path="${Meta:ResultsFolder}/AdminTables_screenshot.png" />
+            <Action command="CaptureElements" output="${Meta:ResultsFolder}/AdminTables_elements.json" />
+            <Action command="ValidateRoutes" output="${Meta:ResultsFolder}/AdminTables_links.json" />
+        </Step>
+    </ExecutionFlow>
+</ForensicScriptProtocol>

@@ -2,27 +2,19 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "MesaFlow - Sistema Operacional",
+    name: "MesaFlow OS",
     short_name: "MesaFlow",
-    description: "Gestão de pedidos e KDS para restaurantes.",
+    description: "Sistema Operacional para Food Service",
     start_url: "/",
     display: "standalone",
-    background_color: "#0f172a", // Dark mode bg
-    theme_color: "#ea580c", // Primary Orange
-    orientation: "portrait",
+    background_color: "#000000",
+    theme_color: "#ea580c",
     icons: [
       {
-        src: "/icon",
-        sizes: "192x192",
-        type: "image/png",
-        purpose: "maskable"
-      },
-      {
-        src: "/icon",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "maskable"
-      }
+        src: "/favicon.ico",
+        sizes: "any",
+        type: "image/x-icon",
+      }, 
     ],
     shortcuts: [
       {

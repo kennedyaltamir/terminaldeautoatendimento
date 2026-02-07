@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SovereignInvariants domain="LOGISTICS">
+    <Invariant id="INV-LOG-01" severity="CRITICAL">
+        <Description>Um pedido não pode transitar para 'delivered' sem ter passado pelo estado 'delivering'.</Description>
+    </Invariant>
+    <Invariant id="INV-LOG-02" severity="HIGH">
+        <Description>A telemetria GPS é obrigatória para pedidos em rota de entrega externa.</Description>
+    </Invariant>
+    <Invariant id="INV-LOG-03" severity="CRITICAL">
+        <Description>O ID do motorista deve estar vinculado à transação de 'dispatch' para fins de Ledger Financeiro.</Description>
+    </Invariant>
+</SovereignInvariants>
+
+    <Invariant id="INV-LOG-04" severity="MEDIUM">
+        <Description>Interações de UI complexas devem ser bloqueadas se Speed > 15km/h.</Description>
+    </Invariant>
+
+<DRIVER_INVARIANTS version="1.0" enforcement="STRICT">
+    <Invariant id="INV_01">
+        <Description>Linearidade de Estados</Description>
+        <Rule>O fluxo obrigatório é: IDLE -> ASSIGNED -> EN_ROUTE -> AT_DESTINATION -> COMPLETED.</Rule>
+    </Invariant>
+    

@@ -1,0 +1,181 @@
+Arquivo para pedir os scripts forenses melhorados:
+<?xml version="1.0" encoding="UTF-8"?>
+<ForensicScriptProtocol 
+    xmlns="http://mesaflow.com/schemas/forensic/v4"
+    version="4.1" 
+    classification="RESTRICTED" 
+    hashAlgorithm="SHA-256">
+
+    <Configuration>
+        <Meta name="MaxRecursionDepth" value="5" />
+        <Meta name="DefaultTimeout" value="30000" unit="ms" />
+        <Meta name="StopOnFailure" value="true" />
+        <Meta name="ResultsFolder" value="resultados" />
+        <Enums>
+            <Enum name="LogLevel">CRITICAL, ERROR, WARN, INFO, DEBUG, TRACE</Enum>
+            <Enum name="ExecutionStatus">PENDING, RUNNING, PASSED, FAILED, FLAKY, BLOCKED, SKIPPED</Enum>
+        </Enums>
+    </Configuration>
+
+    <Secrets provider="EnvironmentVariables">
+        <Secret key="ADMIN_EMAIL" ref="MESAFLOW_ADMIN_EMAIL" />
+        <Secret key="ADMIN_PASS" ref="MESAFLOW_ADMIN_PASS" />
+        <Secret key="DB_URL" ref="DATABASE_URL" />
+    </Secrets>
+
+    <Architecture>
+        <Layer type="INTERCEPTION" name="NetworkMonitor" active="true" priority="0">
+            <Capture target="Headers" filter="Auth, User-Agent" />
+        </Layer>
+        <Layer type="SIMULATION" name="UserActor" active="true" priority="50">
+            <Behavior profile="HumanLike" jitter="true" />
+        </Layer>
+        <Layer type="EXTRACTION" name="EvidenceCollector" active="true" priority="100">
+            <Trigger on="STEP_COMPLETE" action="ElementDumpJson" />
+        </Layer>
+    </Architecture>
+
+    <ExecutionFlow>
+        <Step id="INIT" name="Setup" actor="SYSTEM">
+            <Action command="EnsureFolder" path="${Meta:ResultsFolder}" />
+        </Step>
+
+        <Step id="AUDIT_CYCLE" name="FullPageAudit" actor="HUMAN_SIMULATOR" timeout="60000">
+            
+            <Step id="CAPTURE" name="DOM_Extraction">
+                <Action command="CaptureElements" output="${Meta:ResultsFolder}/elements_dump.json" />
+            </Step>
+            
+            <Step id="INTERACT" name="UI_Stress">
+                <Action command="InteractAll" mode="CLICK_AND_FILL" />
+            </Step>
+            
+            <Step id="VALIDATE_DB" name="Data_Integrity">
+                <Action command="CompareDB" connection="${SECRET:DB_URL}" output="${Meta:ResultsFolder}/db_diff.json" />
+            </Step>
+
+            <Step id="CHECK_ROUTES" name="Route_Verification">
+                <Action command="ValidateRoutes" output="${Meta:ResultsFolder}/route_audit.json" />
+            </Step>
+
+            <Step id="DOC_UPDATE" name="Documentation">
+                <Action command="UpdateDoc" path="${Meta:ResultsFolder}/AUDIT_SUMMARY.md" />
+            </Step>
+
+            <Step id="EVIDENCE" name="Artifacts">
+                <Action command="Screenshot" path="${Meta:ResultsFolder}/evidence.png" />
+                <Action command="GenerateReport" path="${Meta:ResultsFolder}/final_report.json" />
+            </Step>
+
+        </Step>
+    </ExecutionFlow>
+
+    <OutputSchema>
+        <Report format="JSON">
+            <Field key="execution_id" type="UUID" required="true" />
+            <Field key="verdict" type="Enum" ref="ExecutionStatus" required="true" />
+            <Artifacts required="true">
+                <Artifact type="JSON" path="${Meta:ResultsFolder}/elements_dump.json" />
+                <Artifact type="JSON" path="${Meta:ResultsFolder}/db_diff.json" />
+                <Artifact type="MD" path="${Meta:ResultsFolder}/AUDIT_SUMMARY.md" />
+                <Artifact type="PNG" path="${Meta:ResultsFolder}/evidence.png" />
+            </Artifacts>
+        </Report>
+    </OutputSchema>
+
+    <Security>
+        <DigitalSignature algorithm="RSA-SHA256">
+            <SignatureValue>[PENDING_SIGNATURE]</SignatureValue>
+        </DigitalSignature>
+    </Security>
+
+</ForensicScriptProtocol>
+
+
+#### 1. No Terminal (Logs em Tempo Real)
+Você verá o progresso detalhado. O script informará cada etapa que está processando:
+*   `INFO | STEP: INIT` -> Criando a pasta de resultados.
+*   `INFO | STEP: CAPTURE` -> Varrendo o HTML e extraindo IDs e Classes.
+*   `INFO | STEP: INTERACT` -> Simulando cliques e preenchimentos.
+*   `INFO | STEP: VALIDATE_DB` -> Conectando ao banco e contando registros.
+*   `INFO | Screenshot saved: resultados/evidence.png`.
+
+#### 2. No Navegador (Invisível)
+O script abrirá um navegador Chromium em segundo plano:
+1.  Acessará `http://localhost:3000/admin/login`.
+2.  Extrairá todos os elementos do DOM (tags, textos, botões).
+3.  Tentará interagir com os primeiros 5 elementos detectados (fazer *hover* em botões ou preencher inputs com "ForensicTest").
+4.  Validará se os links presentes na página apontam para o domínio correto.
+
+#### 3. Na Pasta `resultados/` (Arquivos Gerados)
+Após o término, a pasta na raiz do projeto conterá:
+*   **`elements_dump.json`**: Um mapa completo da interface (útil para auditoria de UI).
+*   **`db_diff.json`**: Resultado da query ao banco (ex: confirmando se o número de empresas cadastradas bate com o esperado).
+*   **`route_audit.json`**: Lista de todas as URLs encontradas na página e se são links internos válidos.
+*   **`AUDIT_SUMMARY.md`**: Um relatório em Markdown com a data e o status da execução.
+*   **`evidence.png`**: Uma foto em alta resolução da página inteira no momento da auditoria.
+*   **`final_report.json`**: Metadados da execução para integração com outros sistemas.
+
+---
+
+### 🛡 Segurança e Erros
+*   **Falha no Banco:** Se a `DATABASE_URL` estiver errada, o script logará o erro no terminal, mas **não interromperá** a captura da interface.
+*   **Elemento Invisível:** Se o script tentar clicar em algo que não está na tela, ele ignorará silenciosamente (através do bloco `try/except`) para garantir que o relatório final seja gerado.
+*   **Stop on Failure:** Se a configuração `StopOnFailure` for `true` e a página não carregar, o script encerra imediatamente para não gerar evidências falsas.
+Com base na estrutura do seu protocolo **MesaFlow Forensic v4.1**, aqui estão todas as "alavancas" e regras que você pode modificar para alterar o comportamento da auditoria sem precisar mexer no código Python:
+
+### 1. Configurações de Runtime (`<Configuration>`)
+*   **`MaxRecursionDepth`**: Define quão profundo o motor pode ir em sub-passos (útil para evitar loops infinitos em fluxos complexos).
+*   **`DefaultTimeout`**: O tempo limite global (em milissegundos) para qualquer ação. Se o site demorar mais que isso para responder, o script falha.
+*   **`StopOnFailure`**: Se definido como `true`, o script para no primeiro erro. Se `false`, ele tenta ignorar o erro e continuar a coleta de evidências.
+*   **`ResultsFolder`**: O nome da pasta onde todos os arquivos (PNG, JSON, MD) serão salvos. Você pode mudar de "resultados" para "auditoria_v1", por exemplo.
+*   **`Enums`**: Você pode adicionar novos estados de execução (ex: `CRASHED`, `MANUAL_REVIEW`) para que o relatório final seja mais específico.
+
+### 2. Gestão de Identidade e Segredos (`<Secrets>`)
+*   **`key`**: O nome interno que o script usa para se referir ao dado.
+*   **`ref`**: O nome da **Variável de Ambiente** no seu Windows/Linux. Se você mudar o nome da variável no sistema, deve mudar aqui (ex: de `DATABASE_URL` para `PROD_DB_URL`).
+
+### 3. Arquitetura de Camadas (`<Architecture>`)
+*   **`active`**: Você pode desativar uma camada inteira (ex: definir o `NetworkMonitor` como `false` para ignorar o tráfego de rede e focar apenas na interface).
+*   **`priority`**: Altera a ordem de execução. Camadas com prioridade menor (0) rodam antes das de prioridade maior (100).
+*   **`Capture target`**: Você pode mudar o que a rede intercepta (ex: mudar de `Headers` para `Cookies` ou `Payload`).
+*   **`Behavior profile`**: Mudar de `HumanLike` (com delays aleatórios) para um perfil mais rápido ou agressivo.
+
+### 4. Fluxo de Execução (`<ExecutionFlow>`)
+*   **`actor`**: Você pode mudar quem executa o passo. `SYSTEM` para tarefas de infraestrutura e `HUMAN_SIMULATOR` para interações que simulam cliques e digitação.
+*   **`timeout` (no Step)**: Você pode definir um tempo específico para um passo que você sabe que é demorado, sobrescrevendo o global.
+*   **`Action command`**: Você pode trocar as ordens:
+    *   Mudar `CLICK_AND_FILL` para apenas `CLICK`.
+    *   Mudar o `path` de um documento específico.
+    *   Alterar a query ou o alvo da verificação no comando `CompareDB`.
+
+### 5. Regras de Saída e Relatórios (`<OutputSchema>`)
+*   **`Report format`**: Mudar o formato do arquivo final (embora o motor precise suportar a tradução).
+*   **`Field required`**: Definir se um campo (como `verdict`) é obrigatório para que o relatório seja considerado válido.
+*   **`Artifact path`**: Você pode mudar o nome dos arquivos gerados. Exemplo: mudar `evidence.png` para `print_da_tela_de_erro.png`.
+
+### 6. Segurança e Classificação (`<Security>` e Raiz)
+*   **`classification`**: Mudar de `RESTRICTED` para `PUBLIC` ou `INTERNAL`, o que altera o cabeçalho dos relatórios gerados.
+*   **`hashAlgorithm`**: Se desejar um nível maior de integridade, pode mudar de `SHA-256` para `SHA-512`.
+*   **`DigitalSignature`**: Após finalizar suas mudanças no XML, você deve gerar um novo hash e atualizar o valor aqui para que o motor aceite o arquivo como "não adulterado".
+
+---
+
+### Exemplo de uma mudança estratégica:
+Se você quiser rodar um teste rápido que **não pare em erros** e salve tudo em uma pasta chamada **"debug"**, você alteraria estas linhas:
+
+```xml
+<Meta name="StopOnFailure" value="false" />
+<Meta name="ResultsFolder" value="debug" />
+```
+
+Se quiser que o simulador de humano seja **desativado** para uma inspeção puramente técnica:
+```xml
+<Layer type="SIMULATION" name="UserActor" active="false" priority="50">
+```
+
+<Knowledge_Accumulation>
+    <Insight>
+        A flexibilidade do XML permite que o mesmo "Motor Forense" (Python) seja usado para Auditoria de Segurança, Teste de Carga ou Homologação de UI, apenas alternando as regras de prioridade e comandos de fluxo.
+    </Insight>
+</Knowledge_Accumulation>

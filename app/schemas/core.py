@@ -1,5 +1,6 @@
 # DOMAIN: BACKEND
-# LAST_MODIFIED: 2026-01-15 03:50:00
+# LAST_MODIFIED: 2026-02-06 13:55:00
+# DESCRIPTION: Tipos monetários e sanitização com correções de estilo E701 e E722.
 import re
 from decimal import Decimal
 from typing import Optional, Annotated, Union
@@ -29,7 +30,7 @@ def cents_to_decimal(v: Union[int, float, str, Decimal, None]) -> Decimal | None
     # Converte para Decimal e divide por 100
     try:
         return Decimal(str(v)) / 100
-    except:
+    except Exception: # 🛡️ FIX: E722 - Exceção tipada
         return Decimal(0)
 
 # Tipo Customizado para Pydantic
@@ -46,7 +47,7 @@ OptionalMonetary = Annotated[
 ]
 
 def sanitize_html(v: str | None) -> str | None:
-    if v is None: return None
+    if v is None:
+        return None
     clean = re.sub(r'<[^>]*>', '', v)
     return clean.strip()
-

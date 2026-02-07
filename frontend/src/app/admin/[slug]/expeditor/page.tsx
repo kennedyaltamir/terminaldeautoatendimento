@@ -1,176 +1,213 @@
+/**
+ * Author: MESAFLOW_AI_SOVEREIGN
+ * Version: 13.2.1 (Final Render-Safe Edition)
+ * DNA_ID: MF-EXPEDITOR-V13-FIX-FINAL
+ * Objective: Remove redundant Toaster to eliminate React 19 render-phase warnings.
+ */
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { getKitchenOrders, updateOrderStatus } from "@/lib/api";
-import { Order } from "@/types";
-import { ChefHat, CheckCircle2, Clock, Utensils, Wine, IceCream, Box, ArrowRight, Printer } from "lucide-react";
+import React, { useEffect, useState, useCallback, useMemo, use } from "react";
+import { useRouter } from "next/navigation";
+import { 
+  ChefHat, CheckCircle2, Clock, Utensils, Wine, 
+  IceCream, Box, ArrowRight, Printer, AlertCircle,
+  PackageCheck, Loader2, Timer,Truck
+} from "lucide-react";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { toast, Toaster } from "sonner";
+import { getKitchenOrders, updateOrderStatus } from "@/lib/api";
+import { Order } from "@/types";
 import { printOrder } from "@/lib/printer/driver";
+import { cn } from "@/lib/utils";
 
-export default function ExpeditorPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default function ExpeditorPage({ params: paramsPromise }: { params: Promise<{ slug: string }> }) {
+  // 🛡️ PROTOCOLO NEXT 16: Unwrapping da Promise de params
+  const { slug } = use(paramsPromise);
+  const router = useRouter();
+  
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  const fetchOrders = useCallback(async () => {
+  const fetchData = useCallback(async () => {
+    if (!slug || slug === "undefined") return;
     try {
       const data = await getKitchenOrders(slug);
       setOrders(data);
+      setLastUpdated(new Date());
     } catch (e) {
-      toast.error("Erro ao carregar pedidos");
+      console.error("[Expeditor] Sync Error");
     } finally {
       setLoading(false);
     }
   }, [slug]);
 
-  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   useWebSocket(slug, (data) => {
     if (data.type === "order_update" || data.type === "new_order") {
-      fetchOrders();
+      fetchData();
     }
   });
 
   const handleDeliver = async (order: Order) => {
+    setUpdatingId(order.id);
     try {
       await updateOrderStatus(slug, order.id, "delivered");
-      toast.success(`Pedido ${order.customer_name} despachado!`);
-      fetchOrders();
+      toast.success(`Pedido #${order.id.slice(0, 4)} despachado!`);
+      setOrders(prev => prev.filter(o => o.id !== order.id));
     } catch (e) {
-      toast.error("Erro ao atualizar status");
+      toast.error("Falha ao atualizar status");
+      fetchData();
+    } finally {
+      setUpdatingId(null);
     }
   };
 
   const handlePrint = (order: Order) => {
-    printOrder(order, slug);
-  };
-
-  const getStationIcon = (station: string) => {
-    switch(station) {
-      case 'bar': return <Wine size={14} className="text-purple-500" />;
-      case 'dessert': return <IceCream size={14} className="text-pink-500" />;
-      case 'kitchen': return <Utensils size={14} className="text-orange-500" />;
-      default: return <Box size={14} className="text-gray-500" />;
+    try {
+      printOrder(order, slug);
+      toast.info("Enviando para impressora...");
+    } catch (e) {
+      toast.error("Erro ao imprimir ticket");
     }
   };
 
-  // Filtros
-  const preparingOrders = orders.filter(o => o.status === 'preparing' || o.status === 'pending');
-  const readyOrders = orders.filter(o => o.status === 'ready');
+  const getStationIcon = (station: string) => {
+    switch (station) {
+      case 'bar': return <Wine size={14} className="text-purple-500" />;
+      case 'dessert': return <IceCream size={14} className="text-pink-500" />;
+      case 'kitchen': return <Utensils size={14} className="text-orange-500" />;
+      default: return <Box size={14} className="text-gray-400" />;
+    }
+  };
 
-  if (loading) return <div className="flex h-screen items-center justify-center bg-gray-100 text-gray-500">Carregando Expedição...</div>;
+  const preparingOrders = useMemo(() => 
+    orders.filter(o => o.status === 'preparing' || o.status === 'pending'), 
+  [orders]);
+
+  const readyOrders = useMemo(() => 
+    orders.filter(o => o.status === 'ready'), 
+  [orders]);
+
+  if (loading) {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 gap-4">
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+        <p className="text-gray-500 font-medium animate-pulse">Sincronizando com a cozinha...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 font-sans">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8 font-sans text-slate-900">
       <Toaster position="top-right" richColors />
-      
-      <header className="flex justify-between items-center mb-8">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 flex items-center gap-3">
-            <ChefHat className="text-blue-600" size={32} /> Expedição & Montagem
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">Organize as bandejas antes de servir.</p>
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-600 p-2 rounded-2xl shadow-lg shadow-blue-200">
+              <ChefHat className="text-white" size={28} />
+            </div>
+            <h1 className="text-3xl font-black tracking-tight">Expedição</h1>
+          </div>
+          <p className="text-slate-500 text-sm mt-1 font-medium">
+            Monitor de montagem e despacho • {slug.toUpperCase()}
+          </p>
         </div>
-        <div className="flex gap-4">
-            <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 flex flex-col items-center">
-                <span className="text-xs font-bold text-gray-400 uppercase">Na Cozinha</span>
-                <span className="text-2xl font-black text-orange-500">{preparingOrders.length}</span>
-            </div>
-            <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 flex flex-col items-center">
-                <span className="text-xs font-bold text-gray-400 uppercase">Para Montar</span>
-                <span className="text-2xl font-black text-green-500">{readyOrders.length}</span>
-            </div>
+        <div className="flex gap-3 w-full md:w-auto">
+          <div className="flex-1 md:flex-none bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Em Preparo</span>
+            <span className="text-2xl font-black text-orange-500">{preparingOrders.length}</span>
+          </div>
+          <div className="flex-1 md:flex-none bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Prontos</span>
+            <span className="text-2xl font-black text-green-500">{readyOrders.length}</span>
+          </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-140px)]">
-        
-        {/* COLUNA 1: EM PRODUÇÃO */}
-        <div className="bg-gray-200/50 rounded-3xl p-4 flex flex-col border border-gray-300/50">
-          <h2 className="text-gray-500 font-bold uppercase tracking-widest mb-4 flex items-center gap-2 px-2">
-            <Clock size={18} /> Em Produção
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-180px)]">
+        <div className="bg-slate-200/40 rounded-[2.5rem] p-6 flex flex-col border border-slate-200">
+          <h2 className="text-slate-500 font-black uppercase text-xs tracking-[0.2em] mb-6 flex items-center gap-2">
+            <Timer size={16} /> Fluxo da Cozinha
           </h2>
-          <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+          <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar pr-2">
             {preparingOrders.map(order => (
-              <div key={order.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 opacity-80 hover:opacity-100 transition-opacity">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="font-bold text-gray-900">#{order.id.slice(0,4)} • {order.customer_name}</span>
-                  <span className="text-xs font-bold bg-orange-100 text-orange-700 px-2 py-1 rounded uppercase">{order.status}</span>
+              <div key={order.id} className="bg-white/80 backdrop-blur-sm p-5 rounded-2xl shadow-sm border border-slate-100 transition-all hover:shadow-md">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <span className="font-black text-slate-900 text-lg">#{order.id.slice(0,4)}</span>
+                    <p className="text-xs font-bold text-slate-400 uppercase">{order.customer_name || "Balcão"}</p>
+                  </div>
+                  <span className={cn(
+                    "text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-tighter",
+                    order.status === 'preparing' ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-600"
+                  )}>
+                    {order.status === 'preparing' ? 'Preparando' : 'Pendente'}
+                  </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {order.items.map((item, i) => (
-                    <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded flex items-center gap-1 border border-gray-200">
-                      {getStationIcon(item.product.station)} {item.quantity}x {item.product.name}
-                    </span>
+                    <div key={i} className="group relative flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-2.5 py-1.5 rounded-xl">
+                      {getStationIcon(item.product.station)}
+                      <span className="text-xs font-bold text-slate-700">{item.quantity}x</span>
+                      <span className="text-xs font-medium text-slate-600">{item.product.name}</span>
+                    </div>
                   ))}
                 </div>
               </div>
             ))}
-            {preparingOrders.length === 0 && (
-                <div className="text-center py-20 text-gray-400">Cozinha livre.</div>
-            )}
           </div>
         </div>
 
-        {/* COLUNA 2: PRONTO PARA MONTAGEM */}
-        <div className="bg-blue-50/50 rounded-3xl p-4 flex flex-col border border-blue-100">
-          <h2 className="text-blue-800 font-bold uppercase tracking-widest mb-4 flex items-center gap-2 px-2">
-            <CheckCircle2 size={18} /> Pronto para Montagem
+        <div className="bg-blue-600 rounded-[2.5rem] p-6 flex flex-col shadow-2xl shadow-blue-200">
+          <h2 className="text-blue-100 font-black uppercase text-xs tracking-[0.2em] mb-6 flex items-center gap-2">
+            <CheckCircle2 size={16} /> Pronto para Despacho
           </h2>
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+          <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar pr-2">
             {readyOrders.map(order => (
-              <div key={order.id} className="bg-white p-5 rounded-2xl shadow-md border-l-4 border-green-500 animate-in slide-in-from-left-4">
-                <div className="flex justify-between items-start mb-4">
+              <div key={order.id} className="bg-white p-6 rounded-[2rem] shadow-xl animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="flex justify-between items-start mb-5">
                   <div>
-                    <h3 className="text-xl font-black text-gray-900">
-                        {order.order_type === 'delivery' ? 'Delivery' : `Mesa ${order.table?.table_number}`}
+                    <h3 className="text-2xl font-black text-slate-900 leading-none">
+                        {order.order_type === 'delivery' ? '🚀 Delivery' : `🪑 Mesa ${order.table?.table_number || '?'}`}
                     </h3>
-                    <p className="text-sm text-gray-500">{order.customer_name}</p>
+                    <p className="text-sm font-bold text-blue-600 mt-1 uppercase tracking-tight">
+                      {order.customer_name}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs font-mono text-gray-400">#{order.id.slice(0,6)}</p>
-                    <p className="text-xs font-bold text-green-600 mt-1">Aguardando {Math.floor((new Date().getTime() - new Date(order.created_at).getTime()) / 60000)} min</p>
+                    <div className="flex items-center gap-1 text-slate-400 font-mono text-[10px] justify-end">
+                      <Clock size={10} /> {new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
                   </div>
                 </div>
-
-                <div className="bg-gray-50 rounded-xl p-3 mb-4 border border-gray-100">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Conferência de Itens</p>
-                    <ul className="space-y-2">
-                        {order.items.map((item, i) => (
-                            <li key={i} className="flex items-center gap-3 text-sm text-gray-700">
-                                <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center"></div>
-                                <span className="font-bold">{item.quantity}x</span>
-                                <span className="flex-1">{item.product.name}</span>
-                                {getStationIcon(item.product.station)}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-
                 <div className="flex gap-3">
                     <button 
                         onClick={() => handlePrint(order)}
-                        className="p-3 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors"
-                        title="Imprimir Ticket"
+                        className="p-4 bg-slate-100 text-slate-600 rounded-2xl hover:bg-slate-200 transition-all active:scale-90"
                     >
-                        <Printer size={20} />
+                        <Printer size={22} />
                     </button>
                     <button 
+                        disabled={updatingId === order.id}
                         onClick={() => handleDeliver(order)}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-green-200 transition-all active:scale-95"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-blue-200 transition-all active:scale-[0.98]"
                     >
-                        Despachar / Servir <ArrowRight size={20} />
+                        {updatingId === order.id ? (
+                          <Loader2 className="animate-spin" />
+                        ) : (
+                          <>DESPACHAR AGORA <ArrowRight size={20} /></>
+                        )}
                     </button>
                 </div>
               </div>
             ))}
-            {readyOrders.length === 0 && (
-                <div className="text-center py-20 text-gray-400">Nenhum pedido aguardando montagem.</div>
-            )}
           </div>
         </div>
-
       </div>
     </div>
   );

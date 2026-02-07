@@ -13,7 +13,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     getCompanySettings()
-      .then((data) => setProfile({ name: data.name, owner_email: data.owner_email }))
+      .then((data) => setProfile({ name: data.name, owner_email: data.owner_email || "" }))
       .catch(() => toast.error("Erro ao carregar perfil"))
       .finally(() => setLoading(false));
   }, []);
@@ -43,7 +43,6 @@ export default function ProfilePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20">
       <Toaster position="top-right" richColors />
-      
       <div>
         <h1 className="text-3xl font-bold text-white">Meu Perfil</h1>
         <p className="text-gray-400 text-sm mt-1">Gerencie suas credenciais de acesso.</p>
@@ -75,7 +74,6 @@ export default function ProfilePage() {
             <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-6">
               <Lock size={20} className="text-orange-500" /> Alterar Senha
             </h3>
-            
             <form onSubmit={handlePasswordChange} className="space-y-5">
               <div>
                 <label className="block text-sm font-bold text-gray-400 mb-1.5">Senha Atual</label>
@@ -84,10 +82,10 @@ export default function ProfilePage() {
                   required 
                   className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-orange-500 outline-none transition-all" 
                   value={passForm.current_password} 
-                  onChange={e => setPassForm({...passForm, current_password: e.target.value})} 
+                  onChange={e => setPassForm({...passForm, current_password: e.target.value})}
+                  autoComplete="current-password" // 🛡️ FIX: Acessibilidade e Padrão Web
                 />
               </div>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-bold text-gray-400 mb-1.5">Nova Senha</label>
@@ -96,7 +94,8 @@ export default function ProfilePage() {
                     required 
                     className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-orange-500 outline-none transition-all" 
                     value={passForm.new_password} 
-                    onChange={e => setPassForm({...passForm, new_password: e.target.value})} 
+                    onChange={e => setPassForm({...passForm, new_password: e.target.value})}
+                    autoComplete="new-password" // 🛡️ FIX: Acessibilidade e Padrão Web
                   />
                 </div>
                 <div>
@@ -106,11 +105,11 @@ export default function ProfilePage() {
                     required 
                     className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-orange-500 outline-none transition-all" 
                     value={passForm.confirm_password} 
-                    onChange={e => setPassForm({...passForm, confirm_password: e.target.value})} 
+                    onChange={e => setPassForm({...passForm, confirm_password: e.target.value})}
+                    autoComplete="new-password" // 🛡️ FIX: Acessibilidade e Padrão Web
                   />
                 </div>
               </div>
-
               <div className="pt-4">
                 <button 
                   type="submit" 

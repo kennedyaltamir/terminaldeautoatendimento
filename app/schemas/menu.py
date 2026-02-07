@@ -1,7 +1,6 @@
 # DOMAIN: BACKEND
-# LAST_MODIFIED: 2026-01-13 09:15:00
-
-from pydantic import BaseModel, ConfigDict, Field
+# LAST_MODIFIED: 2026-01-18 21:40:00
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import List, Optional, Any
 from datetime import time
 from app.schemas.core import Monetary, OptionalMonetary
@@ -37,16 +36,29 @@ class ProductResponse(BaseModel):
     image_url: Optional[str] = None
     is_available: bool
     track_stock: bool
-    stock_quantity: int
+    
+    # FIX: Tratamento de nulos do banco de dados
+    stock_quantity: int = 0
     station: str = "kitchen"
     tags: List[str] = []
+    
     short_code: Optional[str] = None
     ncm: Optional[str] = None
     cfop: Optional[str] = None
     external_id: Optional[str] = None
+    
     option_groups: List[OptionGroupResponse] = []
     recommendations: List[ProductSimpleResponse] = []
+    
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator('stock_quantity', mode='before')
+    def set_default_stock(cls, v):
+        return v or 0
+
+    @field_validator('tags', mode='before')
+    def set_default_tags(cls, v):
+        return v or []
 
 class CategoryResponse(BaseModel):
     id: int
@@ -117,3 +129,4 @@ class MenuResponse(BaseModel):
     company: CompanyPublic
     categories: List[CategoryResponse]
     model_config = ConfigDict(from_attributes=True)
+

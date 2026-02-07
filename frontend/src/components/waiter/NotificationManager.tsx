@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useRef } from "react";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { toast } from "sonner";
@@ -13,9 +12,9 @@ export default function NotificationManager({ slug }: { slug: string }) {
     // 1. Som
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(e => console.log("Autoplay bloqueado:", e));
+      // 🛡️ FIX: console.log -> console.warn
+      audioRef.current.play().catch(e => console.warn("Autoplay bloqueado:", e));
     }
-
     // 2. Vibração (Apenas Mobile/Android)
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       navigator.vibrate(pattern);
@@ -26,11 +25,10 @@ export default function NotificationManager({ slug }: { slug: string }) {
     // 1. Pedido Pronto (Cozinha -> Garçom)
     if (data.type === "order_update" && data.status === "ready") {
       notifyUser([200, 100, 200, 100, 500]); // Vibração longa
-      
       const title = data.table === "Delivery" 
         ? `Delivery: ${data.customer}` 
         : `Mesa ${data.table}`;
-
+      
       toast.success(
         <div className="flex flex-col">
           <span className="font-bold text-lg">{title}</span>
@@ -46,7 +44,6 @@ export default function NotificationManager({ slug }: { slug: string }) {
     // 2. Chamado de Mesa (Cliente -> Garçom)
     if (data.type === "waiter_call") {
       notifyUser([500, 200, 500]); // Vibração de alerta
-      
       const typeMap: any = {
         bill: "Pediu a Conta 💸",
         help: "Chamou Ajuda 🙋",

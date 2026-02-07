@@ -25,6 +25,8 @@ class Product(Base):
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    # 🛡️ FIX: Adicionada coluna para suporte nativo a RLS e consistência com o Seed
+    company_id = Column(GUID(), ForeignKey("companies.id"), nullable=True)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(Text)

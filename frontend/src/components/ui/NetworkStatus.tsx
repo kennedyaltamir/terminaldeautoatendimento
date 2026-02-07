@@ -1,9 +1,13 @@
-// DOMAIN: FRONTEND
-// LAST_MODIFIED: 2026-01-10 16:20:00
+/**
+ * DOMAIN: FRONTEND / UI
+ * OBJECTIVE: Indicador de Status de Rede e Sincronização Offline.
+ * VERSION: 1.2.0 (Production Hardened)
+ */
 "use client";
 import { useState, useEffect } from "react";
 import { WifiOff, Wifi, RefreshCw, AlertTriangle, Trash2 } from "lucide-react";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { cn } from "@/lib/utils";
 
 export default function NetworkStatus() {
   const [isOnline, setIsOnline] = useState(true);
@@ -39,8 +43,11 @@ export default function NetworkStatus() {
     return (
       <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2">
         <div 
-          className="bg-white text-gray-900 px-4 py-2 rounded-full shadow-xl flex items-center gap-3 text-sm font-bold border border-orange-200 cursor-pointer hover:bg-gray-50 transition-colors" 
-          onClick={syncNow}
+          className={cn(
+            "bg-white text-gray-900 px-4 py-2 rounded-full shadow-xl flex items-center gap-3 text-sm font-bold border cursor-pointer hover:bg-gray-50 transition-colors",
+            errorCount > 0 ? "border-red-200" : "border-orange-200"
+          )}
+          onClick={() => syncNow()}
         >
           {isSyncing ? (
             <RefreshCw size={16} className="text-blue-500 animate-spin" />
@@ -57,13 +64,15 @@ export default function NetworkStatus() {
           </div>
         </div>
         
-        <button 
-          onClick={(e) => { e.stopPropagation(); clearQueue(); }}
-          className="bg-red-100 text-red-600 p-2.5 rounded-full shadow-lg hover:bg-red-200 transition-colors border border-red-200"
-          title="Limpar Fila"
-        >
-          <Trash2 size={16} />
-        </button>
+        {errorCount > 0 && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); clearQueue(); }}
+            className="bg-red-100 text-red-600 p-2.5 rounded-full shadow-lg hover:bg-red-200 transition-colors border border-red-200"
+            title="Limpar Fila de Erros"
+          >
+            <Trash2 size={16} />
+          </button>
+        )}
       </div>
     );
   }

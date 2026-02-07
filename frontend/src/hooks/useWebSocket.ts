@@ -1,15 +1,21 @@
+/**
+ * 📡 MESAFLOW OS — WEBSOCKET HOOK
+ * Version: 2.2.0 (Null-Safe Context)
+ */
 import { useEffect } from "react";
 import { useWebSocketContext } from "@/context/WebSocketContext";
 
-// Hook de conveniência para componentes assinarem mensagens
 export function useWebSocket(slug: string, onMessage?: (data: any) => void) {
-  const { lastMessage, isConnected } = useWebSocketContext();
+  const context = useWebSocketContext();
 
   useEffect(() => {
-    if (lastMessage && onMessage) {
-      onMessage(lastMessage);
+    // 🛡️ FIX TS2339: Guard clause para contexto nulo
+    if (context && context.lastMessage && onMessage) {
+      onMessage(context.lastMessage);
     }
-  }, [lastMessage, onMessage]);
+  }, [context, onMessage]);
 
-  return { isConnected };
+  return { 
+    isConnected: context?.isConnected ?? false 
+  };
 }

@@ -1,35 +1,43 @@
+/**
+ * DOMAIN: FRONTEND / LAYOUT
+ * OBJECTIVE: Layout do Kiosk com injeção de Guard e Contexto.
+ */
 "use client";
-
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback, use } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useIdleTimer } from "@/hooks/useIdleTimer";
 import InactivityModal from "@/components/kiosk/InactivityModal";
 import { useCart } from "@/context/CartContext";
-import { KioskProvider } from "@/context/KioskContext"; // Novo Provider
-import KioskExitAuthModal from "@/components/kiosk/KioskExitAuthModal"; // Novo Modal
-import KioskFullscreenToggle from "@/components/kiosk/KioskFullscreenToggle"; // Novo Toggle
+import KioskExitAuthModal from "@/components/kiosk/KioskExitAuthModal";
+import KioskGuard from "@/components/kiosk/KioskGuard";
+import KioskFullscreenToggle from "@/components/kiosk/KioskFullscreenToggle";
 
-function KioskContent({ children, params }: { children: React.ReactNode, params: { slug: string } }) {
+export default function KioskLayout({ 
+  children, 
+  params: paramsPromise 
+}: { 
+  children: React.ReactNode, 
+  params: Promise<{ slug: string }> 
+}) {
+  const { slug } = use(paramsPromise);
   const router = useRouter();
   const pathname = usePathname();
   const { clearCart } = useCart();
   const [showInactivityWarning, setShowInactivityWarning] = useState(false);
+  const IDLE_TIMEOUT = 60000; // 60s de inatividade
 
-  const IDLE_TIMEOUT = 60000; 
   const isAttractScreen = pathname.endsWith("/kiosk");
 
   const handleReset = useCallback(() => {
     setShowInactivityWarning(false);
     clearCart();
     if (!isAttractScreen) {
-      router.replace(`/${params.slug}/kiosk`);
+      router.replace(`/${slug}/kiosk`);
     }
-  }, [clearCart, isAttractScreen, params.slug, router]);
+  }, [clearCart, isAttractScreen, slug, router]);
 
   const handleIdle = () => {
-    if (!isAttractScreen) {
-      setShowInactivityWarning(true);
-    }
+    if (!isAttractScreen) setShowInactivityWarning(true);
   };
 
   const { resetTimer } = useIdleTimer({
@@ -43,42 +51,13 @@ function KioskContent({ children, params }: { children: React.ReactNode, params:
     resetTimer();
   };
 
-  useEffect(() => {
-    const preventDefault = (e: Event) => e.preventDefault();
-    document.addEventListener('contextmenu', preventDefault);
-    document.body.style.userSelect = 'none';
-    document.body.style.webkitUserSelect = 'none';
-    return () => {
-      document.removeEventListener('contextmenu', preventDefault);
-      document.body.style.userSelect = 'auto';
-      document.body.style.webkitUserSelect = 'auto';
-    };
-  }, []);
-
   return (
     <div className="min-h-screen bg-slate-950 text-white overflow-hidden select-none touch-none">
-      <div className="h-full w-full">
-        {children}
-      </div>
-      
-      {/* Componentes de Segurança e Controle */}
-      <InactivityModal 
-        isOpen={showInactivityWarning} 
-        onStay={handleStay} 
-        onTimeout={handleReset} 
-      />
+      <KioskGuard />
+      <div className="h-full w-full">{children}</div>
+      <InactivityModal isOpen={showInactivityWarning} onStay={handleStay} onTimeout={handleReset} />
       <KioskExitAuthModal />
       <KioskFullscreenToggle />
     </div>
   );
 }
-
-// Wrapper para injetar o Contexto
-export default function KioskLayoutWrapper(props: any) {
-  return (
-    <KioskProvider>
-      <KioskContent {...props} />
-    </KioskProvider>
-  );
-}
-

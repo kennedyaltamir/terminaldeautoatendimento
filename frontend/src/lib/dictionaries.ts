@@ -1,3 +1,9 @@
+/**
+ * Author: MESAFLOW_AI
+ * Version: 11.11 (Full Dictionary Restoration)
+ * DNA_ID: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b
+ * Objective: Complete multi-language support for Landing Page and Kiosk.
+ */
 export type Locale = 'pt' | 'en' | 'es';
 
 export const dictionaries = {
@@ -17,6 +23,24 @@ export const dictionaries = {
       cta_secondary: "Ver Demo",
       stats: ["Setup em 2 min", "Sem mensalidade fixa", "99.99% SLA"],
       typewriter: ["Restaurantes", "Estádios", "Hotéis", "Eventos", "Food Halls"]
+    },
+    kiosk: {
+      attract_title: "BATEU AQUELA",
+      attract_highlight: "FOME?",
+      tap_to_start: "TOQUE PARA COMEÇAR",
+      footer_tag: "MesaFlow Totem Intelligence v5.0",
+      back: "Voltar",
+      help: "Ajuda",
+      categories: "Categorias",
+      checkout_prompt: "Quase lá! Como prefere pagar?",
+      success_message: "Pedido Confirmado!",
+      order_id_label: "Sua senha é:",
+      return_home: "Retornando à tela inicial em",
+      offline_warning: "Modo Contingência: Dirija-se ao Caixa",
+      pre_sale_ticket: "Imprimindo ticket de pré-venda...",
+      upsell_title: "Deseja turbinar seu pedido?",
+      add_to_cart: "Adicionar",
+      finish: "Finalizar Pedido"
     }
   },
   en: {
@@ -35,6 +59,24 @@ export const dictionaries = {
       cta_secondary: "Live Demo",
       stats: ["2 min Setup", "No fixed monthly fee", "99.99% SLA"],
       typewriter: ["Restaurants", "Stadiums", "Hotels", "Events", "Food Halls"]
+    },
+    kiosk: {
+      attract_title: "ARE YOU",
+      attract_highlight: "HUNGRY?",
+      tap_to_start: "TAP TO START",
+      footer_tag: "MesaFlow Totem Intelligence v5.0",
+      back: "Back",
+      help: "Help",
+      categories: "Categories",
+      checkout_prompt: "Almost there! How do you want to pay?",
+      success_message: "Order Confirmed!",
+      order_id_label: "Your number is:",
+      return_home: "Returning to home in",
+      offline_warning: "Contingency Mode: Please go to the counter",
+      pre_sale_ticket: "Printing pre-sale ticket...",
+      upsell_title: "Want to upgrade your order?",
+      add_to_cart: "Add",
+      finish: "Finish Order"
     }
   },
   es: {
@@ -53,6 +95,24 @@ export const dictionaries = {
       cta_secondary: "Ver Demo",
       stats: ["Configuración en 2 min", "Sin mensualidad fija", "99.99% SLA"],
       typewriter: ["Restaurantes", "Estadios", "Hoteles", "Eventos", "Patios de Comida"]
+    },
+    kiosk: {
+      attract_title: "¿TIENES",
+      attract_highlight: "HAMBRE?",
+      tap_to_start: "TOCA PARA EMPEZAR",
+      footer_tag: "MesaFlow Totem Intelligence v5.0",
+      back: "Volver",
+      help: "Ayuda",
+      categories: "Categorías",
+      checkout_prompt: "¿Casi listo! ¿Cómo prefieres pagar?",
+      success_message: "¡Pedido Confirmado!",
+      order_id_label: "Tu número es:",
+      return_home: "Regresando al inicio en",
+      offline_warning: "Modo Contingencia: Diríjase a la caja",
+      pre_sale_ticket: "Imprimiendo ticket de preventa...",
+      upsell_title: "¿Quieres mejorar tu pedido?",
+      add_to_cart: "Añadir",
+      finish: "Finalizar Pedido"
     }
   }
 };

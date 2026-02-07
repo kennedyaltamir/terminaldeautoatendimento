@@ -1,7 +1,6 @@
-
 # DOMAIN: BACKEND
-# LAST_MODIFIED: 2026-01-11 02:15:00
-
+# LAST_MODIFIED: 2026-01-24 10:00:00
+# DESCRIPTION: Schemas para operações financeiras e carteira.
 from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional
 from uuid import UUID
@@ -11,6 +10,7 @@ from app.schemas.core import Monetary
 class WalletResponse(BaseModel):
     balance: Monetary
     loyalty_percentage: Monetary
+    model_config = ConfigDict(from_attributes=True)
 
 class TipReportItem(BaseModel):
     employee_name: str
@@ -69,4 +69,3 @@ class FiscalEmissionResponse(BaseModel):
     status: str
     message: str
     nfe_url: Optional[str] = None
-

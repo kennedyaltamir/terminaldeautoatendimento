@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useFeatureFlags } from "@/context/FeatureFlagContext";
 import { Zap, ShieldAlert, Loader2, Info, Lock } from "lucide-react";
 import { Toaster } from "sonner";
@@ -27,10 +27,15 @@ const FLAG_METADATA: Record<string, { label: string; desc: string }> = {
 export default function FeaturesBetaPage() {
   const { flags, isImpersonator, toggleFlag, loading } = useFeatureFlags();
   
-  // FIX: Removido useState/useEffect desnecessário que causava loop de renderização.
-  // O estado de loading já vem do contexto.
+  // HYPEROPTIMUS FIX: Ensure state derived from context doesn't cause render loops.
+  // We use local state only for UI feedback if needed, but rely on Context for truth.
+  const [isReady, setIsReady] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    setIsReady(true);
+  }, []);
+
+  if (!isReady || loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-gray-500">
         <Loader2 className="animate-spin mb-4" size={32} />
@@ -112,4 +117,3 @@ export default function FeaturesBetaPage() {
     </div>
   );
 }
-

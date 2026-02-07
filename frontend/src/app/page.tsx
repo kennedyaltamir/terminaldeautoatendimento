@@ -21,7 +21,7 @@ import BeforeAfter from "@/components/landing/BeforeAfter";
 import LiveTicker from "@/components/landing/LiveTicker";
 import CookieBanner from "@/components/ui/CookieBanner";
 import ScrollReveal from "@/components/ui/ScrollReveal";
-import LeadCapture from "@/components/landing/LeadCapture"; // NOVO
+import LeadCapture from "@/components/landing/LeadCapture";
 
 export default function LandingPage() {
   const jsonLd = {
@@ -39,7 +39,9 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 selection:bg-orange-100 selection:text-orange-900 font-sans scroll-smooth cursor-none transition-colors duration-300">
+    // 🛡️ FIX: Removido 'cursor-none' para garantir que o mouse apareça 
+    // enquanto o CustomCursor não é carregado/hidratado.
+    <div className="min-h-screen bg-white dark:bg-gray-950 selection:bg-orange-100 selection:text-orange-900 font-sans scroll-smooth transition-colors duration-300">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -116,7 +118,7 @@ export default function LandingPage() {
       <FloatingWidget />
       <LiveTicker />
       <CookieBanner />
-      <LeadCapture /> {/* NOVO: Popup de Captura */}
+      <LeadCapture />
     </div>
   );
 }

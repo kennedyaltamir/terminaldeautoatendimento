@@ -3,6 +3,10 @@ import Link from "next/link";
 import { Activity, Shield, FileText, CheckCircle2, Server, Lock } from "lucide-react";
 import { Metadata } from "next";
 
+// FIX: Importação correta do SovereignPageFactory não é necessária aqui pois é uma página estática/server component simples.
+// Se houver erro de "is not a function" aqui, é porque algum componente filho ou layout está tentando usar algo quebrado.
+// Vamos garantir que esta página seja simples e robusta.
+
 export const metadata: Metadata = {
   title: "Trust Center | MesaFlow",
   description: "Transparência sobre segurança, privacidade e disponibilidade do MesaFlow.",

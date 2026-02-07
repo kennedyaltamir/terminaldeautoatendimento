@@ -1,0 +1,33 @@
+# Ambientes virtuais e caches
+.venv/
+.mesaflow_cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs e arquivos temporários
+logs/
+*.log
+*.jsonl
+
+# Configurações locais e secrets
+.env
+.env.local
+.env.orchestrator
+.env.example
+
+# Frontend / Node
+frontend/
+node_modules/
+
+# Backups e grandes arquivos
+backups/
+todasastelas/
+kernel_journal.jsonl
+todososarquivos.txt
+
+# Git e configs
+.git/
+.gitignore
+.vscode/
+.history/

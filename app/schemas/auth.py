@@ -1,3 +1,5 @@
+# DOMAIN: BACKEND
+# LAST_MODIFIED: 2026-01-27 18:21:54
 
 from pydantic import BaseModel, Field, EmailStr, field_validator
 from typing import Optional
