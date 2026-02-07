@@ -1,0 +1,95 @@
+
+appId: com.mesaflow.mobile
+name: FULL_UI_SWEEP_L6
+---
+# 🟢 GRUPO A — BOOT / ESTRUTURA
+# 1. Cold Start
+- launchApp:
+    clearState: true
+- assertVisible: "MesaFlow Mobile"
+- takeScreenshot: "T01_cold_start"
+
+# 2. Warm Start (Simulado)
+- launchApp:
+    clearState: false
+- assertVisible: "MesaFlow Mobile"
+- takeScreenshot: "T02_warm_start"
+
+# 🔐 GRUPO B — AUTENTICAÇÃO
+# 3. Login Inválido
+- tapOn: "E-mail"
+- inputText: "errado@teste.com"
+- tapOn: "Senha"
+- inputText: "000"
+- runScript: "adb shell input keyevent 66" # ENTER (Submit)
+# Validação Composta L6:
+- assertVisible: "Entrar" # Garante que não logou
+- assertNotVisible: "Mapa de Mesas" # Garante que não vazou
+- takeScreenshot: "T04_login_invalido"
+
+# 4. Login Válido (Garçom)
+# CORREÇÃO L6: Reset de Estado de UI (Teclado/Foco)
+- runScript: "adb shell input keyevent 4" # Fecha teclado se aberto
+- runScript: "adb shell input keyevent 111" # ESC (Limpa foco/dialogs)
+- tapOn: "E-mail"
+- clearText
+- inputText: "garcom@mesaflow.com"
+- tapOn: "Senha"
+- clearText
+- inputText: "123456"
+# CORREÇÃO TÁTICA: Uso de ENTER para garantir submit
+- runScript: "adb shell input keyevent 66" 
+- assertVisible: "Mapa de Mesas"
+- takeScreenshot: "T03_login_valido"
+
+# 🧭 GRUPO C — NAVEGAÇÃO
+# 5. Navegação Tabs/Home
+- assertVisible: "Salão"
+- takeScreenshot: "T09_dashboard_home"
+
+# 6. Scroll Longo
+- scroll
+- scroll
+- takeScreenshot: "T12_scroll_list"
+
+# 🧾 GRUPO D — FLUXO PRINCIPAL
+# 7. Abrir Mesa (Simulação)
+- tapOn: "LIVRE"
+- assertVisible: "Lançamento de Itens"
+- takeScreenshot: "T14_order_entry"
+
+# 8. Adicionar Item
+- tapOn: "Buscar produto..."
+- inputText: "X-Bacon"
+- tapOn: "Adicionar"
+- assertVisible: "1"
+- takeScreenshot: "T15_add_item"
+
+# 9. Revisão
+- tapOn: "Revisar Pedido"
+- assertVisible: "Total do Pedido"
+- takeScreenshot: "T16_review"
+
+# 10. Envio
+- tapOn: "Confirmar e Enviar"
+- assertVisible: "Pedido Enviado!"
+- takeScreenshot: "T17_success"
+- tapOn: "Finalizar Atendimento"
+
+# 🌐 GRUPO E — RESILIÊNCIA
+# 11. Offline Mode (Simulado)
+- setNetwork: false
+- tapOn: "Atualizar"
+- takeScreenshot: "T18_offline_mode"
+
+# 12. Online Restore
+- setNetwork: true
+- tapOn: "Atualizar"
+- assertVisible: "Mapa de Mesas"
+- takeScreenshot: "T19_online_restore"
+
+# 13. Logout
+- tapOn: "Sair"
+- assertVisible: "MesaFlow Mobile"
+- takeScreenshot: "T05_logout"
+

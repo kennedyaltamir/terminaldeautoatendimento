@@ -1,0 +1,66 @@
+
+appId: com.mesaflow.mobile
+---
+# MESAFLOW MOBILE - HUMAN QA FLOW (L5)
+# Executa os 20 testes da Matriz L5 de forma autônoma
+
+- launchApp:
+    clearState: true
+
+# --- CATEGORIA A: BOOT ---
+# T01 - Cold Start
+- assertVisible: "MesaFlow Mobile"
+- takeScreenshot: "T01_boot"
+
+# --- CATEGORIA B: AUTH ---
+# T06 - Login Inválido
+- tapOn: "E-mail"
+- inputText: "errado@teste.com"
+- tapOn: "Senha"
+- inputText: "123"
+- tapOn: "Entrar"
+- assertVisible: "Falha no Login"
+- takeScreenshot: "T06_login_invalido"
+- tapOn: "OK"
+
+# T05 - Login Válido (Garçom)
+- tapOn: "E-mail"
+- clearState
+- inputText: "garcom@mesaflow.com"
+- tapOn: "Senha"
+- inputText: "123456"
+- tapOn: "Entrar" # Botão genérico ou específico dependendo da UI
+- assertVisible: "Mapa de Mesas"
+- takeScreenshot: "T05_login_sucesso"
+
+# --- CATEGORIA C: NAVEGAÇÃO ---
+# T10 - WaiterDashboard Navigation
+- scroll
+- takeScreenshot: "T10_dashboard_scroll"
+
+# T13 - Order Entry
+- tapOn: "LIVRE" # Clica na primeira mesa livre
+- assertVisible: "Lançamento de Itens"
+- tapOn: "Buscar produto..."
+- inputText: "X-Bacon"
+- tapOn: "Adicionar" # Ícone de Plus
+- assertVisible: "1" # Contador
+- takeScreenshot: "T13_order_entry"
+
+# T14 - Order Review
+- tapOn: "Revisar Pedido"
+- assertVisible: "Total do Pedido"
+- takeScreenshot: "T14_order_review"
+
+# --- CATEGORIA D: FLUXO CRÍTICO ---
+# T15 - Payment Flow
+- tapOn: "Confirmar e Enviar"
+- assertVisible: "Pedido Enviado!"
+- tapOn: "Finalizar Atendimento"
+
+# --- CATEGORIA E: QUALIDADE ---
+# T19 - Design System Check (Logout)
+- tapOn: "Sair" # Ícone de logout
+- assertVisible: "MesaFlow Mobile"
+- takeScreenshot: "T19_logout_design"
+

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Android_Build_Protocol version="1.0" project="MesaFlow">
+    <!-- 
+        ESTE DOCUMENTO DEFINE O RITUAL DE COMPILAÇÃO NATIVA LOCAL.
+        Siga rigorosamente para evitar erros de ABI C++ e Path Mismatch.
+    -->
+
+    <Environment_Requirements>
+        <JDK_Version>Microsoft OpenJDK 17.0.17.10</JDK_Version>
+        <Android_SDK_Platform>API 34 (UpsideDownCake)</Android_SDK_Platform>
+        <NDK_Version>26.1.10909125</NDK_Version>
+        <Build_Tools>34.0.0</Build_Tools>
+        <CMake_Version>3.22.1</CMake_Version>
+    </Environment_Requirements>
+
+    <Build_Steps>
+        <Step order="1" title="Mapeamento de Unidade Virtual">
+            <Description>Remove espaços do caminho do usuário (ex: 'Kennedy Oliveira') que quebram o compilador Ninja.</Description>
+            <Command>subst S: "C:\Users\Kennedy Oliveira\AppData\Local\Android\Sdk"</Command>
+            <Verification>Verificar se a unidade S: aparece no 'Meu Computador'.</Verification>
+        </Step>
+
+        <Step order="2" title="Configuração de Propriedades">
+            <Description>Apontar o projeto para a unidade virtual.</Description>
+            <File>mobile/android/local.properties</File>
+            <Content>sdk.dir=S:/</Content>
+        </Step>
+
+        <Step order="3" title="Expo Prebuild">
+            <Description>Materializa a pasta nativa 'android' a partir do código React Native.</Description>
+            <Directory>mobile/</Directory>
+            <Command>npx expo prebuild --platform android --clean</Command>
+        </Step>
+
+        <Step order="4" title="Compilação Gradle">
+            <Description>Gera o binário assinado para distribuição/teste.</Description>
+            <Directory>mobile/android/</Directory>
+            <Environment_Variables>
+                <Variable name="JAVA_HOME">C:\Program Files\Microsoft\jdk-17.0.17.10-hotspot</Variable>
+            </Environment_Variables>
+            <Command>gradlew assembleRelease</Command>
+        </Step>
+    </Build_Steps>
+
+    <Output_Artifacts>
+        <APK_Path>mobile/android/app/build/outputs/apk/release/app-release.apk</APK_Path>
+    </Output_Artifacts>
+
+    <Troubleshooting>
+        <Error code="CXX1104">
+            <Cause>Conflito entre ndk.dir e ndkVersion no build.gradle.</Cause>
+            <Fix>Remover ndk.dir do local.properties e manter apenas sdk.dir.</Fix>
+        </Error>
+        <Error code="Ninja_Build_Failed">
+            <Cause>Espaços no caminho do SDK ou NDK.</Cause>
+            <Fix>Utilizar o comando 'subst' para criar um drive virtual sem espaços.</Fix>
+        </Error>
+    </Troubleshooting>
+</Android_Build_Protocol>

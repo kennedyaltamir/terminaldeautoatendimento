@@ -1,0 +1,35 @@
+
+appId: com.mesaflow.mobile
+tags:
+    - navigation
+---
+# 🔹 CATEGORIA C — NAVEGAÇÃO (T09-T14)
+
+# Setup: Login
+- launchApp
+- tapOn: "Entrar como Garçom"
+
+# T10 - WaiterDashboard
+- assertVisible: "Mapa de Mesas"
+- scroll
+- takeScreenshot: "T10_dashboard_scroll"
+
+# T13 - Order Entry
+- tapOn: "LIVRE"
+- assertVisible: "Lançamento de Itens"
+- tapOn: "Buscar produto..."
+- inputText: "X-Bacon"
+- tapOn: "Adicionar"
+- assertVisible: "1"
+- takeScreenshot: "T13_order_entry"
+
+# T14 - Order Review
+- tapOn: "Revisar Pedido"
+- assertVisible: "Total do Pedido"
+- takeScreenshot: "T14_order_review"
+
+# T12 - Back Stack Stress
+- tapOn: "Voltar" # Botão voltar custom
+- assertVisible: "Lançamento de Itens"
+- tapOn: "Revisar Pedido"
+

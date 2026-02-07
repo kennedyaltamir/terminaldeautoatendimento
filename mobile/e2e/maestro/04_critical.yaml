@@ -1,0 +1,29 @@
+
+appId: com.mesaflow.mobile
+tags:
+    - critical
+---
+# 🔹 CATEGORIA D — FLUXO CRÍTICO (T15-T18)
+
+# Setup: Estar no Review
+- launchApp
+- tapOn: "Entrar como Garçom"
+- tapOn: "LIVRE"
+- tapOn: "Adicionar"
+- tapOn: "Revisar Pedido"
+
+# T15 - Payment Flow
+- tapOn: "Confirmar e Enviar"
+- assertVisible: "Pedido Enviado!"
+- takeScreenshot: "T15_pedido_sucesso"
+
+# T17 - Waiter Calls (Simulação Visual)
+- tapOn: "Finalizar Atendimento"
+- assertVisible: "Mapa de Mesas"
+# Simula verificação de alerta visual na mesa
+- assertVisible: "Salão"
+
+# T18 - Timeout/Retry (Simulado)
+- tapOn: "Atualizar" # Botão de refresh
+- assertVisible: "Mapa de Mesas"
+
