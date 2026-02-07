@@ -153,8 +153,6 @@ Thumbs.db
 
 .venv
 node_modules
-frontend
-mobile
 ignorar
 .history
 .mesaflow_cache
