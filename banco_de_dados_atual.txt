@@ -1,0 +1,306 @@
+Arquivo gerado pelo script dump_db.py
+
+TABELA: employees
+============================================================
+id	company_id	name	email	password_hash	role	is_active	created_at	updated_at
+26	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	Camila	Camila@mesaflow.com	$2b$12$Wxe.9StGU.aGU1WzMJxPB.yqNZzdx3DomB9nAakhCjDtSry4R2aOO	waiter	True	2026-02-02 12:31:18.813106+00:00	NULL
+22	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	rallyf@mesaflow.com	rallyf@mesaflow.com	$2b$12$G3D5I7kVeurB/df2.X6j5.9FT.QfSc6NhCq.LKQH5t0u2S4EQl6mS	owner	True	2026-02-02 05:50:23.953511+00:00	NULL
+20	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	aaaa	asd@mesaflow.com	$2b$12$b9IUEUc8L5lAYBWhHnVtOuvf.6Es96sYLWYjNItoH61UT8NDaCs6.	driver	True	2026-02-01 09:26:36.854081+00:00	2026-02-06 16:42:07.045466+00:00
+15	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	Admin	admin@mesaflow.com	$2b$12$TaHhkQ9xS2aLcJKjkv45uuv.JJikzYF2DrqkgCTKgYiNm.1u4qnuW	driver	True	2026-01-28 00:52:45.790906+00:00	2026-02-01 09:29:48.019495+00:00
+
+TABELA: driver_telemetry
+============================================================
+id	journey_id	driver_id	lat	lng	speed	heading	accuracy	battery_level	timestamp
+[Tabela vazia]
+
+TABELA: logistics_journeys
+============================================================
+id	shift_id	order_id	driver_id	status	accepted_at	pickup_at	arrival_at	completed_at	distance_km	delivery_fee	tip_amount	pod_code_input	pod_location_lat	pod_location_lng	company_id
+19d5be16-f404-4dcb-8175-e56c26c82634	ff601f12-bcd9-4ce9-8c72-71e77475ca95	c1295df3-5836-455b-9097-b10478a7acb3	15	ASSIGNED	2026-02-07 04:04:11.713352+00:00	NULL	NULL	NULL	0.0	0.0	0.0	NULL	NULL	NULL	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb
+7b6e8389-f91d-476b-bbc0-00e37c8cdfa5	feeedde5-73c1-4c3f-9913-f2885ec8916b	9b2f5073-d392-4951-a350-af91cba76b29	15	ASSIGNED	2026-02-07 11:40:09.138215+00:00	NULL	NULL	NULL	0.0	0.0	0.0	NULL	NULL	NULL	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb
+4976fd3d-5eb7-47c1-818e-e37503e07cf2	feeedde5-73c1-4c3f-9913-f2885ec8916b	67593c6e-dc8f-43ed-8f73-7f3ccd2c42ac	15	ASSIGNED	2026-02-07 14:27:49.396889+00:00	NULL	NULL	NULL	0.0	0.0	0.0	NULL	NULL	NULL	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb
+292594e3-4ad4-44b6-bf7f-6bdf6ff82a92	c240e0dd-0f37-4772-9ea0-f52cc25ce061	fd9d434f-3cde-4b67-a49f-e74b305c99fb	15	ASSIGNED	2026-02-07 14:28:17.705650+00:00	NULL	NULL	NULL	0.0	0.0	0.0	NULL	NULL	NULL	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb
+ac0dd596-9d33-4873-a5c0-eafc5966bd50	ff601f12-bcd9-4ce9-8c72-71e77475ca95	43f12660-5d9e-471d-8654-ba920faaa8e7	15	COMPLETED	2026-02-07 04:00:12.626325+00:00	NULL	NULL	2026-02-07 01:02:34.437082+00:00	0.0	0.0	0.0	1234	NULL	NULL	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb
+
+TABELA: alembic_version
+============================================================
+version_num
+20260201_add_cid
+
+TABELA: table_sessions
+============================================================
+id	company_id	table_id	opened_by_employee_id	customer_name	customer_phone	session_token	access_pin	is_active	created_at	closed_at
+1	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	8	NULL	Cliente Mesa 5	NULL	afe75123-6ac3-4a39-a467-63a6328411f4	2534	True	2026-01-28 13:22:03.353024+00:00	NULL
+2	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	3	NULL	asdasdasdasddas	NULL	1ca10a59-4c82-4ca4-9a7f-327be06bdf52	5393641181	True	2026-02-03 18:25:45.303637+00:00	NULL
+3	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	5	NULL	Camila	NULL	37de2ab3-8306-4b79-aee6-8fe1d1d53f82	0780507785	True	2026-02-03 18:25:54.842903+00:00	NULL
+
+TABELA: product_recipes
+============================================================
+id	product_id	ingredient_id	quantity_required
+[Tabela vazia]
+
+TABELA: user_devices
+============================================================
+id	company_id	employee_id	fcm_token	platform	device_name	updated_at	created_at
+[Tabela vazia]
+
+TABELA: customer_wallets
+============================================================
+id	company_id	customer_phone	balance	updated_at
+[Tabela vazia]
+
+TABELA: product_recommendations
+============================================================
+source_product_id	target_product_id
+[Tabela vazia]
+
+TABELA: products
+============================================================
+id	category_id	name	description	price	image_url	is_available	short_code	track_stock	stock_quantity	station	tags	ncm	cfop	external_id	company_id
+73	46	Coca-Cola	NULL	6.00	NULL	False	NULL	False	0	kitchen	[]	21069090	5102	NULL	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb
+74	46	Batata Frita	NULL	12.00	NULL	False	NULL	False	0	kitchen	[]	21069090	5102	NULL	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb
+72	46	X-Bacon		44.00		True	NULL	False	0	kitchen	[]	21069090	5102	NULL	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb
+78	46	asdasdasd	asdasdasda	22.00	/uploads/fdd4ea3d941d4d408bb35708514960fb.png	True	NULL	False	0	kitchen	[]	21069090	5102	NULL	NULL
+
+TABELA: options
+============================================================
+id	group_id	name	price	is_available
+[Tabela vazia]
+
+TABELA: service_requests
+============================================================
+id	company_id	table_id	service_type	notes	status	created_at
+[Tabela vazia]
+
+TABELA: orders
+============================================================
+id	company_id	table_id	session_id	driver_id	promotion_id	order_type	origin	external_order_id	customer_phone	delivery_address	delivery_code	subtotal	discount_amount	cashback_earned	service_fee	delivery_fee	status	payment_method	payment_status	mp_payment_id	mp_qr_code	mp_qr_code_base64	fiscal_status	fiscal_reference_id	nfe_key	nfe_url_xml	nfe_url_pdf	customer_name	total_amount	device_fingerprint	created_at	finished_at	pickup_note	delivery_lat	delivery_lng
+5d5a11d8-244d-4a34-84c8-a958ed48a6b3	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	15	NULL	delivery	admin	NULL	NULL	Rua Aurora, 150 - Vila de Fátima, Pompéu - MG	1234	NULL	NULL	NULL	NULL	NULL	delivered	NULL	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Cliente Pompéu 8	2500.00	NULL	2026-02-06 16:03:38.870096+00:00	2026-02-06 13:04:42.839484+00:00	NULL	-19.2154	-44.9287
+89609e8a-5ca0-461a-a24b-06c6646d4bb7	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	NULL	NULL	takeout	admin	NULL		NULL	NULL	NULL	0.00	0.00	0.00	0.00	pending	cash	pending	NULL	NULL	NULL	pending	NULL	NULL	NULL	NULL	Venda Balcão	154.00	web_client_forensic	2026-02-07 01:20:44.994639+00:00	NULL	NULL	NULL	NULL
+761f2f0f-cc30-403f-a37e-1e260aa738b8	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	NULL	NULL	takeout	admin	NULL		NULL	NULL	NULL	0.00	0.00	0.00	0.00	pending	cash	pending	NULL	NULL	NULL	pending	NULL	NULL	NULL	NULL	Venda Balcão	276.00	web_client_forensic	2026-02-07 01:22:37.811754+00:00	NULL	NULL	NULL	NULL
+da42bc94-aeff-4e83-9521-0bd1c118e078	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	NULL	NULL	takeout	admin	NULL		NULL	NULL	NULL	0.00	0.00	0.00	0.00	preparing	card	pending	NULL	NULL	NULL	pending	NULL	NULL	NULL	NULL	Venda Balcão	66.00	web_client_forensic	2026-02-07 01:19:40.956487+00:00	NULL	NULL	NULL	NULL
+0884e73b-efc4-4ebc-b7ce-e52d1f3d8b92	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	NULL	NULL	takeout	admin	NULL		NULL	NULL	NULL	0.00	0.00	0.00	0.00	preparing	cash	pending	NULL	NULL	NULL	pending	NULL	NULL	NULL	NULL	Venda Balcão	44.00	web_client_forensic	2026-02-07 01:20:05.848444+00:00	NULL	NULL	NULL	NULL
+5f0fe93c-9a3d-4bb2-9d5e-ea255d87a1aa	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	NULL	NULL	takeout	admin	NULL		NULL	NULL	NULL	0.00	0.00	0.00	0.00	preparing	cash	pending	NULL	NULL	NULL	pending	NULL	NULL	NULL	NULL	Venda Balcão	66.00	web_client_forensic	2026-02-07 01:20:24.206968+00:00	NULL	NULL	NULL	NULL
+ad241f6a-2f52-4893-a4b6-305582cb90ca	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	NULL	NULL	takeout	admin	NULL		NULL	NULL	NULL	0.00	0.00	0.00	0.00	delivered	cash	pending	NULL	NULL	NULL	pending	NULL	NULL	NULL	NULL	Venda Balcão	88.00	web_client_forensic	2026-02-07 01:19:36.813484+00:00	2026-02-07 03:13:50.965492+00:00	NULL	NULL	NULL
+b74f45e4-25ec-482f-ad1f-f8b264d25067	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	3	NULL	NULL	NULL	dine_in	mobile	NULL		NULL	NULL	NULL	0.00	0.00	0.00	0.00	pending	pix	pending	NULL	NULL	NULL	pending	NULL	NULL	NULL	NULL	dasdasdsa	56.00	web_client_forensic	2026-02-07 03:16:30.271701+00:00	NULL	Mesa 3	NULL	NULL
+c2cc0cd1-546c-4b38-b6c5-e6e0b58e9df6	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	22	NULL	delivery	admin	NULL	NULL	Rua Dr. José de Moura Lima, 22 - JK, Pompéu - MG	1234	NULL	NULL	NULL	NULL	NULL	delivering	NULL	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Cliente Pompéu 7	2500.00	NULL	2026-02-06 16:03:38.870096+00:00	NULL	NULL	-19.2356	-44.9401
+aaa71dbd-ce5d-469c-b824-7ce65e2ba583	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	22	NULL	delivery	admin	NULL	NULL	Rua Tiradentes, 12 - Centro, Pompéu - MG	1234	NULL	NULL	NULL	NULL	NULL	delivering	NULL	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Cliente Pompéu 10	2500.00	NULL	2026-02-06 16:03:38.870096+00:00	NULL	NULL	-19.2231	-44.9378
+e0e6dbbd-b396-4c6c-b400-29ed3e649c6f	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	22	NULL	delivery	admin	NULL	NULL	Av. Benjamin Constant, 900 - Centro, Pompéu - MG	1234	NULL	NULL	NULL	NULL	NULL	delivering	NULL	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Cliente Pompéu 9	2500.00	NULL	2026-02-06 16:03:38.870096+00:00	NULL	NULL	-19.2289	-44.9345
+5de29d2d-5013-4290-add7-8746ae16eef5	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	NULL	NULL	delivery	admin	NULL	NULL	Alameda Santos, 200	1234	NULL	NULL	NULL	NULL	NULL	ready	pix	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Marcos Oliveira	1450.00	NULL	2026-02-07 03:59:12.833061+00:00	NULL	NULL	NULL	NULL
+c35ad646-3f00-4758-8d36-c546af67c07d	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	NULL	NULL	delivery	admin	NULL	NULL	Rua Frei Caneca, 450	1234	NULL	NULL	NULL	NULL	NULL	ready	pix	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Juliana Lima	990.00	NULL	2026-02-07 03:59:12.833061+00:00	NULL	NULL	NULL	NULL
+8321c34e-122f-48f8-aef4-96a58f734f10	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	NULL	NULL	delivery	admin	NULL	NULL	Av. Nove de Julho, 2100	1234	NULL	NULL	NULL	NULL	NULL	ready	pix	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Pedro Santos	3500.00	NULL	2026-02-07 03:59:12.833061+00:00	NULL	NULL	NULL	NULL
+8bd2f904-a823-4633-b852-441e020e26e2	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	NULL	NULL	delivery	admin	NULL	NULL	Rua Oscar Freire, 1200	1234	NULL	NULL	NULL	NULL	NULL	ready	pix	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Carla Dias	4200.00	NULL	2026-02-07 03:59:12.833061+00:00	NULL	NULL	NULL	NULL
+7da0c947-d4af-4d02-8d61-3a08f126ebd1	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	NULL	NULL	delivery	admin	NULL	NULL	Av. Rebouças, 3500	1234	NULL	NULL	NULL	NULL	NULL	ready	pix	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Lucas Ferreira	1100.00	NULL	2026-02-07 03:59:12.833061+00:00	NULL	NULL	NULL	NULL
+9b2f5073-d392-4951-a350-af91cba76b29	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	15	NULL	delivery	admin	NULL	NULL	Rua Augusta, 800	1234	NULL	NULL	NULL	NULL	NULL	delivering	pix	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Ana Souza	1800.00	NULL	2026-02-07 03:59:12.833061+00:00	NULL	NULL	NULL	NULL
+fd9d434f-3cde-4b67-a49f-e74b305c99fb	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	15	NULL	delivery	admin	NULL	NULL	Rua dos Pinheiros, 600	1234	NULL	NULL	NULL	NULL	NULL	delivering	pix	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Beatriz Costa	2700.00	NULL	2026-02-07 03:59:12.833061+00:00	NULL	NULL	NULL	NULL
+b5820016-c415-4b42-b952-bade8e65042b	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	NULL	NULL	takeout	admin	NULL		NULL	NULL	NULL	0.00	0.00	0.00	0.00	pending	card	pending	NULL	NULL	NULL	pending	NULL	NULL	NULL	NULL	Venda Balcão	132.00	web_client_forensic	2026-02-07 01:20:27.441729+00:00	NULL	NULL	NULL	NULL
+350a203e-dd23-4d5a-8dff-85674b8345fc	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	NULL	NULL	takeout	admin	NULL		NULL	NULL	NULL	0.00	0.00	0.00	0.00	pending	pix	pending	NULL	NULL	NULL	pending	NULL	NULL	NULL	NULL	Venda Balcão	22.00	web_client_forensic	2026-02-07 01:20:29.430821+00:00	NULL	NULL	NULL	NULL
+54f02df2-b1d0-4f59-abec-f45669eb1799	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	NULL	NULL	takeout	admin	NULL		NULL	NULL	NULL	0.00	0.00	0.00	0.00	preparing	pix	pending	NULL	NULL	NULL	pending	NULL	NULL	NULL	NULL	Venda Balcão	110.00	web_client_forensic	2026-02-07 01:19:44.783097+00:00	NULL	NULL	NULL	NULL
+7930a7e6-0caf-47d7-96a7-38787dda13ba	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	NULL	NULL	takeout	admin	NULL		NULL	NULL	NULL	0.00	0.00	0.00	0.00	preparing	pix	pending	NULL	NULL	NULL	pending	NULL	NULL	NULL	NULL	Venda Balcão	66.00	web_client_forensic	2026-02-07 01:19:55.251915+00:00	NULL	NULL	NULL	NULL
+43f12660-5d9e-471d-8654-ba920faaa8e7	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	15	NULL	delivery	admin	NULL	NULL	Av. Paulista, 1500	1234	NULL	NULL	NULL	NULL	NULL	delivered	pix	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Ricardo Silva	2200.00	NULL	2026-02-07 03:59:12.833061+00:00	2026-02-07 01:02:34.437077+00:00	NULL	NULL	NULL
+c1295df3-5836-455b-9097-b10478a7acb3	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	15	NULL	delivery	admin	NULL	NULL	Rua Haddock Lobo, 900	1234	NULL	NULL	NULL	NULL	NULL	delivering	pix	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Mariana Pires	1550.00	NULL	2026-02-07 03:59:12.833061+00:00	NULL	NULL	NULL	NULL
+67593c6e-dc8f-43ed-8f73-7f3ccd2c42ac	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	15	NULL	delivery	admin	NULL	NULL	Av. Brigadeiro Faria Lima, 1000	1234	NULL	NULL	NULL	NULL	NULL	delivering	pix	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Gabriel Ramos	1200.00	NULL	2026-02-07 03:59:12.833061+00:00	NULL	NULL	NULL	NULL
+d64ff298-cd09-4b10-9b12-c3c24f4ea9be	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	22	NULL	delivery	admin	NULL	NULL	Praça da Matriz, 50 - Centro, Pompéu - MG	1234	NULL	NULL	NULL	NULL	NULL	delivering	NULL	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Cliente Pompéu 1	2500.00	NULL	2026-02-06 16:03:38.870096+00:00	NULL	NULL	-19.224372	-44.935352
+901a5591-19d4-4870-a23d-87370fbece5d	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	22	NULL	delivery	admin	NULL	NULL	Rua Padre João, 45 - Volta do Brejo, Pompéu - MG	1234	NULL	NULL	NULL	NULL	NULL	delivering	NULL	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Cliente Pompéu 3	2500.00	NULL	2026-02-06 16:03:38.870096+00:00	NULL	NULL	-19.2198	-44.9321
+524c6bff-61ae-48cc-b6f7-f229def5ab5d	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	22	NULL	delivery	admin	NULL	NULL	Av. Gouveia, 1200 - Centro, Pompéu - MG	1234	NULL	NULL	NULL	NULL	NULL	delivering	NULL	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Cliente Pompéu 2	2500.00	NULL	2026-02-06 16:03:38.870096+00:00	NULL	NULL	-19.22654	-44.93921
+fdf869ce-0134-4609-9d89-6966202826fb	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	22	NULL	delivery	admin	NULL	NULL	Rua Dona Maria Rosa, 310 - Planalto, Pompéu - MG	1234	NULL	NULL	NULL	NULL	NULL	delivering	NULL	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Cliente Pompéu 5	2500.00	NULL	2026-02-06 16:03:38.870096+00:00	NULL	NULL	-19.2201	-44.9489
+91054b23-bbc4-4e39-9afb-05cacc0172b6	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	22	NULL	delivery	admin	NULL	NULL	Rua Joaquim Cordeiro, 88 - São Geraldo, Pompéu - MG	1234	NULL	NULL	NULL	NULL	NULL	delivering	NULL	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Cliente Pompéu 4	2500.00	NULL	2026-02-06 16:03:38.870096+00:00	NULL	NULL	-19.2312	-44.9456
+b398eb71-f3af-4ca5-a6b7-20c7ff7cee33	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	NULL	22	NULL	delivery	admin	NULL	NULL	Av. Capitão Joaquim Antônio, 500 - Centro, Pompéu - MG	1234	NULL	NULL	NULL	NULL	NULL	delivering	NULL	paid	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	Cliente Pompéu 6	2500.00	NULL	2026-02-06 16:03:38.870096+00:00	NULL	NULL	-19.2255	-44.9312
+
+TABELA: driver_shifts
+============================================================
+id	driver_id	company_id	started_at	ended_at	total_online_minutes	total_earnings	battery_start_level	vehicle_id	battery_end_level	total_km_driven
+ff601f12-bcd9-4ce9-8c72-71e77475ca95	15	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	2026-02-07 04:00:07.531285+00:00	2026-02-07 11:40:01.624417+00:00	0	0.0	1.0	MOTO-01	NULL	0.0
+feeedde5-73c1-4c3f-9913-f2885ec8916b	15	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	2026-02-07 11:40:01.624417+00:00	2026-02-07 14:28:13.870160+00:00	0	0.0	1.0	MOTO-01	NULL	0.0
+c240e0dd-0f37-4772-9ea0-f52cc25ce061	15	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	2026-02-07 14:28:13.870160+00:00	NULL	0	0.0	1.0	MOTO-01	NULL	0.0
+
+TABELA: user_refresh_tokens
+============================================================
+id	user_id	jti	token_hash	ip_address	user_agent	last_used_at	created_at	expires_at	revoked
+1	15	a7a4c29a7a98abfd954f6f967cb8a08825eb373774a18bb5eac7cb9a4e8a2b75	c4a01d759d2e15a13480d8c71a3a06fd2be5b5d6ec2ad1d6428c204e62e177c2	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 04:58:55.462270+00:00	2026-02-05 04:58:55.462270+00:00	2026-02-12 04:58:57.909456+00:00	False
+2	22	b822b413e14b6808b2f314e616ba8c29cb6226f3a5d8b19089d015eb2b2ee582	a6b79ef068bcf66781c5f6a480b8b8c569b8ffb7e4b9f14db7a49df4ab49708f	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 04:59:05.084851+00:00	2026-02-05 04:59:05.084851+00:00	2026-02-12 04:59:07.532442+00:00	False
+3	22	c796ecedefc20fe72a163b10edea752a11bd9bfb66557a38263f85ba14215f04	8f8547d7aef8bfafeb4153737f07ec2dbe5a237457e94f2612b249384890108f	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 05:20:54.946361+00:00	2026-02-05 05:20:54.946361+00:00	2026-02-12 05:20:57.386508+00:00	False
+5	22	32ec4296b95a759c06da4406757bd92b1ced8b41f1b634e8101d587a90b33bab	b049399a80b8aea96e1e277adba2c3ae30e63d4e051dd64c20dce5d43532117f	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 05:49:07.286868+00:00	2026-02-05 05:49:07.286868+00:00	2026-02-12 05:49:09.678123+00:00	False
+4	15	7bd9a5675941f8722a7e09ac0d1e0d27b29cb8b81393cdc5af7ffffcf9c560f3	809103992e431fe01b2396b8aeb06c8e47703ca061779e0609ab8c3b6ae5b152	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 07:19:20.395884+00:00	2026-02-05 05:48:48.943758+00:00	2026-02-12 05:48:51.342595+00:00	True
+7	15	d13e7f997dcd2fca8d2e095f0aae1c2b29839990bd608e7b1fedc5a36c722177	01207f04366cd1a266dfe2f3350c45b74da382b2c7b54686e757d03176d6d1f3	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 07:19:20.395884+00:00	2026-02-05 07:19:20.395884+00:00	2026-02-12 07:19:22.536434+00:00	False
+6	22	0c2d0259f983d61f29d647f984274573ed82c2054650c70b6ea9fd20d60b875e	ee90decf2119d46bd4ff8b9da994e384de64a847e5a44d1094cb56a7cdf89b06	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 07:36:24.736381+00:00	2026-02-05 07:06:10.751421+00:00	2026-02-12 07:06:13.075490+00:00	True
+8	22	86b84bb5362fe3cb7bef05724f663b59f0545d69836700cd179c2a68364c516e	801289aeeb5c64ef7bedb88b796a391a6900eb2b8d3b1768f6caaac76a5be767	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 08:06:27.077246+00:00	2026-02-05 07:36:24.736381+00:00	2026-02-12 07:36:26.868722+00:00	True
+9	22	5e639a909420af5943287a00cc0e2ff24d099b1b1e136db11f5d5ad6b8ba821b	05edbab53655626b318513c6e45a780ba4c09b0510be624b0d4540791184a2e9	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 08:36:31.678129+00:00	2026-02-05 08:06:27.077246+00:00	2026-02-12 08:06:29.168150+00:00	True
+10	22	2ef8075eb382a34f1e51c64199a6c9e00b0fe90144cb4a5fe861d23a800f2ba9	69d85009c2254a337afbe97b3bfcbf0d721dff75c0f8c0cf7a244733c1937f4e	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 09:06:38.639295+00:00	2026-02-05 08:36:31.678129+00:00	2026-02-12 08:36:33.740408+00:00	True
+12	15	f47b19f6e5b5d8d4c6f9ab3419645db7ad378b19953ef3382b2feb44e79bf8c7	181567d25a10d6b7030dce4da16e1f8b92cca3776cf41ee4451b29981e74b4d9	127.0.0.1	python-requests/2.32.4	2026-02-05 09:08:16.771498+00:00	2026-02-05 09:08:16.771498+00:00	2026-02-12 09:08:18.977281+00:00	False
+13	15	9a8951af9c6744ebc5110fb60b0e0f9c137b2dff95ab2e3ef6992720b9ddf996	82e4413c1506cf27e16739824f759bda943ba3e72647d938bed0b91736a9743e	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36	2026-02-05 09:09:49.788146+00:00	2026-02-05 09:09:49.788146+00:00	2026-02-12 09:09:52.003987+00:00	False
+11	22	7e6c5b498fd873c317c29f1f6813da8abc90b52566c263d7787786ec869e90b4	2e47a95bb773a1a141b0661c03df21bfb3194d1021f0b506f7bc9e76e3a3cc55	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 09:36:45.890820+00:00	2026-02-05 09:06:38.639295+00:00	2026-02-12 09:06:40.685357+00:00	True
+14	22	7c927de999f7d82f4a52d0dfd24bac0e0f55236d0b056f66d3f4ce2cf928d8b7	dee000d33fca99c1a65a82b4aa87116c08576fbb817e43ccfa5e4022a07c85bc	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 10:27:21.430633+00:00	2026-02-05 09:36:45.890820+00:00	2026-02-12 09:36:47.882564+00:00	True
+15	22	90b66fb7750e4a72a6b4b1268c08a4d93e75b0d1acc19df57ca1a33d572a87ee	95b12fcce0f4f3e71d5fb68f42433f16d671ec8b5a041b7826e0db6400579d52	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 11:03:45.598229+00:00	2026-02-05 10:27:21.430633+00:00	2026-02-12 10:27:23.407301+00:00	True
+17	15	a6912acf7150b5464a4ea68482beb2787bbef8bdc0a2182110b35e7d87bf1a7b	5a0144416d7b9408eb339249c679dc438f0781dd8b13f695381e881f94a72290	127.0.0.1	python-requests/2.32.4	2026-02-05 11:07:57.879205+00:00	2026-02-05 11:07:57.879205+00:00	2026-02-12 11:07:59.957376+00:00	False
+16	22	c4bee31e31eb1c517ab5363199e2c6181d2461b1e7574c2636be5f4abaeb95c6	9d4284b1c9538674b3c611a240ae31bbb44bed1b07221382096fa06824b12d63	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 11:33:53.923701+00:00	2026-02-05 11:03:45.598229+00:00	2026-02-12 11:03:47.519652+00:00	True
+18	22	096751561ba0ce253ebb6fd8f13e3feefaf63c179f2d6fb48957206c930f920b	f6859e455c496a543deca369232347c7e3357741b307448062dc68b35ca6f5c7	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 11:33:53.923701+00:00	2026-02-05 11:33:53.923701+00:00	2026-02-12 11:33:55.801904+00:00	False
+19	15	7dee32b8e874ce05d4eeec00c4b34f70ec53055af1429c2f230d40cc0dfa39a0	f7ba0dc7a1428f46f61956c69caaff9551c76c119a2fdb76499152f3212f6180	127.0.0.1	python-requests/2.32.4	2026-02-05 11:36:52.117391+00:00	2026-02-05 11:36:52.117391+00:00	2026-02-12 11:36:54.176115+00:00	False
+20	15	d72a461461d8ad54e64c21a6a4bc2b14ae0b7d85c7c67e5f5f9d2819297830f1	393800d26f4e77f5bec3c6f884188b6ee7091862bc75774e6fc4a79e12de95f3	127.0.0.1	python-requests/2.32.4	2026-02-05 11:38:51.091621+00:00	2026-02-05 11:38:51.091621+00:00	2026-02-12 11:38:53.146646+00:00	False
+21	22	463ff340a29f5bcec59099a6da27ae066668ae849a86d2517e95f43ffbd9650a	ba1b369d3bb367a73eb492126a3784bd17dc3d38f6e7c3be804c64bb05304643	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 12:28:56.641714+00:00	2026-02-05 11:58:48.793821+00:00	2026-02-12 11:58:50.834213+00:00	True
+22	22	9b05d5c2ea2164cdbf2e61639e6a51102d896955f090c4bc506e1164b9ecb384	f38e79886658053830c99ae42a39f616a54f57622bc9bfe6514339ccff310632	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-05 12:28:56.641714+00:00	2026-02-05 12:28:56.641714+00:00	2026-02-12 12:28:58.486680+00:00	False
+23	15	edad7a132ea04bc07b6a3cab4688a10f49221544c8d51f1e073d08ff962474e1	cfa6f70db006c2d5bf4eea5d5665773cdb837be19dc8daa2f6643cca252e8b39	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36	2026-02-05 12:32:05.698892+00:00	2026-02-05 12:32:05.698892+00:00	2026-02-12 12:32:07.706829+00:00	False
+24	15	fc60daf4ea40917f0543387d589f92408d3e9be9881eaf617d92dfa1db7759ee	04155a24a0259afb0286d66d43e5ee805ea557d50a0b2071cf3a46cfbc836d2d	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-06 15:55:54.788420+00:00	2026-02-06 15:55:54.788420+00:00	2026-02-13 15:55:58.739541+00:00	False
+25	22	13c7636cd387d9f928d0d9828592268f6efb9d13ac2da5f7038a3739a746d6b7	a000e2f7caf7a753f0ec3b49e315590dcd2fa9d4678490b3ae47bb8f3007b444	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-06 16:04:49.965112+00:00	2026-02-06 16:04:49.965112+00:00	2026-02-13 16:04:53.905069+00:00	False
+26	15	181f90723aec33ebc17dcc03c18d6e0f4e25e2055ecc24c1f2112b0107be6a95	88345b32eb89a266910e2e931d425e3c594e9a5e5c99c590a1ba12e58fe2d072	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-06 16:05:47.920846+00:00	2026-02-06 16:05:47.920846+00:00	2026-02-13 16:05:51.860259+00:00	False
+27	15	8ca816917f62cb6e2c3961503ae514ff033404b366670d64364663a559b8eb89	33c785a2d15660469b0deb5b413483c73e05a7b987bcb8363652dde117692e97	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-06 16:06:10.975097+00:00	2026-02-06 16:06:10.975097+00:00	2026-02-13 16:06:14.908204+00:00	False
+28	15	046a8fb585d3d5488a5db887d69485107cb0e4f0730f9dc38d8bc6e94f7b92a7	05ada90090d608215c2adf7aca789beaee0242de8d657dfb5971d2e3d83295fc	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-06 16:46:20.883228+00:00	2026-02-06 16:15:25.344375+00:00	2026-02-13 16:15:29.286423+00:00	True
+29	15	c844be47856ec71e950cb997707bd526aa12dfe4cdb0cfd598e1042a41d37b82	0af79057b1754d4f6d9477a94ebb365178f976f1447d0f19f493e16e6c433231	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-06 16:46:20.883228+00:00	2026-02-06 16:46:20.883228+00:00	2026-02-13 16:46:24.618225+00:00	False
+30	22	3cc8ce4c807ea9545478dc70f97e07eaa7e9b90f6f226ce86d280b037d47b388	57b83576836ecf6b2f8b68d8e8b69f0386456c1e4b24bfa95eb47c7c02455dec	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-06 23:28:20.294539+00:00	2026-02-06 22:58:08.475029+00:00	2026-02-13 22:58:08.485391+00:00	True
+31	22	c8e522563a6c58eb7df4b387633f07322e8e818422e67d224d2e7791ce4a62b0	904e1d41af5821d38da4649e69a4fb16f69beb163179d6816e8050ea01c7cbc9	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-06 23:58:35.331635+00:00	2026-02-06 23:28:20.294539+00:00	2026-02-13 23:28:20.092443+00:00	True
+32	22	86b94fd171bf91f9beddd88a998f5ca72369c211ee7f0d4b6549536c6c2cc2c7	65d635cd2c4b6e78d6bf883e597f0a7d36a04707ce8823ae966f4d3ddf8ccece	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-07 00:28:50.526958+00:00	2026-02-06 23:58:35.331635+00:00	2026-02-13 23:58:35.103653+00:00	True
+33	22	4ddbed42462ab55955a8b48791679334634d59658a6ab4f99ca62b490f09d215	e18de96e8b31b412a62e94d23e86e452e0b21ff8333a6f41b9d60f1aa0ed5a12	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-07 00:28:50.526958+00:00	2026-02-07 00:28:50.526958+00:00	2026-02-14 00:28:50.280198+00:00	False
+34	15	c510192bda971fed931f603e1b432743b0a62fcd6817a13a0f03ff4adad04d97	548f11884985999ebe63b2a8d212be0c7f61826baae94852042e52aa77ce6293	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-07 01:07:25.378281+00:00	2026-02-07 01:07:25.378281+00:00	2026-02-14 01:07:25.272981+00:00	False
+35	15	126b7ca1f6b94cdf15035709d98cd72e3c600df737806502dd79edda915da007	d776d3c61c1afa4a292b333ef634c10b9233ee1fcaa9a44814fe13e68e996536	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-07 03:06:12.174388+00:00	2026-02-07 01:14:12.037271+00:00	2026-02-14 01:14:11.934219+00:00	True
+36	15	1a2a52f4f4e4b1a91da3e85a24f62db989148e270318568a2293ee5c0548f8c4	6728b5d9cfb314788c842570f5a644e07af3dfdac3fd40601a6b0187b7c0c1c4	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-07 03:06:12.174388+00:00	2026-02-07 03:06:12.174388+00:00	2026-02-14 03:06:11.787290+00:00	False
+37	15	1779ceb7f142074adb1b6bf07034ca8f8e87e29c58ed45c5ba4b7492fef3bd6a	6beccec735f2c4f9631c116187d82361d8c3f997f635909063660975a9d03360	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-07 03:11:55.329221+00:00	2026-02-07 03:11:55.329221+00:00	2026-02-14 03:11:55.080294+00:00	False
+41	15	a80799e082d4d3f66a8c062f422adba7e9b53f43c133d3c29e3a09bc697b3c56	3a9d6f9459f893eb5c214c80f4fb43d78b171ac573817fb12bbef3f0b757ff34	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-07 12:21:37.082382+00:00	2026-02-07 11:30:28.478280+00:00	2026-02-14 11:30:28.699794+00:00	True
+39	15	3dd95865527975c9927f25d8e295a584c2e582743aaccf5200c02ca0462c4209	7e6b50a01a3a2472570717253f0b404a1cecd60c8382aa4ea60fe7d76b4d1457	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-07 03:45:15.677460+00:00	2026-02-07 03:45:15.677460+00:00	2026-02-14 03:45:15.241570+00:00	False
+38	15	2f496438e67387a0249b120e3e6bc49b344a981dd5c2f78b38c9bf4bc3855e36	d5cc4f2f2095da0d67b62bff464825c73ac344fbfc8e9aa6bc5de2a9ca7a5741	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-07 03:45:15.677070+00:00	2026-02-07 03:13:41.724546+00:00	2026-02-14 03:13:41.473093+00:00	True
+40	15	26791fa736e884fb992f046ec1543ad0c3d3fee33ef81525a5fc324f30caacc1	f2718b47fb75e6da15c2d7753f38de1b7affe04807c70b9dbef475fd801365d2	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-07 11:30:28.478280+00:00	2026-02-07 03:45:15.677070+00:00	2026-02-14 03:45:15.243161+00:00	True
+42	15	e3eaa7351ec29bf10cb19cd0a13a64b01b386f92d4490c50e4a0ad29b17706ad	2112470d8f74d8331db2dabea13c317244b249c56a09d9b37024c92ebdfa9854	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-07 14:27:44.547948+00:00	2026-02-07 12:21:37.082382+00:00	2026-02-14 12:21:37.257539+00:00	True
+43	15	aaa2974b6acb5f145ffbc90341afb7712b8719571e77bba1fc203cb5cec9611d	d57585c9f410342f4e45f589392a171ead0d5a9833703d0d961dc7f0fc9a037e	127.0.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36	2026-02-07 14:27:44.547948+00:00	2026-02-07 14:27:44.547948+00:00	2026-02-14 14:27:44.597033+00:00	False
+
+TABELA: order_items
+============================================================
+id	order_id	product_id	quantity	unit_price	notes
+472	ad241f6a-2f52-4893-a4b6-305582cb90ca	78	2	22.00	NULL
+473	ad241f6a-2f52-4893-a4b6-305582cb90ca	72	1	44.00	NULL
+474	da42bc94-aeff-4e83-9521-0bd1c118e078	72	1	44.00	NULL
+475	da42bc94-aeff-4e83-9521-0bd1c118e078	78	1	22.00	NULL
+476	54f02df2-b1d0-4f59-abec-f45669eb1799	78	1	22.00	NULL
+477	54f02df2-b1d0-4f59-abec-f45669eb1799	72	2	44.00	NULL
+478	7930a7e6-0caf-47d7-96a7-38787dda13ba	78	3	22.00	NULL
+479	0884e73b-efc4-4ebc-b7ce-e52d1f3d8b92	78	2	22.00	NULL
+480	5f0fe93c-9a3d-4bb2-9d5e-ea255d87a1aa	78	3	22.00	NULL
+481	b5820016-c415-4b42-b952-bade8e65042b	72	3	44.00	NULL
+482	350a203e-dd23-4d5a-8dff-85674b8345fc	78	1	22.00	NULL
+483	89609e8a-5ca0-461a-a24b-06c6646d4bb7	78	3	22.00	NULL
+484	89609e8a-5ca0-461a-a24b-06c6646d4bb7	72	2	44.00	NULL
+485	761f2f0f-cc30-403f-a37e-1e260aa738b8	78	8	22.00	NULL
+486	761f2f0f-cc30-403f-a37e-1e260aa738b8	72	2	44.00	NULL
+487	761f2f0f-cc30-403f-a37e-1e260aa738b8	74	1	12.00	NULL
+488	b74f45e4-25ec-482f-ad1f-f8b264d25067	73	1	6.00	NULL
+489	b74f45e4-25ec-482f-ad1f-f8b264d25067	73	1	6.00	NULL
+490	b74f45e4-25ec-482f-ad1f-f8b264d25067	72	1	44.00	NULL
+491	67593c6e-dc8f-43ed-8f73-7f3ccd2c42ac	73	1	1200.00	NULL
+492	c1295df3-5836-455b-9097-b10478a7acb3	73	1	1550.00	NULL
+493	43f12660-5d9e-471d-8654-ba920faaa8e7	73	1	2200.00	NULL
+494	9b2f5073-d392-4951-a350-af91cba76b29	73	1	1800.00	NULL
+495	5de29d2d-5013-4290-add7-8746ae16eef5	73	1	1450.00	NULL
+496	c35ad646-3f00-4758-8d36-c546af67c07d	73	1	990.00	NULL
+497	8321c34e-122f-48f8-aef4-96a58f734f10	73	1	3500.00	NULL
+498	8bd2f904-a823-4633-b852-441e020e26e2	73	1	4200.00	NULL
+499	7da0c947-d4af-4d02-8d61-3a08f126ebd1	73	1	1100.00	NULL
+500	fd9d434f-3cde-4b67-a49f-e74b305c99fb	73	1	2700.00	NULL
+
+TABELA: service_fee_ledger
+============================================================
+id	company_id	employee_id	order_id	amount	created_at
+[Tabela vazia]
+
+TABELA: driver_ledger
+============================================================
+id	company_id	driver_id	order_id	type	amount	description	created_at
+[Tabela vazia]
+
+TABELA: order_feedbacks
+============================================================
+id	order_id	company_id	score	comment	created_at
+[Tabela vazia]
+
+TABELA: order_item_options
+============================================================
+id	order_item_id	option_id	name	price
+[Tabela vazia]
+
+TABELA: tables
+============================================================
+id	company_id	table_number	qr_token	is_active	position_x	position_y	capacity
+1	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	1	staff-override	True	0.00	0.00	4
+2	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	2	staff-override	True	0.00	0.00	4
+3	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	3	staff-override	True	0.00	0.00	4
+5	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	5	staff-override	True	0.00	0.00	4
+6	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	6	staff-override	True	0.00	0.00	4
+7	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	7	staff-override	True	0.00	0.00	4
+8	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	8	staff-override	True	0.00	0.00	4
+9	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	9	staff-override	True	0.00	0.00	4
+10	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	10	staff-override	True	0.00	0.00	4
+
+TABELA: categories
+============================================================
+id	company_id	name	order_index	availability_days	start_time	end_time
+46	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	Lanches	1	NULL	NULL	NULL
+47	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	321321	0	NULL	NULL	NULL
+
+TABELA: financial_ledger
+============================================================
+id	sequence_id	company_id	entry_type	amount	balance_after	category	description	reference_id	integrity_hash	metadata_json	created_at
+[Tabela vazia]
+
+TABELA: audit_logs
+============================================================
+id	company_id	user_name	user_role	action	resource	resource_id	details	ip_address	created_at
+44	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	Hamburgueria do Zé	owner	update	Product	72	{'old': {'is_available': True}, 'new': {'is_available': False}}	127.0.0.1	2026-01-28 22:06:26.954010+00:00
+45	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	Hamburgueria do Zé	owner	update	Product	73	{'old': {'is_available': True}, 'new': {'is_available': False}}	127.0.0.1	2026-01-31 18:54:40.223409+00:00
+46	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	Hamburgueria do Zé	owner	create	Category	47	{'name': '321321'}	127.0.0.1	2026-02-02 05:34:43.075068+00:00
+47	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	Hamburgueria do Zé	owner	update	Product	74	{'old': {'is_available': True}, 'new': {'is_available': False}}	127.0.0.1	2026-02-02 12:22:24.452122+00:00
+48	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	Hamburgueria do Zé	owner	update	Product	72	{'old': {'description': None, 'price': 28.9, 'image_url': None, 'is_available': False}, 'new': {'description': '', 'price': 44.0, 'image_url': '', 'is_available': True}}	127.0.0.1	2026-02-03 18:58:27.143527+00:00
+49	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	Hamburgueria do Zé	owner	create	Product	78	{'name': 'asdasdasd', 'price': 22.0}	127.0.0.1	2026-02-03 19:00:33.531049+00:00
+
+TABELA: feature_flags
+============================================================
+id	company_id	key	is_enabled	created_at
+[Tabela vazia]
+
+TABELA: promotions
+============================================================
+id	company_id	name	code	discount_type	discount_value	min_order_value	max_discount_value	start_date	end_date	usage_limit	current_usage	is_active	created_at
+c51cb735-861f-44a0-83cc-1950516161a9	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	cC	C	percentage	0.08	0.06	NULL	NULL	NULL	NULL	0	True	2026-02-03 13:35:53.427692+00:00
+
+TABELA: companies
+============================================================
+id	name	slug	custom_domain	owner_email	owner_phone	owner_role	password_hash	plan_tier	segment	trial_ends_at	is_active	is_email_verified	stripe_customer_id	stripe_subscription_id	subscription_status	logo_url	banner_url	primary_color	background_color	text_color	accent_color	instagram_url	whatsapp_number	whatsapp_api_url	whatsapp_instance	whatsapp_token	ifood_merchant_id	ifood_token	wifi_ssid	wifi_password	payment_provider	payment_credentials	pix_key	mp_access_token	mp_user_id	marketplace_fee_percentage	pending_commission_balance	loyalty_percentage	service_fee_percentage	fixed_delivery_fee	cnpj	inscricao_estadual	fiscal_token	csc_token	csc_id	opens_at	closes_at	created_at	kiosk_password_hash	qr_config
+bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	Hamburgueria do Zé	hamburgueria-ze	NULL	admin@mesaflow.com	NULL	NULL	$2b$12$lcFqnoV.YHc4xUSAKcOpM.sQ4nsgFfdvA96qm2h2RyAFzPpUoxnM.	pro	gastro	NULL	True	False	NULL	NULL	NULL	NULL	NULL	#ea580c	#f9fafb	#111827	#ea580c	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	none	NULL	NULL	NULL	NULL	0.00	0.00	0.00	10.00	0.00	NULL	NULL	NULL	NULL	NULL	NULL	NULL	2026-01-28 00:52:45.543727+00:00	NULL	{'show_wifi': True, 'show_instagram': True, 'show_steps': True, 'show_logo': True, 'dark_mode': False, 'custom_color': None}
+
+TABELA: webhook_subscriptions
+============================================================
+id	company_id	target_url	events	secret	is_active	created_at
+[Tabela vazia]
+
+TABELA: password_reset_tokens
+============================================================
+id	user_email	token	expires_at	used	created_at
+1	admin@mesaflow.com	7605c155-d0e1-4e0e-ab71-7704c4367907	2026-01-23 17:49:32.264410+00:00	False	2026-01-23 16:49:33.352715+00:00
+2	admin@mesaflow.com	4701093a-f502-438d-97f1-acf32d608c59	2026-01-24 16:09:56.743303+00:00	False	2026-01-24 15:09:56.726041+00:00
+3	admin@mesaflow.com	3f72f25f-74a3-4863-981a-683c61815153	2026-01-24 16:21:48.469215+00:00	False	2026-01-24 15:21:48.470161+00:00
+4	admin@mesaflow.com	2eff430f-4cb1-4b8f-9176-2860999b2a5f	2026-01-24 22:56:43.408770+00:00	False	2026-01-24 21:56:43.766521+00:00
+5	admin@mesaflow.com	764e6c6d-69ef-4ab2-a958-564fadc45215	2026-01-24 22:59:27.206629+00:00	False	2026-01-24 21:59:27.578354+00:00
+6	admin@mesaflow.com	d862ce5c-1547-4148-a56c-9a3ab8796be6	2026-01-25 20:12:24.450035+00:00	False	2026-01-25 19:12:24.196257+00:00
+
+TABELA: suppliers
+============================================================
+id	company_id	name	contact_name	phone	email
+[Tabela vazia]
+
+TABELA: leads
+============================================================
+id	email	source	created_at
+[Tabela vazia]
+
+TABELA: ingredients
+============================================================
+id	company_id	supplier_id	name	unit	current_stock	min_stock_alert	cost_per_unit
+11	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	PÂO	un	50.000	20.000	50.00
+12	bdb014c1-d0fb-4db1-8d77-8b0fa2b785eb	NULL	asas	un	0.000	5.000	0.00
+
+TABELA: payment_transactions
+============================================================
+id	company_id	order_id	provider	external_id	status	amount	created_at
+[Tabela vazia]
+
+TABELA: option_groups
+============================================================
+id	product_id	name	min_selection	max_selection
+[Tabela vazia]
+
