@@ -1,6 +1,6 @@
 # DOMAIN: CI_CD_PIPELINE
-# VERSION: 2.0.1 (Cache Resilient)
-# DESCRIPTION: Orquestrador de integridade corrigido para falhas de resolução de path de cache.
+# VERSION: 2.1.0 (Production Gold)
+# DESCRIPTION: Pipeline de integridade com suporte total a cache e lockfiles.
 name: MesaFlow CI/CD Pipeline
 
 on:
@@ -17,7 +17,6 @@ jobs:
   backend-integrity:
     name: 🐍 Backend Core Check
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
@@ -33,14 +32,12 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: 🔍 Static Analysis & Syntax Check
-        run: |
-          python -m py_compile app/main.py
+      - name: 🔍 Static Analysis
+        run: python -m py_compile app/main.py
 
   frontend-integrity:
     name: ⚛️ Frontend Build Check
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     defaults:
       run:
         working-directory: ./frontend
@@ -53,17 +50,10 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          # 🛡️ FIX: Usa padrão glob para encontrar o arquivo de dependências corretamente
-          cache-dependency-path: frontend/package.json
+          cache-dependency-path: frontend/package-lock.json
 
       - name: 📦 Install Dependencies
-        run: |
-          # Tenta npm ci (mais seguro), mas cai para npm install se o lockfile faltar
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+        run: npm ci
 
       - name: 🏗️ Production Build Validation
         run: npm run build
