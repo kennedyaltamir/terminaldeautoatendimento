@@ -1,3 +1,6 @@
+# DOMAIN: CI_CD_PIPELINE
+# VERSION: 2.2.2 (Emergency Bypass Edition)
+# DESCRIPTION: Remove o sistema de cache para forçar a passagem do build em produção.
 name: MesaFlow CI/CD Pipeline
 
 on:
@@ -22,7 +25,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: 'pip'
 
       - name: 📦 Install Core Dependencies
         run: |
@@ -47,12 +49,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          # 🛡️ FIX: Aponta para o package.json para garantir resolução do path de cache
-          cache-dependency-path: frontend/package.json
+          # 🛡️ CACHE REMOVIDO PARA EVITAR ERRO DE PATH RESOLUTION
 
       - name: 📦 Install Dependencies
-        # 🛡️ FIX: npm install reconstrói o que for preciso sem travar por erro de sincronia
         run: npm install
 
       - name: 🏗️ Production Build Validation
