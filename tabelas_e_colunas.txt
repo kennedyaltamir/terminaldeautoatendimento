@@ -1,0 +1,376 @@
+TABELA [alembic_version]
+
+[version_num] -
+
+TABELA [audit_logs]
+
+[id] -
+[company_id] -
+[user_name] -
+[user_role] -
+[action] -
+[resource] -
+[resource_id] -
+[details] -
+[ip_address] -
+[created_at] -
+
+TABELA [categories]
+
+[id] -
+[company_id] -
+[name] -
+[order_index] -
+[availability_days] -
+[start_time] -
+[end_time] -
+
+TABELA [companies]
+
+[id] -
+[name] -
+[slug] -
+[owner_email] -
+[password_hash] -
+[plan_tier] -
+[is_active] -
+[logo_url] -
+[primary_color] -
+[banner_url] -
+[instagram_url] -
+[whatsapp_number] -
+[wifi_ssid] -
+[wifi_password] -
+[pix_key] -
+[mp_access_token] -
+[mp_user_id] -
+[marketplace_fee_percentage] -
+[loyalty_percentage] -
+[opens_at] -
+[closes_at] -
+[created_at] -
+[custom_domain] -
+[kiosk_password_hash] -
+[whatsapp_api_url] -
+[whatsapp_instance] -
+[whatsapp_token] -
+[owner_phone] -
+[owner_role] -
+
+TABELA [customer_wallets]
+
+[id] -
+[company_id] -
+[customer_phone] -
+[balance] -
+[updated_at] -
+
+TABELA [driver_ledger]
+
+[id] -
+[company_id] -
+[driver_id] -
+[order_id] -
+[type] -
+[amount] -
+[description] -
+[created_at] -
+
+TABELA [driver_shifts]
+
+[id] -
+[driver_id] -
+[company_id] -
+[started_at] -
+[ended_at] -
+[total_online_minutes] -
+[total_earnings] -
+[battery_start_level] -
+[vehicle_id] -
+
+TABELA [driver_telemetry]
+
+[id] -
+[journey_id] -
+[driver_id] -
+[lat] -
+[lng] -
+[speed] -
+[heading] -
+[accuracy] -
+[battery_level] -
+[timestamp] -
+
+TABELA [employees]
+
+[id] -
+[company_id] -
+[name] -
+[email] -
+[password_hash] -
+[role] -
+[is_active] -
+[created_at] -
+[updated_at] -
+
+TABELA [feature_flags]
+
+[id] -
+[company_id] -
+[key] -
+[is_enabled] -
+[created_at] -
+
+TABELA [financial_ledger]
+
+[id] -
+[sequence_id] -
+[company_id] -
+[entry_type] -
+[amount] -
+[balance_after] -
+[category] -
+[description] -
+[reference_id] -
+[integrity_hash] -
+[metadata_json] -
+[created_at] -
+
+TABELA [ingredients]
+
+[id] -
+[company_id] -
+[name] -
+[unit] -
+[current_stock] -
+[min_stock_alert] -
+[cost_per_unit] -
+
+TABELA [leads]
+
+[id] -
+[email] -
+[source] -
+[created_at] -
+
+TABELA [logistics_journeys]
+
+[id] -
+[shift_id] -
+[order_id] -
+[driver_id] -
+[status] -
+[accepted_at] -
+[pickup_at] -
+[arrival_at] -
+[completed_at] -
+[distance_km] -
+[delivery_fee] -
+[tip_amount] -
+[pod_code_input] -
+[pod_location_lat] -
+[pod_location_lng] -
+[company_id] -
+
+TABELA [option_groups]
+
+[id] -
+[product_id] -
+[name] -
+[min_selection] -
+[max_selection] -
+
+TABELA [options]
+
+[id] -
+[group_id] -
+[name] -
+[price] -
+[is_available] -
+
+TABELA [order_feedbacks]
+
+[id] -
+[order_id] -
+[company_id] -
+[score] -
+[comment] -
+[created_at] -
+
+TABELA [order_item_options]
+
+[id] -
+[order_item_id] -
+[option_id] -
+[name] -
+[price] -
+
+TABELA [order_items]
+
+[id] -
+[order_id] -
+[product_id] -
+[quantity] -
+[unit_price] -
+[notes] -
+
+TABELA [orders]
+
+[id] -
+[company_id] -
+[table_id] -
+[session_id] -
+[order_type] -
+[customer_phone] -
+[delivery_address] -
+[subtotal] -
+[discount_amount] -
+[cashback_earned] -
+[status] -
+[payment_method] -
+[payment_status] -
+[mp_payment_id] -
+[mp_qr_code] -
+[mp_qr_code_base64] -
+[customer_name] -
+[total_amount] -
+[device_fingerprint] -
+[created_at] -
+[finished_at] -
+
+TABELA [password_reset_tokens]
+
+[id] -
+[user_email] -
+[token] -
+[expires_at] -
+[used] -
+[created_at] -
+
+TABELA [payment_transactions]
+
+[id] -
+[company_id] -
+[order_id] -
+[provider] -
+[external_id] -
+[status] -
+[amount] -
+[created_at] -
+
+TABELA [product_recipes]
+
+[id] -
+[product_id] -
+[ingredient_id] -
+[quantity_required] -
+
+TABELA [product_recommendations]
+
+[source_product_id] -
+[target_product_id] -
+
+TABELA [products]
+
+[id] -
+[category_id] -
+[name] -
+[description] -
+[price] -
+[image_url] -
+[is_available] -
+[track_stock] -
+[stock_quantity] -
+[station] -
+[tags] -
+
+TABELA [promotions]
+
+[id] -
+[company_id] -
+[name] -
+[code] -
+[discount_type] -
+[discount_value] -
+[min_order_value] -
+[max_discount_value] -
+[start_date] -
+[end_date] -
+[usage_limit] -
+[current_usage] -
+[is_active] -
+[created_at] -
+
+TABELA [service_fee_ledger]
+
+[id] -
+[company_id] -
+[employee_id] -
+[order_id] -
+[amount] -
+[created_at] -
+
+TABELA [service_requests]
+
+[id] -
+[company_id] -
+[table_id] -
+[service_type] -
+[notes] -
+[status] -
+[created_at] -
+
+TABELA [suppliers]
+
+[id] -
+[company_id] -
+[name] -
+[contact_name] -
+[phone] -
+[email] -
+
+TABELA [table_sessions]
+
+[id] -
+[company_id] -
+[table_id] -
+[customer_name] -
+[customer_phone] -
+[session_token] -
+[access_pin] -
+[is_active] -
+[created_at] -
+[closed_at] -
+[opened_by_employee_id] -
+
+TABELA [tables]
+
+[id] -
+[company_id] -
+[table_number] -
+[qr_token] -
+[is_active] -
+[position_x] -
+[position_y] -
+
+TABELA [user_devices]
+
+[id] -
+[company_id] -
+[employee_id] -
+[fcm_token] -
+[platform] -
+[device_name] -
+[updated_at] -
+[created_at] -
+
+TABELA [webhook_subscriptions]
+
+[id] -
+[company_id] -
+[target_url] -
+[events] -
+[secret] -
+[is_active] -
+[created_at] -
+

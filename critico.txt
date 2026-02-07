@@ -1,0 +1,34 @@
+Estamos em estado de produção a partir de agora, tudo deve funcionar estritamente. comece redigindo um script extremamente detalhado que varre toda a  atela do entregador http://localhost:3000/admin/hamburgueria-ze/driver, checa todos os elementos interagíveis e olha se está tudo em conformidade. caso encontrarmos conformidade pelo caminho vocÊ necessariamente me fornecerá os arquivos corrigidos. CAso necessitar de credenciais em plataformas especializadas, necessariamente, iremos redigir um mock no arquivo . env.local por enquanto. MAs é extremamente crítico a partir de agora. O objetivo crítico é colocar a tela do entregador para rodar totalmente. A partir de agora apenas te mando os erros, vocÊ me envia os arquivos completos, profissionais e para produção. Nada deve ser removido, apenas acrecentado. comece redigindo a resposta anterior agora completa. irei te enviar meus arquivos que não estiverem em conformidade para correção.
+
+
+
+
+
+Estamos em estado de produção a partir de agora, tudo deve funcionar estritamente. comece redigindo os arquivos completos, profissionais e prontos para a produção, devemos mostrar potencia tecnotlógica, leveza e inteligência ao mesmo tempo que mostramos que o futuro tecnológico está cada ves mais perto. Agora me envie os arquivos  profissionais e para produção. Nada deve ser removido, apenas acrecentado.  Corrija os erros a seguir para colocar todas as funcionalidades em ordem urgentemente. Abaixo está a resposta do script gerado e a imagem que foi retirada do teste. Devemos testar todas as funcionalidades presentes e checar se elas estão de acordo com nosso banco de dados. Adicione o que for necessário e cheque todos os componentess, tudo deve estar impecável. REdija os arquivos sem comentários  e extemamente profissionais como um engenheiro com muita experiencia. Todos os modais desse arquivo em específicico que estamos tratando devem estar em conformidade.
+
+
+
+
+
+Estamos em estado de produção a partir de agora, tudo deve funcionar estritamente. 
+O arquivo abaixo aparentemente está sofrendo um downgrade na sua versão, corrija sabiamente implementando o que falta, redija novamente analisando as duas versões que re enviarei a seguir. Redija uma versão unificada, pronta para produção, sem comentários e demonstrando leveza e profissionalidade.Ela deve ser moderna, interativa e voltar para a tela inicial em 5 segundos. Atualmente ela apenas fica estática.Adicione o que for necessário e cheque todos os componentess, tudo deve estar impecável. REdija os arquivos sem comentários  e extemamente profissionais como um engenheiro com muita experiencia. Todos os modais desse arquivo em específicico que estamos tratando devem estar em conformidade.
+
+
+
+
+
+-
+Excelente que funcionou, vamos agora implementar que esta tela que eu te mandei na foto ao colocar a senha,  apareça a segunda tela que te enviei. Na segunda tela vamos melhorar a animação e a aparecendia da tela. Ela deve ser moderna, interativa e voltar para a tela inicial em 5 segundos. Atualmente ela apenas fica estática.
+
+
+
+
+
+
+
+
+Excelente, vamos para mais implementaçõse. estamos em estágio crítico de implementação de produção. temos pouco tempo pra tudo. coloque logs e retire todos os comentários que aparecere. faça o máximo de implementações de acordo com a documentação. continue com as implementações, sem comentários e com logs instrutivos.
+
+
+
+Estamos em estado de produção a partir de agora, tudo deve funcionar estritamente. comece redigindo um script extremamente detalhado que varre toda a  atela do entregador http://localhost:3000/admin/hamburgueria-ze/driver, checa todos os elementos interagíveis e olha se está tudo em conformidade. caso encontrarmos conformidade pelo caminho vocÊ necessariamente me fornecerá os arquivos corrigidos. CAso necessitar de credenciais em plataformas especializadas, necessariamente, iremos redigir um mock no arquivo . env.local por enquanto. MAs é extremamente crítico a partir de agora. O objetivo crítico é colocar a tela do entregador para rodar totalmente. A partir de agora apenas te mando os erros, vocÊ me envia os arquivos completos, profissionais e para produção. Nada deve ser removido, apenas acrecentado. comece redigindo a resposta anterior agora completa. irei te enviar meus arquivos que não estiverem em conformidade para correção.

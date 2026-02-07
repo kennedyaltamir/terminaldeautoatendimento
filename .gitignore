@@ -158,7 +158,6 @@ ignorar
 .mesaflow_cache
 logs
 
-*.txt
 *.json
 *.md
 # PWA Build Artifacts

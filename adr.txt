@@ -1,0 +1,944 @@
+
+===============================
+FILE: ADR-000A_OPERATIONAL_PHILOSOPHY.md
+===============================
+# ADR-000A: MesaFlow OS — Filosofia Operacional e Eliminação de Latência
+
+**Status:** ACEITA
+**Decisores:** MesaFlow Kernel Board
+**Foco:** Visão Executiva e Estratégica
+
+## 1. O Problema: O Custo da Fila e da Incerteza
+Sistemas tradicionais de gestão falham porque tratam a operação como um registro passivo de eventos passados. Em ambientes de alta pressão, a **Fila** não é apenas uma linha de espera; é um **vazamento de margem operacional**, gerando:
+* **Abandono de Compra:** Fricção no checkout reduz conversão.
+* **Inércia Humana:** Funcionários sem direção clara geram "bolhas" de atraso.
+* **Estresse Sistêmico:** Decisões sob pressão sem dados geram erros e churn.
+
+## 2. A Solução: Orquestração Simétrica
+O MesaFlow OS não é um software de pedidos. É um **Sistema de Eliminação de Latência**. Ele transforma a operação em um fluxo contínuo e sincronizado entre:
+1. **Intenção (Cliente):** Transformada em dado instantâneo.
+2. **Capacidade (Produção/Serviço):** Orquestrada por demanda real.
+3. **Logística (Distribuição):** Integrada ao tempo de preparo.
+
+## 3. Pilares da Soberania Operacional
+* **Fluxos Determinísticos:** A tecnologia guia o humano para a próxima tarefa de maior valor.
+* **Throughput como Prioridade:** O sucesso é medido pela vazão total do sistema, não por tarefas isoladas.
+* **Visibilidade Prescritiva:** O dashboard não apenas mostra o erro, ele sugere a correção (ex: mover staff entre setores).
+
+## 4. Business Equation (Equação de Valor)
+`↑ Throughput Operacional (Sem aumento de Headcount) = ↑ Margem Líquida + ↓ Time-to-Revenue`
+
+---
+*Este documento define a alma do MesaFlow OS e orienta todas as decisões técnicas subsequentes.*
+
+
+===============================
+FILE: ADR-000B_ANTI_GOALS.md
+===============================
+# ADR-000B: Anti-Goals e Não-Objetivos (Escopo Estratégico)
+
+**Status:** ACEITA  
+**Objetivo:** Manter o foco absoluto na orquestração de fluxo.
+
+## 1. O que NÃO somos
+Para garantir a soberania no combate às filas, o MesaFlow OS recusa-se a ser:
+* **ERP Contábil/Fiscal Generalista:** Não substituímos sistemas de contabilidade complexos. Integramos com eles via API.
+* **CRM de Marketing de Massa:** Não somos uma ferramenta de envio de spam. Focamos em retenção via fidelidade tática (Cashback).
+* **Gestor de Folha de Pagamento:** Monitoramos a produtividade do funcionário, mas não processamos tributos trabalhistas.
+
+## 2. Motivação
+A tentativa de resolver problemas periféricos gera "Feature Creep" e degrada a performance do motor de decisão central (The Kernel).
+
+
+===============================
+FILE: ADR-000_INDEX.md
+===============================
+# ADR-000: Índice de Soberania Arquitetural e Estratégia de Fluxos
+
+**Status:** ATIVO  
+**Data:** Fevereiro de 2026  
+**Versão:** 13.2.0 (Enterprise Gold Edition)  
+**Contexto:** Governança Técnica, Soberania de Dados e Orquestração Operacional
+
+Este documento é a "Fonte Única da Verdade" do MesaFlow OS. Ele cataloga as decisões fundamentais que transformam o código em um ativo estratégico de alta vazão (throughput).
+
+---
+
+## 🎯 Missão Estratégica
+O MesaFlow OS não é um software de pedidos; é um **Sistema de Orquestração de Atendimento e Produção em Tempo Real**. Seu objetivo central é a neutralização de filas e a eliminação da latência operacional através da sincronização determinística entre atores humanos e sistemas digitais.
+
+---
+
+## 🗺️ Mapa de Domínios e Decisões
+
+### 🧠 I. Filosofia e Estratégia (Nível C-Level)
+| ID | Título | Foco de Negócio | Status |
+| :--- | :--- | :--- | :--- |
+| [ADR-000A](./ADR-000A_OPERATIONAL_PHILOSOPHY.md) | Filosofia Operacional | Visão Sistêmica e ROI | ACEITA |
+| [ADR-016](./ADR-016_NORTH_STAR_METRIC.md) | North Star Metric: Lead Time Total (LTT) | Eficiência de Atendimento | ACEITA |
+| [ADR-017](./ADR-017_GRACEFUL_DEGRADATION.md) | Degradação Elegante e Modos de Crise | Continuidade do Negócio | ACEITA |
+| [ADR-019](./ADR-019_QUEUE_DOMAIN_ENTITY.md) | Fila (Queue) como Entidade de Domínio | Gestão Científica de Fluxos | ACEITA |
+
+### 🧱 II. Infraestrutura e Núcleo (Hardening)
+| ID | Título | Tecnologia | Impacto |
+| :--- | :--- | :--- | :--- |
+| [ADR-001](./ADR-001_FASTAPI_BACKEND.md) | FastAPI Backend Framework | Performance e IA | ACEITA |
+| [ADR-002](./ADR-002_NEON_POSTGRESQL.md) | PERSISTÊNCIA: Neon PostgreSQL | Escalabilidade Serverless | ACEITA |
+| [ADR-003](./ADR-003_RENDER_RUNTIME.md) | RUNTIME: Render.com | Deploy Contínuo (GitOps) | ACEITA |
+| [ADR-004](./ADR-004_DUAL_HEALTH_ENDPOINT.md) | Estratégia de Dual Health Endpoint | Observabilidade SRE | ACEITA |
+| [ADR-007](./ADR-007_REDIS_PUBSUB.md) | ORQUESTRAÇÃO: Redis Pub/Sub | Sincronia em Milissegundos | ACEITA |
+
+### 🔐 III. Segurança e Governança (Compliance)
+| ID | Título | Protocolo | Garantia |
+| :--- | :--- | :--- | :--- |
+| [ADR-005](./ADR-005_SECURITY_HARDENING.md) | Segurança L7: RLS + Bcrypt Nativo | Isolamento de Tenants | ACEITA |
+| [ADR-015](./ADR-015_OPERATIONAL_IDENTITY.md) | Identidade Operacional (RBAC) | Segregação de Funções | ACEITA |
+| [ADR-018](./ADR-018_HUMAN_OVERRIDE.md) | Política de Override e Accountability | Auditoria de Decisão | ACEITA |
+
+### 🕹️ IV. Interface e Lógica de Estado (Experiência)
+| ID | Título | Arquitetura | UX Outcome |
+| :--- | :--- | :--- | :--- |
+| [ADR-006](./ADR-006_NEXTJS_16_TURBOPACK.md) | Next.js 16 e Turbopack | Interação Instantânea | ACEITA |
+| [ADR-008](./ADR-008_FINITE_STATE_MACHINES.md) | Máquinas de Estado Finitas (FSM) | Determinismo Operacional | ACEITA |
+| [ADR-009](./ADR-010_OFFLINE_FIRST_SYNC.md) | Sincronia Offline: IndexedDB/Dexie | Resiliência de Campo | ACEITA |
+| [ADR-010](./ADR-010_SOVEREIGN_PAGE_FACTORY.md) | Sovereign Page Factory | Padronização de Fluxos | ACEITA |
+| [ADR-012](./ADR-012_OPERATIONAL_THEATER_MODE.md) | Interface Tática: Theater Mode | Foco e Segurança | ACEITA |
+
+### 💰 V. Ecossistema Financeiro e Simulação
+| ID | Título | Integração | ROI |
+| :--- | :--- | :--- | :--- |
+| [ADR-011](./ADR-011_FINTECH_ORCHESTRATION.md) | Fintech: Stripe + Mercado Pago | Liquidez e Assinaturas | ACEITA |
+| [ADR-020](./ADR-020_OPERATIONAL_SIMULATION.md) | Motor de Simulação "What-If" | Planejamento de Carga | ACEITA |
+
+---
+| :--- | :--- | :--- |
+| [000A](./ADR-000A_OPERATIONAL_PHILOSOPHY.md) | Filosofia Operacional | Estratégia C-Level |
+| [000B](./ADR-000B_ANTI_GOALS.md) | Anti-Goals | Defesa de Escopo |
+| [013](./ADR-013_HUMAN_FLOW_ORCHESTRATION.md) | Orquestração Humana | Maestro Operacional |
+| [021](./ADR-021_OPERATIONAL_EVENT_MODEL.md) | Modelo de Eventos | Nó de Execução |
+| [022](./ADR-022_ECONOMIC_GUARDRAILS.md) | Human Guardrails | Ética e Sustentabilidade |
+
+| :--- | :--- | :--- | :--- |
+| [007](./ADR-007_DISTRIBUTED_MESSAGING.md) | Redis Streams | Resiliência | Persistência de eventos financeiros |
+| [008](./ADR-008_FSM_FLEXIBILITY.md) | FSM Determinística | Lógica | Soft Overrides para humanos |
+| [016](./ADR-016_NORTH_STAR_METRIC.md) | Lead Time Total | KPIs | Eficiência comprovada por dado |
+| [025](./ADR-025_DECISION_LIABILITY.md) | Decision Liability | Jurídico | Proteção de responsabilidade |
+| [026](./ADR-026_ANALYTICS_CQRS.md) | Analytics Strategy | Escala | BI Cross-tenant em alta velocidade |
+
+
+## 📈 Glossário de Métricas Soberanas
+*   **Lead Time Total (LTT):** Tempo da intenção à entrega real.
+*   **Throughput (Vazão):** Unidades de valor (pedidos) processadas por hora.
+*   **Cycle Time:** Tempo de permanência do fluxo em um nó específico da FSM.
+*   **Policy Drift:** Desvio entre a configuração organizacional e a prática local.
+
+---
+*Este índice é monitorado automaticamente. Qualquer modificação estrutural sem o rito de atualização de ADR resultará em bloqueio de Governança L6.*
+
+===============================
+FILE: ADR-001_FASTAPI_BACKEND.md
+===============================
+# ADR-001: Adoção de FastAPI como Backend Framework
+
+**Status:** ACEITA (Soberana)
+**Data:** Outubro de 2025 (Revisada em Fevereiro de 2026)
+**Versão:** 2.0
+**Decisores:** MesaFlow OS Kernel, Architecture Lead
+
+## 1. Contexto
+O MesaFlow OS opera como um Sistema Operacional para Food Service, exigindo:
+1. **Baixa Latência:** Respostas de API < 100ms para PDV e KDS.
+2. **Real-time:** Conexões persistentes via WebSockets para sincronia de pedidos.
+3. **Segurança Financeira:** Validação rigorosa de payloads de pagamento (Pix/Stripe) para evitar *Data Corruption*.
+4. **Prontidão para IA:** Facilidade de integração com bibliotecas de Data Science (Scikit-learn, Pandas) para o motor de predição de demanda.
+
+## 2. Decisão
+Adotamos **FastAPI (Python 3.11+)** com **Pydantic v2** como o núcleo do Kernel Backend.
+
+## 3. Justificativa Técnica
+* **Performance Brutal:** Baseado em Starlette (ASGI), o FastAPI oferece performance comparável ao Go e Node.js em cenários de alta concorrência.
+* **Validação por Contrato:** O uso exaustivo do Pydantic garante que nenhum dado malformado entre no banco de dados Neon, servindo como primeira barreira de segurança.
+* **Autodocumentação (OpenAPI):** Redução de 40% no tempo de integração entre Frontend e Backend através da geração automática do Swagger.
+* **Ecossistema IA:** A escolha do Python nos permite rodar o `AiPredictionService` nativamente no mesmo processo do Kernel, reduzindo latência de rede entre microsserviços.
+
+## 4. Alternativas Consideradas
+
+| Alternativa | Veredito | Motivo do Descarte |
+| :--- | :--- | :--- |
+| **Django** | REJEITADO | Síncrono por design em muitas camadas, overhead excessivo de ORM para o que o MesaFlow exige. |
+| **Node.js (NestJS)** | REJEITADO | Embora rápido, a fragmentação do ecossistema de criptografia e a dificuldade de lidar com Python para IA criariam um débito técnico futuro. |
+| **Go (Gin/Echo)** | REJEITADO | Alta performance, mas curva de aprendizado e velocidade de iteração (Time-to-Market) inferiores ao Python para o MVP. |
+
+## 5. Consequências
+
+### ✅ Positivas
+* **Concorrência:** Capacidade nativa de lidar com milhares de entregadores conectados simultaneamente.
+* **Tipagem Estrita:** Uso de *Type Hints* do Python 3 permite detecção de erros em tempo de desenvolvimento.
+* **Extensibilidade:** Integração simplificada com Redis Pub/Sub (ADR-007).
+
+### ⚠️ Negativas
+* **Gestão de Dependências:** Exige disciplina rigorosa com `requirements.txt` e ambientes virtuais (.venv).
+* **Desenho de Segurança:** Ao contrário do Django, o FastAPI exige que a arquitetura de segurança (JWT, OAuth2) seja desenhada e implementada manualmente (implementado com sucesso na ADR-005).
+
+## 6. Compliance
+Esta decisão cumpre os requisitos de Soberania Técnica e Escalabilidade Horizontal definidos para o MesaFlow OS.
+
+---
+*Documento selado pelo protocolo de Governança Cognitiva.*
+
+===============================
+FILE: ADR-002_NEON_POSTGRESQL.md
+===============================
+# ADR-002: Uso de Neon.tech (PostgreSQL Serverless)
+
+**Status:** ACEITA (Soberana)
+**Data:** Outubro de 2025 (Revisada em Fevereiro de 2026)
+**Versão:** 2.0
+**Decisores:** MesaFlow OS Kernel, Infrastructure Council
+
+## 1. Contexto
+O MesaFlow OS exige uma camada de persistência que suporte:
+1. **Isolamento Lógico (Multi-tenancy):** Implementação nativa de Row-Level Security (RLS) para garantir que os dados da "Hamburgueria A" sejam invisíveis para a "Pizzaria B".
+2. **Elasticidade Extrema:** Capacidade de lidar com picos de tráfego (ex: horário de almoço ou grandes eventos) sem intervenção manual de escala.
+3. **Resiliência de Dados:** Backups granulares e ritos de recuperação instantânea em caso de corrupção lógica.
+4. **Forense e Debugging:** Necessidade de testar correções em ambientes que espelham exatamente a produção (Volume e Schema).
+
+## 2. Decisão
+Adotamos o **Neon.tech (PostgreSQL Serverless)** como motor de persistência primário.
+
+## 3. Justificativa Técnica
+* **Arquitetura de Separação (Compute/Storage):** Ao contrário do RDS tradicional, o Neon separa processamento de armazenamento. Isso permite o rito de *Scale-to-Zero* (economia em desenvolvimento) e *Instant Scaling* (performance em produção).
+* **Soberania via RLS:** O Neon oferece suporte total às políticas de segurança do PostgreSQL (implementadas via migrations Alembic), sendo o executor final da nossa política de isolamento de tenants.
+* **Database Branching (Forense):** Capacidade única de criar um "clone" instantâneo do banco de dados de produção para um ambiente de homologação. Essencial para o nosso protocolo de **Autópsia de Bugs** sem afetar usuários reais.
+* **Sincronia com FastAPI:** O uso de *Connection Pooling* nativo (via PgBouncer/Endpoint de transação) resolve o problema de limite de conexões comum em arquiteturas serverless assíncronas.
+
+## 4. Alternativas Consideradas
+
+| Alternativa | Veredito | Motivo do Descarte |
+| :--- | :--- | :--- |
+| **AWS RDS** | REJEITADO | Custo fixo elevado e lentidão no scaling vertical. Exigiria gestão manual de VPCs e manutenção de patches. |
+| **Supabase** | REJEITADO | Oferece muitos recursos de aplicação (Auth, Edge Functions) que o MesaFlow já possui nativamente no Kernel, gerando redundância e dependência tecnológica excessiva. |
+| **Postgres Nativo (Docker)** | REJEITADO | Inviável para produção em larga escala sem uma equipe dedicada de DBA para gerenciar backups, replicação e disponibilidade. |
+
+## 5. Consequências
+
+### ✅ Positivas
+* **Time-to-Production:** Zero tempo gasto em provisionamento de hardware.
+* **Integridade:** Uso de *Point-in-Time Recovery* (PITR) permite retornar o sistema a qualquer segundo anterior a uma falha crítica.
+* **Economia:** O faturamento é baseado apenas no consumo real de processamento.
+
+### ⚠️ Negativas
+* **Latência de "Cold Start":** No plano gratuito, a primeira requisição após inatividade pode demorar (>2s). *Mitigação:* Uso do plano Pro/Autoscale para produção.
+* **Dependência de Infra Externo:** Embora o dado seja Postgres padrão, a orquestração de escala e branching é proprietária do Neon.
+
+## 6. Compliance
+Esta decisão está em conformidade com as diretrizes de LGPD e segurança de dados, utilizando criptografia em repouso e isolamento de tenant via RLS validado na ADR-005.
+
+---
+*Documento selado pelo protocolo de Governança Cognitiva.*
+
+===============================
+FILE: ADR-003_RENDER_RUNTIME.md
+===============================
+# ADR-003: Render.com como Plataforma de Runtime
+
+**Status:** ACEITA (Soberana)
+**Data:** Novembro de 2025 (Revisada em Fevereiro de 2026)
+**Versão:** 2.0
+**Decisores:** MesaFlow OS Kernel, DevOps Council
+
+## 1. Contexto
+O MesaFlow OS exige um ambiente de execução que suporte:
+1. **Conexões Persistentes (WebSockets):** O monitor de cozinha (KDS) e o cockpit do motorista dependem de túneis de baixa latência que não podem ser interrompidos por timeouts de arquiteturas "Serverless" puras.
+2. **Background Workers:** Necessidade de rodar processos assíncronos contínuos para o `IfoodService` (polling/webhooks) e processamento de `FinancialLedger`.
+3. **GitOps Nativo:** Fluxo de deploy automatizado via `main` branch com ritos de rollback imediato.
+4. **Comunicação Privada:** Isolamento de rede para que o Kernel API e o Redis não fiquem expostos à internet pública, comunicando-se apenas via rede interna.
+
+## 2. Decisão
+Adotamos **Render.com** como o ecossistema de runtime para o Backend (Web Service), Workers e orquestração de infraestrutura.
+
+## 3. Justificativa Técnica
+* **Suporte Nativo a WebSockets:** Diferente do Vercel ou AWS Lambda, o Render permite conexões HTTP persistentes sem limite de execução (Timeouts de 30s-60s), o que é vital para a sincronia do salão e produção.
+* **Orquestração de Instâncias (Scale-Out):** Facilidade em escalar o número de instâncias do Kernel Backend em resposta à carga detectada pelo nosso motor de monitoramento.
+* **Blueprints (Infrastructure as Code):** Uso de `render.yaml` para garantir que o ambiente de Produção seja um espelho exato do ambiente de Staging, eliminando o erro "funciona na minha máquina".
+* **Auto-Healing:** O Render monitora o rito de boot e, caso o Kernel API falhe (ex: erro de configuração de ENV ou porta), ele impede o tráfego de chegar à nova instância, garantindo zero tempo de inatividade (*Zero Downtime Deploys*).
+
+## 4. Alternativas Consideradas
+
+| Alternativa | Veredito | Motivo do Descarte |
+| :--- | :--- | :--- |
+| **AWS ECS (Fargate)** | REJEITADO | Complexidade excessiva de IAM e VPC para a fase atual. Alto tempo gasto em "encanamento de infra" em vez de lógica de negócio. |
+| **Heroku** | REJEITADO | Preços proibitivos para instâncias que não entram em sleep. Limitações de rede privada no plano padrão. |
+| **Vercel (Backend)** | REJEITADO | Inadequado para WebSockets e tarefas de longa duração. Inviabiliza o motor de integração com iFood e o Sentinel Mode. |
+
+## 5. Consequências
+
+### ✅ Positivas
+* **Segurança L7:** SSL (TLS 1.3) gerenciado e renovado automaticamente.
+* **Forense:** Acesso centralizado a logs de runtime e histórico de deploys.
+* **Rede Interna:** Latência mínima na comunicação entre API e Redis.
+
+### ⚠️ Negativas
+* **Build Time:** O processo de build de containers Docker pode demorar de 3 a 5 minutos, o que exige um fluxo de Staging/QA antes do merge na `main`.
+* **Lock-in Parcial:** Dependência das funcionalidades de rede interna do Render.
+
+## 6. Compliance
+Esta decisão está alinhada com as normas ISO 27001 para gestão de ativos e disponibilidade de serviço (SLA de 99.9%).
+
+---
+*Documento selado pelo protocolo de Governança Cognitiva.*
+
+===============================
+FILE: ADR-004_DUAL_HEALTH_ENDPOINT.md
+===============================
+# ADR-004: Estratégia de Dual Health Endpoint
+
+**Status:** ACEITA (Soberana)
+**Data:** Janeiro de 2026 (Revisada em Fevereiro de 2026)
+**Versão:** 2.0
+**Decisores:** MesaFlow OS Kernel, SRE Council
+
+## 1. Contexto
+A resiliência operacional do MesaFlow OS depende da capacidade de ferramentas externas e internas (Load Balancers do Render, UptimeRobot, Prometheus) validarem a vitalidade do Kernel. 
+Dificuldades identificadas:
+1. **Conveção vs. Estrutura:** Ferramentas de infraestrutura PaaS/IaaS buscam `/health` na raiz por padrão.
+2. **Isolamento de Roteamento:** Erros em roteadores específicos da API (ex: `/api/v1/auth`) poderiam, em teoria, "cegar" o monitoramento se este estivesse aninhado no mesmo prefixo.
+3. **SLA Transparency:** Necessidade de expor o estado de saúde para o *Trust Center* público sem expor detalhes sensíveis da infraestrutura.
+
+## 2. Decisão
+Implementar **Dual Path Binding** para a lógica de monitoramento. Um único controlador de saúde (Sentinel Probe) é mapeado simultaneamente para:
+*   `/health` (Escopo de Infraestrutura / Root)
+*   `/api/health` (Escopo de Integração / Namespace API)
+
+## 3. Justificativa Técnica
+* **Decorator Stacking:** O FastAPI permite empilhar rotas (`@app.get("/health")` + `@router.get("/health")`) sobre a mesma função assíncrona, garantindo que a lógica de verificação (DB Ping, Redis Check, Memória) seja idêntica em ambos os caminhos.
+* **Compatibilidade "Out-of-the-box":** Elimina a necessidade de configurações personalizadas em Load Balancers, reduzindo a chance de erro humano no provisionamento da infraestrutura.
+* **Resiliência do Kernel:** Se o roteador principal da API falhar ao carregar devido a uma dependência quebrada, o endpoint de saúde da raiz (`/health`) ainda pode responder, permitindo que o Sentinel identifique o erro exato (ex: 500 ou 503) em vez de um 404 genérico.
+* **Sovereign Transparency:** Facilita a alimentação da página de status pública (`/trust/status`), servindo como base para o cálculo automático de SLA.
+
+## 4. Alternativas Consideradas
+
+| Alternativa | Veredito | Motivo do Descarte |
+| :--- | :--- | :--- |
+| **307 Temporary Redirect** | REJEITADO | Muitos agentes de monitoramento simplistas não seguem redirecionamentos e marcariam o sistema como "Down". |
+| **Path Aliasing via Nginx** | REJEITADO | Adiciona complexidade fora do controle do Kernel. O MesaFlow deve ser autossuficiente e "cloud-agnostic". |
+| **Apenas `/api/health`** | REJEITADO | Gera falsos positivos em ferramentas que não permitem customização de path de healthcheck. |
+
+## 5. Consequências
+
+### ✅ Positivas
+* **Monitoramento Robusto:** Suporte universal a qualquer ferramenta de observabilidade do mercado.
+* **Zero Overhead:** A lógica é centralizada e processada uma única vez; o mapeamento duplo é apenas uma entrada na tabela de rotas do Kernel.
+* **Documentação Limpa:** Ambas as rotas são incluídas no OpenAPI, facilitando o trabalho da equipe de DevOps.
+
+### ⚠️ Negativas
+* **Exposição Visual:** Duas entradas no Swagger para a mesma função (mitigado pelo uso de Tags e agrupação de "Infrastructure").
+
+## 6. Compliance
+Esta estratégia garante a rastreabilidade contínua da disponibilidade do sistema, conforme exigido pelos ritos de Governança Cognitiva L7.
+
+---
+*Documento selado pelo protocolo de Governança Cognitiva.*
+
+===============================
+FILE: ADR-005_SECURITY_HARDENING_STRATEGY.md
+===============================
+# ADR-005: Hardening de Segurança (RLS, Bcrypt Nativo e Headers)
+
+**Status:** ACEITA (Soberana)
+**Data:** Janeiro de 2026 (Revisada em Fevereiro de 2026)
+**Versão:** 2.1 (Gold Master Edition)
+**Decisores:** MesaFlow OS Kernel, Security Architecture
+
+## 1. Contexto
+O MesaFlow OS é um ambiente multi-tenant que processa dados financeiros, fiscais e operacionais. 
+**Threat Model (Modelo de Ameaça):**
+1. **Comprometimento da Camada de Aplicação:** Se um invasor ganhar controle da API, ele não deve conseguir ler dados de outros restaurantes.
+2. **Erro Humano (Desenvolvimento):** Desenvolvedores podem esquecer cláusulas `.filter(company_id=...)` em novas rotas.
+3. **Engenharia Social / Brute Force:** Tentativas de acesso indevido via senhas fracas ou payloads malformados.
+
+## 2. Decisão
+Implementar o **Protocolo de Defesa em Profundidade (L7)**:
+1. **Isolamento de Persistência (RLS):** Row-Level Security nativo no PostgreSQL acionado via variável de sessão `app.current_company_id`.
+2. **Soberania de Criptografia:** Abandono de middlewares obsoletos (passlib) em favor do driver nativo `bcrypt` com rito de truncamento mandatório (72 bytes).
+3. **Blindagem de Transporte:** Injeção de Headers de Segurança (HSTS, CSP, X-Frame-Options) via middleware global.
+4. **Sessão Forense:** Uso de JTIs únicos e rotação de Refresh Tokens para impedir *Replay Attacks*.
+
+## 3. Justificativa Técnica
+* **RLS como Invariante:** Ao definir a política no banco (`USING (company_id = current_setting('app.current_company_id'))`), o próprio motor do Postgres bloqueia a leitura. Se o código da API tentar ler "tudo", o banco retornará apenas o que pertence ao tenant logado. É a segurança que independe do código.
+* **Bcrypt Nativo (Rito de Estabilidade):** Identificamos que abstrações de terceiros falham em ambientes modernos. O uso direto de `bcrypt.hashpw` garante que senhas < 72 bytes não causem *Kernel Panics* e permaneçam seguras.
+* **Headers de Segurança:** Protegem contra ataques de *Cross-Site Scripting (XSS)* e *Clickjacking*, garantindo que a interface do MesaFlow seja renderizada apenas em contextos confiáveis.
+* **Auditoria Estruturada:** Todo evento de segurança (Login, Falha de Auth, Reset de Senha) é logado em formato JSON para ingestão imediata por sistemas de SIEM (como o Sentry).
+
+## 4. Alternativas Consideradas
+
+| Alternativa | Veredito | Motivo do Descarte |
+| :--- | :--- | :--- |
+| **Filtros via ORM** | REJEITADO | Extremamente propenso a erro humano. Um único `query(Order).all()` sem filtro causaria um vazamento massivo de privacidade. |
+| **Bancos Separados** | REJEITADO | Custo de manutenção de infraestrutura cresce exponencialmente com o número de clientes. Inviável para modelo SaaS de alta escala. |
+
+## 5. Consequências
+
+### ✅ Positivas
+* **Imunidade IDOR:** Ataques de troca de ID de recurso (Insecure Direct Object Reference) são neutralizados no nível do hardware/banco.
+* **Conformidade LGPD:** Atende nativamente aos requisitos de "Privacidade por Design".
+* **Confiança Operacional:** Erros de desenvolvimento que cruzariam dados são capturados pelo banco antes de chegarem à tela do cliente.
+
+### ⚠️ Negativas
+* **Overhead de Sessão:** Toda conexão de banco exige o rito `SET LOCAL app.current_company_id`.
+* **Complexidade Analítica:** Relatórios globais (BI da plataforma) exigem bypass explícito da política de segurança (bypassRLS).
+
+## 6. Compliance
+Esta ADR serve como documento oficial para auditorias SOC2 e Due Diligence de clientes Enterprise.
+
+---
+*Documento selado pelo protocolo de Governança Cognitiva.*
+
+===============================
+FILE: ADR-006_NEXTJS_16_TURBOPACK.md
+===============================
+# ADR-006: Migração para Next.js 16 e Turbopack
+
+**Status:** ACEITA
+**Data:** Janeiro de 2026 (Revisada em Fevereiro de 2026)
+**Versão:** 1.0
+**Decisores:** MesaFlow OS Kernel, Frontend Architecture Lead
+
+## 1. Contexto
+O frontend do MesaFlow OS cresceu para mais de 40 páginas e centenas de componentes. O uso de Webpack (padrão em versões anteriores) resultava em:
+1. **Slow HMR:** O tempo de atualização em desenvolvimento (Hot Module Replacement) excedia 5 segundos em páginas complexas como o Dashboard.
+2. **Hydration Mismatch:** Complexidade em gerenciar estados de servidor e cliente.
+3. **Build Latency:** CI/CD no Render.com demorava mais de 8 minutos para compilar a aplicação.
+
+## 2. Decisão
+Adotamos o **Next.js 16.x** com o motor de compilação **Turbopack (Rust-based)** e o **React 19** como base.
+
+## 3. Justificativa Técnica
+* **Performance do Turbopack:** Redução de até 90% no tempo de inicialização do servidor de desenvolvimento e compilação incremental instantânea.
+* **Server Actions & Components (RSC):** Migração da lógica de busca de dados para o servidor, reduzindo o bundle de JavaScript enviado para o cliente e melhorando o SEO/LCP.
+* **Async Params Compliance:** Adoção do novo padrão de acesso assíncrono a `params` e `searchParams`, garantindo compatibilidade com o rito de renderização do Next.js 16.
+* **Strict Hydration:** Melhorias no motor de reconciliação do React 19 eliminam erros de inconsistência visual entre servidor e cliente (Hydration Mismatch).
+
+## 4. Alternativas Consideradas
+
+| Alternativa | Veredito | Motivo do Descarte |
+| :--- | :--- | :--- |
+| **Next.js 14/15 (Webpack)** | REJEITADO | Limitação de performance em projetos de grande escala. Débito técnico iminente. |
+| **Vite (Pure React)** | REJEITADO | Ausência de roteamento baseado em arquivos nativo e falta de suporte nativo a Server Components de forma integrada como o Next.js. |
+
+## 5. Consequências
+
+### ✅ Positivas
+* **Developer Experience (DX):** Feedback instantâneo durante o desenvolvimento.
+* **Standalone Output:** Build otimizado para containers Docker, reduzindo o tamanho da imagem de produção.
+* **Typed Routes:** Segurança de tipos em toda a árvore de navegação.
+
+### ⚠️ Negativas
+* **Breaking Changes:** Exige refatoração de hooks e ritos de acesso a parâmetros (implementado com sucesso na v13.0).
+* **Experimental Edge:** Algumas funcionalidades do Turbopack ainda estão em fase de refinamento.
+
+## 6. Compliance
+Esta decisão garante que a interface do MesaFlow OS seja a mais rápida do mercado em sua categoria, cumprindo o KPI de "Interação Instantânea".
+
+ 
+
+===============================
+FILE: ADR-007_DISTRIBUTED_MESSAGING.md
+===============================
+# ADR-007: Orquestração Real-time e Persistência de Eventos
+
+**Status:** ACEITA (Hardened)
+**Versão:** 2.0 (Migration Path to Redis Streams)
+
+## 1. Contexto
+A propagação de eventos no MesaFlow OS (KDS, Logística) é crítica. O modelo anterior (Pub/Sub puro) é volátil e não garante entrega em caso de instabilidade de rede ou reinício do servidor.
+
+## 2. Decisão
+Utilizar o Redis como backplane de mensagens, mas com diferenciação de criticidade:
+1. **Eventos Efêmeros (ex: digitação, telemetria intermediária):** Pub/Sub padrão (Fire-and-forget).
+2. **Eventos Críticos (ex: Pagamento, Mudança de Status de Pedido):** **Redis Streams** com grupos de consumo.
+
+## 3. Limites e Resiliência
+* **Garantia de Entrega:** Uso de `XACK` para confirmar processamento. Mensagens não confirmadas são recuperadas via rito de auditoria periódico.
+* **Failure Mode:** Se o Redis falhar, o Kernel entra em modo "Fail-Open Local", degradando para polling de banco de dados a cada 15s até a restauração do backplane.
+* **Escalabilidade:** Testado para suportar até 5.000 conexões simultâneas por cluster Redis standard.
+
+## 4. Business Equation
+`Confiabilidade de Mensagem = 99.9% de Pedidos Sincronizados em < 200ms`
+
+
+===============================
+FILE: ADR-007_REDIS_PUBSUB.md
+===============================
+# ADR-007: Orquestração Real-time via Redis Pub/Sub
+
+**Status:** ACEITA
+**Data:** Janeiro de 2026
+**Versão:** 1.0
+**Decisores:** MesaFlow OS Kernel, SRE Lead
+
+## 1. Contexto
+O MesaFlow OS exige que atualizações de pedidos (KDS) e localização (Logística) sejam propagadas em milissegundos. WebSockets tradicionais em memória funcionam bem em um único servidor, mas falham em cenários de escala horizontal onde o cliente está conectado à Instância A e o evento ocorre na Instância B.
+
+## 2. Decisão
+Adotar o **Redis Pub/Sub** como o barramento de mensagens (Backplane) para WebSockets e cache de estado efêmero.
+
+## 3. Justificativa Técnica
+* **Cross-Instance Messaging:** O Redis permite que um evento de "Pedido Pronto" gerado por um worker de backend chegue a qualquer cliente conectado em qualquer réplica da API.
+* **Desacoplamento:** Remove a necessidade de persistência de sessão de soquete no processo Python, permitindo reinícios do Kernel sem perda de lógica de sinalização.
+* **Performance:** Latência de sub-milissegundos para distribuição de mensagens.
+
+## 4. Consequências
+* **✅ Positivas:** Escalabilidade infinita do frontend e backend; suporte nativo a salas de chat por `company_slug`.
+* **⚠️ Negativas:** Adiciona o Redis como ponto único de falha crítico (mitigado pelo modo Fail-Open do `WebSocketManager`).
+
+
+===============================
+FILE: ADR-008_FINITE_STATE_MACHINES.md
+===============================
+# ADR-008: Lógica de Negócio via Máquinas de Estado (FSM)
+
+**Status:** ACEITA
+**Data:** Fevereiro de 2026
+**Versão:** 1.0
+**Decisores:** MesaFlow OS Kernel, Logic Systems Designer
+
+## 1. Contexto
+Sistemas de Food Service e Logística lidam com fluxos de trabalho lineares mas críticos. Um pedido não pode ser "Entregue" se não foi "Aceito", e um motorista não pode estar "Em Rota" se o seu turno está "Offline". O uso de variáveis booleanas espalhadas (`isLoading`, `isAccepted`) gera o chamado "Estado Impossível" e bugs de UI difíceis de rastrear.
+
+## 2. Decisão
+Implementar toda a lógica de transição crítica (KDS, Cockpit do Motorista, Pagamentos) utilizando **Máquinas de Estado Finitas (FSM)** determinísticas.
+
+## 3. Justificativa Técnica
+* **Determinismo:** O sistema possui estados mutuamente exclusivos (ex: IDLE, ASSIGNED, EN_ROUTE). É impossível para o código forçar uma transição ilegal.
+* **Previsibilidade:** O comportamento do sistema é definido por um mapa de transições claro, facilitando a escrita de testes automatizados (Playwright) e auditorias forenses.
+* **Isolamento de Erro:** Se uma transição falha, o sistema sabe exatamente de onde veio e para onde deve retornar (Rollback de Estado), evitando que a interface fique travada.
+* **Sincronia Offline-First:** A FSM permite enfileirar eventos quando a rede cai e processá-los na ordem lógica correta quando a conexão retorna (Protocolo Replay).
+
+## 4. Implementação no MesaFlow
+1. **DriverMachine:** Controla o ciclo de vida do entregador (Shift -> Mission -> POD).
+2. **KdsReducer:** Controla a fila de produção (Pending -> Preparing -> Ready -> Bump).
+3. **TableFSM:** Gerencia a ocupação física do salão e ritos de PIN.
+
+## 5. Alternativas Consideradas
+
+| Alternativa | Veredito | Motivo do Descarte |
+| :--- | :--- | :--- |
+| **Nested If/Else Logic** | REJEITADO | Resulta em código "espaguete" e estados inconsistentes em alta concorrência. |
+| **Redux Saga / Thunk** | REJEITADO | Overhead excessivo de boilerplate para lógica que é inerentemente sequencial e dependente do domínio. |
+
+## 6. Consequências
+
+### ✅ Positivas
+* **Bugs Zero em Transição:** Eliminação total de erros onde um pedido "some" ou pula etapas.
+* **Telemetria Rica:** Cada transição de estado gera um log auditável no `financial_ledger` ou `audit_logs`.
+* **UX Tática:** A interface reage instantaneamente ao estado da máquina (ex: Theater Mode).
+
+### ⚠️ Negativas
+* **Rigidez:** Mudanças no fluxo de negócio exigem a atualização formal do mapa de transições da máquina.
+* **Curva de Design:** Exige que o desenvolvedor pense no fluxo completo antes de escrever o código da tela.
+
+---
+*Este rito de lógica garante a Soberania Operacional do MesaFlow OS.*
+
+ 
+
+===============================
+FILE: ADR-009_OFFLINE_FIRST_SYNC.md
+===============================
+# ADR-009: Arquitetura Offline-First com IndexedDB/Dexie
+
+**Status:** ACEITA
+**Data:** Fevereiro de 2026
+**Versão:** 1.2
+**Decisores:** Mobile Architecture Lead
+
+## 1. Contexto
+Entregadores e garçons operam frequentemente em "Zonas Sombra" (elevadores, subsolos, túneis). Perder uma confirmação de entrega ou um pedido por queda de sinal 4G/Wi-Fi é inaceitável operacionalmente.
+
+## 2. Decisão
+Implementar uma camada de persistência local baseada em **IndexedDB (via Dexie.js)** com um motor de sincronização em segundo plano.
+
+## 3. Justificativa Técnica
+* **Optimistic UI:** A interface confirma a ação imediatamente para o usuário (FSM avança), enquanto o dado é enfileirado localmente.
+* **Background Sync:** O sistema monitora a volta da conectividade e executa o rito de "Replay" das ações pendentes com controle de idempotência.
+* **Integridade:** Uso de checksums para garantir que o dado salvo no dispositivo não foi corrompido durante a espera.
+
+## 4. Consequências
+* **✅ Positivas:** Experiência de uso ininterrupta; zero perda de dados logísticos.
+* **⚠️ Negativas:** Aumento da complexidade no tratamento de conflitos de versão do banco local (vincular `version_num`).
+
+
+===============================
+FILE: ADR-010_SOVEREIGN_PAGE_FACTORY.md
+===============================
+# ADR-010: Padronização via Sovereign Page Factory
+
+**Status:** ACEITA
+**Data:** Fevereiro de 2026
+**Versão:** 1.0
+
+## 1. Contexto
+A proliferação de páginas administrativas criou inconsistências no rito de carregamento, tratamento de erros e conexões WebSocket.
+
+## 2. Decisão
+Centralizar a criação de rotas através da **SovereignPageFactory**, um Higher-Order Component (HOC) que injeta automaticamente:
+1. Contexto de Cart (Carrinho).
+2. Conexão WebSocket para o Slug.
+3. Guardas de Autenticação.
+
+## 3. Justificativa Técnica
+* **DRY (Don't Repeat Yourself):** Elimina centenas de linhas de código repetido de `useEffect` e `use(params)`.
+* **Segurança:** Garante que nenhuma página "esqueça" de validar o token ou injetar o Tenant ID.
+
+## 4. Consequências
+* **✅ Positivas:** Velocidade de criação de novas telas aumentada em 300%.
+* **⚠️ Negativas:** Abstração que exige compreensão do padrão `RenderProps` por novos desenvolvedores.
+
+
+===============================
+FILE: ADR-011_FINTECH_ORCHESTRATION.md
+===============================
+# ADR-011: Estratégia de Pagamentos (Stripe + Mercado Pago)
+
+**Status:** ACEITA
+**Data:** Fevereiro de 2026
+**Versão:** 1.0
+
+## 1. Contexto
+O MesaFlow possui duas necessidades financeiras distintas: cobrança SaaS (B2B) e transações operacionais na mesa/totem (B2C).
+
+## 2. Decisão
+Adotar uma estratégia híbrida:
+* **Stripe:** Para gestão de planos, assinaturas e faturamento de recorrência.
+* **Mercado Pago:** Para a operação física (Pix na mesa, Split de pagamento e QR Code dinâmico).
+
+## 3. Justificativa Técnica
+* **Stripe (SaaS):** Melhor infraestrutura mundial para cobrança de software e conformidade tributária global.
+* **Mercado Pago (Operação):** Líder em Pix no Brasil, com as menores latências de confirmação via Webhook e facilidade de onboarding para os lojistas do MesaFlow.
+
+## 4. Consequências
+* **✅ Positivas:** Melhor custo-benefício por transação; separação clara entre "Dinheiro do MesaFlow" e "Dinheiro do Cliente".
+* **⚠️ Negativas:** Necessidade de manter dois fluxos de integração e duas chaves secretas no `.env`.
+
+
+===============================
+FILE: ADR-012_OPERATIONAL_THEATER_MODE.md
+===============================
+# ADR-012: Interface Tática (Theater Mode) para Cockpits
+
+**Status:** ACEITA
+**Data:** Fevereiro de 2026
+**Versão:** 1.1
+
+## 1. Contexto
+Motoristas e cozinheiros trabalham sob alto estresse cognitivo. Elementos de interface comuns (navegação, saldos, logos) competem pela atenção e podem causar erros operacionais.
+
+## 2. Decisão
+Implementar o **Theater Mode (Modo Teatro)**: quando uma tarefa crítica está ativa (ex: motorista em rota ou KDS em saturação), o sistema expurga automaticamente todos os elementos não essenciais.
+
+## 3. Justificativa Técnica
+* **Foco Cognitivo:** Redução da carga de informação. O motorista vê apenas o mapa e o botão de chegada.
+* **Segurança:** Botões de "Sair" ou "Perfil" são movidos para camadas profundas (Drawer) para evitar cliques acidentais durante a operação.
+
+## 4. Consequências
+* **✅ Positivas:** Redução de incidentes por distração; UX de nível industrial.
+* **⚠️ Negativas:** Exige lógica de visibilidade acoplada ao estado da FSM.
+
+
+===============================
+FILE: ADR-013_HUMAN_FLOW_ORCHESTRATION.md
+===============================
+# ADR-013: Orquestração de Fluxos Humanos e Prioridades Dinâmicas
+
+**Status:** ACEITA
+**Data:** Fevereiro de 2026
+
+## 1. Contexto
+Sistemas tradicionais são passivos; eles apenas listam pedidos. Em operações de alto volume, o erro humano na escolha de "qual tarefa fazer primeiro" gera filas em cascata. O MesaFlow precisa atuar como um **Maestro Operacional**.
+
+## 2. Decisão
+Implementar um motor de priorização dinâmica que distribui tarefas para operadores (Garçons, Cozinheiros, Entregadores) baseado em:
+1. **SLA Breach Risk:** Tempo restante para violar o compromisso de entrega.
+2. **Physical Proximity:** Localização do operador em relação à tarefa (Logística).
+3. **Operator Load:** Nível de saturação detectado pela FSM de cada colaborador.
+
+## 3. Justificativa Técnica
+* **Balanceamento de Carga:** Evita que um entregador fique ocioso enquanto outro está sobrecarregado.
+* **Prevenção de Gargalos:** O sistema identifica se a "Cozinha" está mais lenta que o "Bar" e sugere redistribuição de staff se as flags de competência permitirem.
+
+## 4. Business Outcome (Impacto de Negócio)
+* **Aumento de 25% no Throughput:** Mais pedidos processados com o mesmo número de funcionários.
+* **Redução de Estresse Operacional:** O operador não decide "o que fazer", ele apenas executa a próxima missão otimizada.
+
+
+===============================
+FILE: ADR-013_OPERATIONAL_FLOW_MODEL.md
+===============================
+# ADR-013: Modelo de Fluxos Operacionais e Orquestração de Atores
+
+**Status:** ACEITA
+**Data:** Fevereiro de 2026
+
+## 1. Contexto
+Sistemas legados tratam pedidos como registros estáticos em uma tabela. O MesaFlow OS trata cada pedido como um **Evento de Fluxo** que deve atravessar diversos nós (Atores) com latência mínima.
+
+## 2. Decisão
+Implementar um modelo de orquestração onde cada papel humano é um nó ativo no sistema:
+*   **Atores:** Cliente, Garçom, Produção (Cozinha/Bar), Distribuição (Entregador).
+*   **Protocolo:** Toda transação é baseada em eventos via Redis Pub/Sub, garantindo que a ação de um ator (ex: Cliente pede conta) dispare uma reação imediata no nó responsável (ex: Tablet do Garçom vibra).
+
+## 3. Business Outcome
+*   **Escalabilidade Humana:** A operação escala o volume de atendimento sem a necessidade de aumentar o staff na mesma proporção.
+*   **Previsibilidade:** O gestor sabe exatamente em qual "nó" o fluxo está estagnado.
+
+
+===============================
+FILE: ADR-014_OPERATIONAL_OBSERVABILITY.md
+===============================
+# ADR-014: Observabilidade Operacional e Monitoramento de Fluxo
+
+**Status:** ACEITA
+
+## 1. Contexto
+Logs técnicos (200 OK, 500 Error) são insuficientes para gestores enterprise. Eles precisam saber onde a **Fila** está estagnada.
+
+## 2. Decisão
+Expor métricas de fluxo em tempo real através de:
+1. **Heatmaps de Atendimento:** Identificação visual de zonas físicas (mesas/setores) com maior latência.
+2. **Cycle Time por Estado:** Tempo médio que um pedido gasta em cada estágio da FSM.
+3. **Taxa de Abandono de Checkout:** Identificação de fricção no rito de pagamento.
+
+## 3. Business Outcome
+* **Identificação de Causa Raiz:** Diferenciar se um atraso é falta de staff ou falha de equipamento.
+* **SLA Compliance:** Prova auditável de tempos de atendimento para contratos de concessão (ex: Estádios/Aeroportos).
+
+
+===============================
+FILE: ADR-014_QUEUE_INTELLIGENCE.md
+===============================
+# ADR-014: Gestão de Filas, Prioridades Dinâmicas e SLA
+
+**Status:** ACEITA
+
+## 1. Contexto
+A "Fila" é o anti-padrão central. Filas geram abandono, estresse e churn. A arquitetura deve tratar a fila como um dado prioritário a ser otimizado.
+
+## 2. Decisão
+Implementar um **Motor de Inteligência de Fila**:
+1. **Priorização Determinística:** Uso de FIFO (First-In, First-Out) com *Priority Overrides* para pedidos críticos (ex: VIP ou atrasos detectados).
+2. **Alertas de Saturação:** Se o tempo médio de um estado na FSM exceder o SLA configurado, o Kernel dispara notificações de escalonamento para o supervisor.
+3. **Throughput Tracking:** Medição contínua de "Pedidos por Hora" por estação de trabalho.
+
+## 3. Métricas de Sucesso (KPIs)
+*   **Wait Time:** Tempo total entre a intenção do cliente e a entrega.
+*   **Cycle Time:** Tempo de processamento interno em cada nó.
+*   **Saturation Index:** Nível de carga de cada operador humano.
+
+
+===============================
+FILE: ADR-015_MULTI_UNIT_SCALING.md
+===============================
+# ADR-015: Escalabilidade Organizacional e Governança Multi-Unidade
+
+**Status:** ACEITA
+
+## 1. Contexto
+Clientes Enterprise operam centenas de unidades. O sistema deve permitir a expansão de 1 para 1000 lojas sem degradação da gestão central.
+
+## 2. Decisão
+Implementar arquitetura de **Unidades Hierárquicas**:
+1. **Tenant Isolation (L1):** Dados isolados por loja (RLS).
+2. **Group Governance (L2):** Visibilidade agregada para franquias ou redes através de tokens de auditoria soberanos.
+3. **Provisioning Automático:** Configuração de uma nova unidade (Cardápio, Equipe, Impressoras) em menos de 5 minutos via templates de domínio.
+
+## 3. Business Outcome
+* **Agilidade de Expansão:** Redução do custo de setup de novas filiais.
+* **Controle Centralizado:** Dashboards consolidados para CFOs e COOs.
+
+
+===============================
+FILE: ADR-015_OPERATIONAL_IDENTITY.md
+===============================
+# ADR-015: Identidade Operacional e Segregação de Responsabilidade (RBAC)
+
+**Status:** ACEITA
+
+## 1. Contexto
+Em ambientes enterprise, a segurança não é apenas contra hackers, mas também contra erros operacionais. Um entregador não deve ter acesso ao faturamento; um cozinheiro não deve alterar preços.
+
+## 2. Decisão
+Adotar um modelo de **Identidade Baseada em Papéis (Role-Based Access Control)** vinculada a contextos de tela estritos:
+*   **Contexto Admin:** Gestão, Auditoria e Configuração Core.
+*   **Contexto Staff:** Operação de campo, execução de tarefas e chamados.
+*   **Audit Trail:** Cada mudança de estado na FSM é carimbada com o `employee_id` do executor, criando uma trilha forense de produtividade.
+
+## 3. Justificativa
+Garantir que a integridade operacional e financeira seja mantida através da especialização das interfaces (Cockpits), reduzindo a curva de aprendizado e o risco de má utilização.
+
+
+===============================
+FILE: ADR-016_NORTH_STAR_METRIC.md
+===============================
+# ADR-016: North Star Metric — Lead Time Total (LTT)
+
+**Status:** ACEITA
+**Tags:** Metrics, Business Intelligence, Performance
+
+## 1. Contexto
+Para otimizar um sistema, precisamos de uma métrica única que resuma a eficiência de todos os nós. Métrica técnica (Uptime) ou financeira (Revenue) isoladas não capturam o gargalo operacional.
+
+## 2. Decisão
+Adotar o **Lead Time Total (LTT)** como a Métrica Soberana (North Star) do MesaFlow OS.
+* **Definição:** O intervalo de tempo exato entre a **Intenção de Compra** (abertura do menu/totem) e a **Entrega Efetiva** (POD confirmado).
+
+## 3. Justificativa Técnica
+O LTT é a soma das eficiências de todos os componentes:
+1. **UX Latency:** Tempo de navegação e decisão no cardápio.
+2. **Fintech Latency:** Tempo de confirmação do pagamento.
+3. **Production Latency:** Tempo de preparo no KDS.
+4. **Logistics Latency:** Tempo de trânsito.
+
+## 4. Business Outcome
+* **Fidelização:** Quanto menor o LTT, maior o NPS e a recompra.
+* **Eficiência:** Reduzir o LTT em 10% sem aumentar o staff aumenta a capacidade instalada da unidade em 10%.
+
+
+===============================
+FILE: ADR-017_GRACEFUL_DEGRADATION.md
+===============================
+# ADR-017: Degradação Operacional Elegante e Modos de Crise
+
+**Status:** ACEITA
+
+## 1. Contexto
+Sistemas enterprise quebram quando tentam operar em "estado perfeito" durante o caos (falta de staff, queda parcial de internet, picos anormais).
+
+## 2. Decisão
+Implementar modos de **Degradação Elegante (Fail-Soft)** controlados por FSM:
+1. **Modo Staff Reduzido:** O sistema prioriza pedidos de balcão e pausa automaticamente o autoatendimento se o LTT de produção exceder o limiar de segurança.
+2. **Modo Saturação (SLA Alert):** Quando a fila (Queue) atinge capacidade crítica, o sistema ajusta o tempo estimado para o cliente final em tempo real, evitando falsas expectativas.
+3. **Modo Contingência (Offline):** Persistência em IndexedDB (ADR-009) com sincronia assíncrona após restauração.
+
+## 3. Justificativa
+A autoridade do sistema deve proteger a marca do cliente. É melhor pausar um canal de venda do que aceitar um pedido que não será entregue no SLA.
+
+
+===============================
+FILE: ADR-019_QUEUE_DOMAIN_ENTITY.md
+===============================
+# ADR-019: A Fila (Queue) como Entidade de Domínio de Primeira Classe
+
+**Status:** ACEITA
+
+## 1. Contexto
+Historicamente, filas são subprodutos de listas de pedidos. Para o MesaFlow, a **Fila** é o objeto central a ser processado.
+
+## 2. Decisão
+Modelar `Queue` como uma entidade explícita no domínio:
+* **Entrada:** `IngressEvent` (Pedido, Chamado, Pagamento).
+* **Processamento:** `PrioritizationEngine` (FIFO + Weights).
+* **Saída:** `EgressEvent` (Produção Iniciada, Rota Iniciada).
+
+## 3. Mapping to Theory of Constraints (TOC)
+* **Exploração do Gargalo:** O sistema identifica o nó mais lento (ex: Cozinha) e dita o ritmo de entrada (Drum-Buffer-Rope), evitando o transbordamento operacional de outros setores.
+
+## 4. Impacto
+Permite a implementação do **Digital Twin Operacional**, onde o gestor pode simular cenários: "E se eu adicionar um operador neste nó?"
+
+
+===============================
+FILE: ADR-022_ECONOMIC_GUARDRAILS.md
+===============================
+# ADR-022: Economic & Human Guardrails (Proteção de Ativos)
+
+**Status:** ACEITA  
+
+## 1. Contexto
+A otimização matemática agressiva do Throughput pode levar ao esgotamento (burnout) da equipe e queda na qualidade do produto final.
+
+## 2. Decisão
+Implementar **Limitadores de Saturação**:
+* **Max Operator Load:** O sistema impede o envio de novos pedidos para um nó de produção se o tempo de preparo estimado exceder 200% do SLA padrão.
+* **Flow Throttling:** Redução automática da velocidade de entrada (Kiosk/QR) para preservar a integridade da entrega.
+* **Fair Distribution:** Algoritmo de distribuição de tarefas que evita sobrecarga repetitiva em um único colaborador.
+
+## 3. Business Equation
+`Produção Sustentável = Throughput Máximo - Risco de Turnover`
+
+
+===============================
+FILE: ADR-023_MARKETPLACE_SHOCK_ABSORPTION.md
+===============================
+# ADR-023: Tratamento de Choques de Demanda Externa (iFood/Marketplaces)
+
+**Status:** ACEITA  
+
+## 1. Contexto
+Marketplaces externos (iFood/Rappi) são fontes de carga imprevisíveis que podem "sequestrar" a capacidade de produção do restaurante, prejudicando o cliente local (Dine-in).
+
+## 2. Decisão
+Implementar **Camadas de Isolamento de Demanda**:
+1. **Virtual Buffering:** Pedidos externos possuem uma fila de prioridade separada, permitindo ao gestor priorizar o cliente físico em horários de pico.
+2. **Auto-Pause Threshold:** O MesaFlow sinaliza para o integrador (iFood) pausar a loja se o LTT (Lead Time Total) interno atingir o modo de crise (ADR-017).
+
+## 3. Impacto
+Proteção da experiência do cliente presencial, garantindo que a "fila invisível" do delivery não destrua a reputação do salão.
+
+
+===============================
+FILE: ADR-025_DECISION_LIABILITY_BOUNDARY.md
+===============================
+# ADR-025: Limites de Responsabilidade e Decisão Automatizada
+
+**Status:** ACEITA
+**Tags:** Legal, Ethics, Compliance
+
+## 1. Contexto
+O sistema sugere alocação de equipe e priorização de filas. Erros nessas sugestões podem ter consequências financeiras ou trabalhistas.
+
+## 2. Decisão
+O MesaFlow OS opera sob o princípio de **Copiloto Operacional**:
+* **Automação de Fluxo:** O sistema automatiza a *comunicação*, mas a *decisão final de execução* é do operador humano.
+* **Isenção Algorítmica:** Recomendações de redistribuição de staff (ADR-013) são classificadas como "Sugestões de Otimização", não ordens imperativas.
+* **Human-in-the-loop:** Ações críticas (Cancelamentos, Estornos, Mudança de Preço) exigem interação humana explícita.
+
+## 3. Compliance
+Garantir que os Termos de Uso (ToS) reflitam que o software é uma ferramenta de suporte à decisão, transferindo a responsabilidade operacional para o gestor da unidade.
+
+
+===============================
+FILE: ADR-026_ANALYTICS_CQRS_STRATEGY.md
+===============================
+# ADR-026: Estratégia de Dados para BI de Alta Performance
+
+**Status:** ACEITA
+
+## 1. Contexto
+O Row-Level Security (RLS) impõe um overhead de performance que inviabiliza consultas analíticas complexas (BI) em tempo real para redes com centenas de unidades.
+
+## 2. Decisão
+Adotar o padrão **CQRS (Command Query Responsibility Segregation)** para dados de BI:
+1. **Write Model (Transactional):** Neon PostgreSQL com RLS ativo (ADR-002, 005).
+2. **Read Model (Analytics):** Replicação assíncrona (CDC) para um Data Warehouse (ex: ClickHouse ou BigQuery) sem as travas de RLS.
+
+## 3. Justificativa
+Garantir que relatórios executivos rodem em < 1s sem afetar a performance do banco de dados operacional das lojas.
+
+
+===============================
+FILE: ADR-999_COMPETITIVE_MOAT.md
+===============================
+# ADR-999: Fosso Competitivo e Irreversibilidade Operacional
+
+**Status:** ACEITA  
+
+## 1. Locks Estratégicos
+O MesaFlow OS constrói sua barreira de saída (Switching Cost) através de:
+* **Operational Memory:** Quanto mais o sistema opera, melhor ele prevê os gargalos específicos daquela unidade.
+* **Behavioral DNA:** O staff se acostuma a ser guiado pelo sistema (Cockpits), tornando qualquer sistema "passivo" obsoleto e confuso para a equipe.
+* **Trust Transparency:** O *Trust Center* cria um contrato de confiança com o cliente final que competidores baseados apenas em "links de cardápio" não possuem.
+
+## 2. Veredito Final
+MesaFlow não é um software que se compra; é uma infraestrutura na qual o negócio se apoia. Uma vez instalado, removê-lo é remover a inteligência que elimina a fila.
+

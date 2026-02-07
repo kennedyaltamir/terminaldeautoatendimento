@@ -1,0 +1,527 @@
+=== 1. ESTRUTURA DA RAIZ ===
+📄 .dockerignore
+📄 .env
+📁 .github/
+📄 .gitignore
+📁 .mesaflow_cache/
+📁 .ruff_cache/
+📁 .vscode/
+📄 City Walk
+📁 Contextodoprojeto/
+📄 DIAGNOSTIC_REPORT
+📁 DOCUMENTAÇÕESIMPORTANTES/
+📄 Dificuldades presentes.txt
+📄 Dockerfile
+📄 Documentação de API RESTful.md
+📄 Explicandototalmenteoprojeto.xml
+📄 INFRA_SETUP_SOUNDS
+📄 MASTER_ENV_MAP
+📄 MESAFLOW_PROTOCOL.xml
+📄 MESAFLOW_SYSTEM_KERNEL.xml
+📄 Manual do Usuário Sovereign Page Inventory (v9.1.0).md
+📄 PROTOCOL_SELF_DECLARATION
+📄 PROTOCOL_SELF_TEST_RESULT
+📄 Protocolo de Geração de Scripts (PSGS).md
+📄 SECURITY.md
+📄 SOVEREIGN_INTELLIGENCE_BLUEPRINT.md
+📄 STRATEGIC_ALIGNMENT_V13_1
+📄 STRATEGIC_REFACTORING
+📄 Z_Problemas atuais.xml
+📄 Z_ROADMAP.xml
+📄 Z_Znovoprotocolo.txt
+📄 Z_communication.xml
+📄 Z_como devem ser as coissa.txt
+📄 Z_perguntas que eu estpu com dividas.txt
+📁 _arquivoscriadosparabancodedados/
+📄 adr.txt
+📁 alembic/
+📄 alembic.ini
+📁 anotações/
+📁 app/
+📄 app.json
+📁 assets/
+📄 atualizar.py
+📁 audit_evidence/
+📄 audit_frontend.py
+📄 audit_protocol.xml
+📄 audit_report.txt
+📄 auth_state.json
+📁 backups/
+📄 comopegarosbancodedados.md
+📁 config/
+📄 critico.txt
+📁 dev/
+📄 docker-compose.yml
+📄 docker_healthcheck.py
+📁 docs/
+📁 docscript/
+📁 docstxt/
+📁 documentacao/
+📄 driver.txt
+📁 env_backups/
+📄 estrutura_atual.txt
+📄 forensic_audit.py
+📁 frontend/
+📄 gerartxt.py
+📄 gerartxt2.py
+📁 governance/
+📄 governance_rewrite_input.txt
+📁 ignorar/
+📄 import_stats.log
+📄 kernel_journal.jsonl
+📁 logs/
+📄 main.py
+📄 manualtransferencia.md
+📁 mobile/
+📁 neon_inspection_output/
+📄 ngrok.exe
+📄 package-lock.json
+📄 package.json
+📁 perguntas-respostastelaentregador.txt/
+📄 projeto.xml
+📁 protocols/
+📄 pytest.ini
+📄 render.yaml
+📄 requirements.txt
+📄 resposta.txt
+📄 run.py
+📄 run2.py
+📄 run_full_audit.bat
+📄 scriptforense.xml
+📁 scriptimages/
+📁 scripts/
+📁 scriptsarevisar/
+📁 src/
+📄 tabelas_e_colunas.md
+📄 tabelas_e_colunas.txt
+📁 test-results/
+📄 teste.json
+📁 todasastelas/
+📄 todososarquivos.txt
+📄 tsconfig.json
+📄 vercel.json
+📄 vscode_forensic_evolution.py
+📄 z_systeminstruction.xml
+📄 z_z_Explicação.xml
+
+=== 2. CONTEÚDO DAS SUBPASTAS (NÍVEL 1) ===
+
+📂 DENTRO DE: .github/
+   📁 workflows/
+
+📂 DENTRO DE: .mesaflow_cache/
+   📄 structure_snapshot.json
+
+📂 DENTRO DE: .ruff_cache/
+   📄 .gitignore
+   📁 0.15.0/
+   📄 CACHEDIR.TAG
+
+📂 DENTRO DE: .vscode/
+   📄 settings.json
+
+📂 DENTRO DE: Contextodoprojeto/
+   📄 RITO DE VERDADE.md
+   📄 Readme.md
+   📄 component_map.csv
+   📄 component_map.txt
+   📄 python_map.md
+   📄 todasaspagina.txt
+
+📂 DENTRO DE: DOCUMENTAÇÕESIMPORTANTES/
+   📄 admin_dashboard.md
+   📄 admin_inventory.md
+   📄 admin_kitchen_kds.md
+   📄 admin_tables.md
+   📄 driver_cockpit.md
+   📄 public_menu.md
+
+📂 DENTRO DE: _arquivoscriadosparabancodedados/
+   📄 LogisticsController.ts
+   📄 README.logistics.md`
+   📄 WebSocketContext.tsx
+   📄 auth.middleware.ts
+   📁 backend/
+   📁 context/
+   📁 domain/
+   📁 infra/
+   📁 prisma/
+   📁 shared/
+   📁 unit/
+   📄 useKdsFsm.ts
+   📁 workers/
+
+📂 DENTRO DE: alembic/
+   📄 env.py
+   📄 script.py.mako
+   📁 versions/
+
+📂 DENTRO DE: anotações/
+   📄 Listartodasastelas.txt
+   📄 Melhoriasafazer.txt
+   📄 Meubancodedados.txt
+   📄 Promptparacorreçãodeerros.txt
+   📄 Todososscripts rodando.txt
+   📁 aba(mesaflow/
+   📁 anotacoessoltas/
+   📁 comandos/
+   📄 enviartodaatimeline.txt
+   📁 ideias/
+   📄 manifesto do produto.txt
+   📄 novasanotações.txt
+   📄 oqueéoprojeto.txt
+   📄 paradetalharas39telas.txt
+   📄 pedircorreçãoforense.txt
+   📄 promptauditoria.txt
+   📄 promptparaGPT.txt
+   📄 promptpedirpararevisarversão.txt
+   📄 protocolodeconversação.txt
+   📄 teladekiosktodasdoc.txt
+   📄 todososarquivos.txt
+
+📂 DENTRO DE: app/
+   📄 __init__.py
+   📁 alembic/
+   📁 core/
+   📄 database.py
+   📄 main.py
+   📁 models/
+   📄 models.py
+   📁 routers/
+   📁 schemas/
+   📄 schemas.py
+   📁 services/
+   📁 tasks/
+   📄 websockets.py
+
+📂 DENTRO DE: assets/
+   📄 kiosk.png
+
+📂 DENTRO DE: audit_evidence/
+   📄 audit_report_1770282610995.json
+   📄 critical_failure.png
+
+📂 DENTRO DE: backups/
+   📄 transaction_20260203_193122_b2a2c17c.zip
+   📄 transaction_20260203_193853_34276263.zip
+   📄 transaction_20260203_194610_d76dc66c.zip
+   📄 transaction_20260203_194759_0e1ab57e.zip
+   📄 transaction_20260203_195201_e519e23d.zip
+   📄 transaction_20260203_195512_b8d3b830.zip
+   📄 transaction_20260204_193347_545f2b83.zip
+   📄 transaction_20260204_193947_f1b386d1.zip
+   📄 transaction_20260204_194214_3a405310.zip
+   📄 transaction_20260204_201827_b30da403.zip
+   📄 transaction_20260204_202150_01954219.zip
+   📄 transaction_20260204_202506_91fae8b9.zip
+   📄 transaction_20260204_203328_be28be9f.zip
+   📄 transaction_20260204_221802_b2b916ea.zip
+   📄 transaction_20260205_015543_544e5128.zip
+   📄 transaction_20260205_020153_ea7a13e4.zip
+   📄 transaction_20260205_092909_48f7e34c.zip
+   📄 transaction_20260205_093629_bf56553b.zip
+   📄 transaction_20260205_094251_f640a5ce.zip
+   📄 transaction_20260205_095318_7a2d5a3b.zip
+   📄 transaction_20260205_100325_2b335c2c.zip
+   📄 transaction_20260205_101303_069039ce.zip
+   📄 transaction_20260205_101843_4d2241b1.zip
+   📄 transaction_20260206_130036_3d5fb2c1.zip
+   📄 transaction_20260206_130817_cdd1371c.zip
+   📄 transaction_20260206_134013_bb142d6f.zip
+   📄 transaction_20260206_134143_3063f0a1.zip
+   📄 transaction_20260206_135445_29da89e3.zip
+   📄 transaction_20260206_141756_3b26e833.zip
+   📄 transaction_20260206_142001_13dc954a.zip
+   📄 transaction_20260206_143452_b9b5e218.zip
+   📄 transaction_20260206_143903_12bc0283.zip
+   📄 transaction_20260206_144315_5e0e70af.zip
+   📄 transaction_20260206_145057_9513a9e3.zip
+   📄 transaction_20260206_145555_0f7f790e.zip
+   📄 transaction_20260206_150005_8a64e437.zip
+   📄 transaction_20260206_160141_f938f9e5.zip
+   📄 transaction_20260206_160837_7accdb91.zip
+
+📂 DENTRO DE: config/
+   📄 .optimizer_cache.json
+   📄 optimizer_history.json
+   📄 ui_audit_config.json
+
+📂 DENTRO DE: dev/
+   📄 align_orders_to_tenant.py
+   📄 audit_database_sovereign.py
+   📄 audit_frontend_structure.py
+   📄 clean_workspace.py
+   📄 component_scanner.py
+   📄 deep_forensic_sync.py
+   📄 ensure_driver_identity.py
+   📄 ensure_rallyf_identity.py
+   📄 final_identity_fix.py
+   📄 fix_null_data.py
+   📄 fix_refresh_tokens_schema.py
+   📄 fix_tenant_alignment.py
+   📄 force_driver_binding.py
+   📄 force_sovereign_identity.py
+   📄 infra_reboot.py
+   📄 inspect_consolidated_db.py
+   📄 network_share.py
+   📄 omega_sync.py
+   📄 open_browser.py
+   📄 run_browser_debug.py
+   📄 run_forensic_audit.py
+   📄 seed_logistics_missions.py
+   📄 template_master.py
+   📄 test_s3_integrity.py
+   📄 verify_driver_lookup.py
+
+📂 DENTRO DE: docs/
+   📄 API.md
+   📄 ARCHITECTURE.md
+   📄 BACKLOG.md
+   📄 CANONICAL_SCRIPTS_DASHBOARD.md
+   📄 CHANGELOG.md
+   📄 CONTRIBUTING.md
+   📄 DELIVERY_IMPROVEMENTS.md
+   📄 DEPLOY.md
+   📄 DEVOPS.md
+   📄 DOCUMENTATION_INDEX.md
+   📄 EXECUTIVE_SUMMARY.md
+   📄 FRONTEND_STRUCTURE.md
+   📄 GTM_CHECKLIST.md
+   📄 GUIA_HARDWARE.md
+   📄 GUIA_STRIPE_ASSINATURAS.md
+   📄 IMPLEMENTATION_HISTORY.md
+   📄 INTEGRATION_HUB_GUIDE.md
+   📄 MANUAL_COZINHA.md
+   📄 MANUAL_DELIVERY.md
+   📄 MANUAL_FINANCEIRO.md
+   📄 MANUAL_GESTOR.md
+   📄 MANUAL_PAGAMENTOS.md
+   📄 MASTER_CONTEXT.md
+   📄 MASTER_DOCUMENTATION_SUMMARY.md
+   📄 MASTER_MD_SUMMARY.md
+   📄 MASTER_PROJECT_BIBLE.md
+   📄 MESAFLOW_CONCEPT.md
+   📄 NEXT_STEPS.md
+   📄 OFFLINE_ARCHITECTURE_SPEC.md
+   📄 PITCH.md
+   📄 PLAYBOOK_SUPORTE.md
+   📄 PRE_PRODUCTION_CHECKLIST.md
+   📄 PROJECT_OVERVIEW.md
+   📄 PRO_CHECKLIST.md
+   📁 Prompts/
+   📄 ROADMAP.md
+   📄 SCRIPT_INDEX.md
+   📄 SRE_MAINTENANCE_RUNBOOK.md
+   📄 STABILIZATION_PLAN.md
+   📄 TASKS.md
+   📄 TECHNICAL_DEBT_REGISTER.md
+   📄 TECH_DEBT.md
+   📁 adr/
+   📁 architecture/
+   📁 assets/
+   📁 audit/
+   📁 audit_screenshots/
+   📁 commercial/
+   📁 cycles/
+   📁 docatualizadatela/
+   📁 enterprise/
+   📁 frontend/
+   📁 improvements/
+   📁 integration/
+   📁 investors/
+   📁 legal/
+   📁 management/
+   📁 manual_testing/
+   📁 manuals/
+   📁 mobile/
+   📁 paginas/
+   📁 performance/
+   📁 qa/
+   📁 quality/
+   📁 releases/
+   📁 reports/
+   📁 screenshots/
+   📁 sds/
+   📁 security/
+   📁 specs/
+   📁 sre/
+   📁 standards/
+   📁 strategy/
+   📁 support/
+   📁 tasks/
+   📁 team/
+   📁 technical/
+   📁 troubleshooting/
+   📁 trust/
+
+📂 DENTRO DE: docscript/
+   📄 audit_database_sovereign.md
+   📄 audit_frontend_structure.md
+   📄 components_inventory.json
+   📄 components_inventory.md
+   📄 fix_tenant_alignment.md
+
+📂 DENTRO DE: docstxt/
+   📄 MASTER_ARCHITECTURE_MAP.txt
+   📁 doctelas/
+   📄 scriptscanonicos.txt
+
+📂 DENTRO DE: documentacao/
+   📄 01_PROJECT_OVERVIEW.md
+   📄 02_ARCHITECTURE.md
+   📄 03_SECURITY_MODEL.md
+   📄 04_FINANCIAL_INTEGRITY.md
+   📄 05_OPERATIONAL_RUNBOOKS.md
+
+📂 DENTRO DE: env_backups/
+   📁 20260205_100446/
+
+📂 DENTRO DE: frontend/
+   📁 .auth/
+   📄 .env
+   📄 .gitignore
+   📁 .vscode/
+   📄 README.md
+   📁 e2e/
+   📄 eslint.config.mjs
+   📄 import_stats.log
+   📄 next-env.d.ts
+   📄 next.config.mjs
+   📄 next.config.ts
+   📄 package.json
+   📁 playwright-report/
+   📄 playwright.config.ts
+   📄 postcss.config.js
+   📄 postcss.config.mjs
+   📁 public/
+   📄 python
+   📁 resultados/
+   📄 sentry.client.config.ts
+   📄 sentry.edge.config.ts
+   📄 sentry.server.config.ts
+   📁 src/
+   📄 tailwind.config.ts
+   📁 test-results/
+   📁 tests/
+   📄 tsconfig.json
+   📄 tsconfig.tsbuildinfo
+
+📂 DENTRO DE: governance/
+   📄 GOLD_MASTER_SEAL.json
+   📄 GOVERNANCE_CHANGELOG.md
+   📄 MesaFlow_Optimization_Layer.xml
+   📄 README.md
+   📄 architecture.xml
+   📄 business_rules.xml
+   📄 deployment_contract.xml
+   📁 epistemic/
+   📁 evidence/
+   📁 policies/
+   📁 prompts/
+   📁 protocols/
+   📄 registry.xml
+   📁 rfc/
+   📁 runtime/
+   📁 schemas/
+   📄 security_model.xml
+
+📂 DENTRO DE: ignorar/
+   📁 archive/
+   📁 archive_redundant_scripts/
+   📁 backups/
+   📁 backups2/
+   📁 concatenados/
+   📁 concatenados_debug/
+   📁 diff_staging/
+   📁 lixeira/
+   📁 lixeira2/
+   📁 logs/
+   📄 middleware.ts
+
+📂 DENTRO DE: logs/
+   📄 audit_inventory.log
+   📄 tsx_locator.log
+
+📂 DENTRO DE: mobile/
+   📄 .env
+   📁 .expo/
+   📄 App.tsx
+   📄 PRODUCTION_LOCK_MOBILE.json
+   📄 PRODUCTION_LOCK_MOBILE.md
+   📄 android.os.Handler
+   📄 android.os.Looper
+   📄 app.json
+   📁 assets/
+   📄 babel.config.js
+   📄 com.facebook.react.bridge.queue.MessageQueueThreadImpl
+   📁 e2e/
+   📄 eas.json
+   📁 fastlane/
+   📄 jest.config.js
+   📄 jest.setup.js
+   📄 metro.config.js
+   📄 package-lock.json
+   📄 package.json
+   📁 scripts/
+   📁 src/
+   📄 tsconfig.json
+
+📂 DENTRO DE: neon_inspection_output/
+   📄 database_inspection.json
+   📄 full_database.xlsx
+   📄 ~$full_database.xlsx
+
+📂 DENTRO DE: perguntas-respostastelaentregador.txt/
+   📄 perguntas.txt
+   📄 prompts.txt
+   📄 respostas,txt
+
+📂 DENTRO DE: protocols/
+   (Vazio)
+
+📂 DENTRO DE: scriptimages/
+   📁 audit_driver_screen_deep/
+   📁 generate_ui_specs_batch/
+
+📂 DENTRO DE: scripts/
+   📁 checklists/
+   📁 deployment/
+   📁 documentation/
+   📁 forensic/
+   📁 infra/
+   📁 knowledge/
+   📁 maintenance/
+   📁 reports/
+   📁 setup/
+   📁 verification/
+
+📂 DENTRO DE: scriptsarevisar/
+   📁 RELATORIOS/
+   📁 TESTES2/
+   📁 resultados/
+   📁 scripts/
+
+📂 DENTRO DE: src/
+   📁 api/
+   📁 app/
+
+📂 DENTRO DE: test-results/
+   📄 .last-run.json
+
+📂 DENTRO DE: todasastelas/
+   📄 Landingpage.txt
+   📄 README.md
+   📄 TEMPLATE_TELA_GOLD_MASTER.md
+   📁 admin/
+   📄 forgot-password.txt
+   📁 hamburgueria-ze/
+   📁 kitchen/
+   📄 manualvincularcartão.txt
+   📄 offline.txt
+   📁 payment/
+   📄 register.txt
+   📄 reset-password.txt
+   📄 run.txt
+   📄 support.txt
+   📁 trust/
+   📄 trust.txt 

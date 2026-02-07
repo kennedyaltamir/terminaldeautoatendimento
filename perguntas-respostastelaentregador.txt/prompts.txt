@@ -1,0 +1,247 @@
+1. UI/UX e Camadas
+
+Prompt:
+"Gere o código React/TypeScript para implementar a interface em camadas descrita na documentação: Header fixo, HUD financeiro translúcido, Canvas central alternando entre IdleView, EnRouteView e PodView, e Control Deck inferior. Inclua Z-index, pointer-events corretos e responsividade industrial."
+
+2. Ações Principais e FSM
+
+Prompt:
+"Crie a lógica em TypeScript para os ritos SHIFT_START, Aceitar Rota, Iniciar Rota, Cheguei no Local e Confirmar Entrega, incluindo validações de Battery API, driver_trace_id único, timers e transições de FSM seguras."
+
+3. Navegação e Menus
+
+Prompt:
+"Implemente o Menu Lateral e o Modo Stealth com toggle de privacidade financeira. Inclua o Stealth Trigger (sequência TL->TR->BR->BL) para desbloqueio administrativo, e bloqueio do menu durante EN_ROUTE."
+
+4. Exibição de Pedidos
+
+Prompt:
+"Gere código para exibir informações do pedido: Nome do cliente, ID do pedido, endereço sanitizado, High Yield Indicator com brilho esmeralda, e manifesto expansível com itens críticos marcáveis antes da saída."
+
+5. Comportamento de Clique e Motion Safety
+
+Prompt:
+"Desenvolva lógica de Motion Lock que desabilita inputs de texto e teclado quando GPS.speed > 15km/h. Adicione Haptic Feedback para cliques bem-sucedidos e erros, e proteções contra ghost touches."
+
+6. Notificações e Alertas
+
+Prompt:
+"Crie sistema de notificações sonoras e visuais para novas missões, incidentes e sucesso de ações. Inclua sons (new_order.mp3, bump.mp3), vibração háptica, overlays e alertas visuais de desvio de rota."
+
+7. Indicadores de Status (FSM Transitions)
+
+Prompt:
+"Implemente a FSM completa: OFFLINE → IDLE → ASSIGNED → EN_ROUTE → AT_DESTINATION. Inclua triggers de geofencing, validações de bateria, binding de pedidos, logs forenses e prevenção de saltos ilegais de estado."
+
+8. Interações de Rota e Mapa
+
+Prompt:
+"Gere código para mapa interativo (Leaflet/Mapbox) com Auto-Zoom baseado em velocidade, Night Ops/Lanterna com brilho 100%, Polyline dinâmica de rotas múltiplas, e Deep Links para Waze/Google Maps."
+
+9. Modais de Confirmação e Segurança
+
+Prompt:
+"Crie IncidentModal e CommunicationModal com bloqueio de fechamento externo, botões de loading e Success Check animado. Inclua integração com WhatsApp Bridge e pause do SLA no backend."
+
+10. Atualização de Status e Feedback
+
+Prompt:
+"Desenvolva lógica de atualização de status automática e manual, com ACK do servidor em 5s. Inclua modo PENDING_SYNC, toasts persistentes e reconciliação otimista do frontend com backend."
+
+11. Dados Dinâmicos e Telemetria
+
+Prompt:
+"Implemente WebSocket para sincronização de missões, batching de coordenadas GPS, Telemetry HUD atualizando velocidade/distância a cada 1s, e persistência de pontos no IndexedDB."
+
+12. Filtros e Busca de Missões
+
+Prompt:
+"Crie sistema de filtros para Skip Logic, High Yield Indicator, e Blacklist temporária de missões puladas. Garanta reaparecimento condicional e persistência offline de 15 minutos."
+
+13. Resiliência de Conexão
+
+Prompt:
+"Desenvolva suporte Offline-First usando IndexedDB (MesaFlowDB) para salvar estado, crash recovery rápido (<200ms), Hydration e sincronização de eventos offline com reconciliação segura de backend."
+
+14. Missões Múltiplas e Batching
+
+Prompt:
+"Implemente suporte a até 3 missões simultâneas, com Polyline otimizada, Stop Focus, High Yield recalculado e Active Stop Indicator no Control Deck. Inclua recálculo de rota via WebSocket e isolamento de timers."
+
+15. Rito de Encerramento e Auto-Retorno
+
+Prompt:
+"Crie a rotina de Mission Complete com animação canvas-confetti, exibição de ganhos, contador regressivo de 5s, Auto-Retorno automático ao estado IDLE e interrupção manual ao tocar na tela."
+
+
+
+
+"Com base na documentação do Cockpit do Entregador v24.0, gere componentes React/TypeScript para cada camada da interface (Camada 0 a Camada 3).
+Cada camada deve respeitar:
+
+Z-index definido.
+
+pointer-events apropriados (none nas áreas não interativas).
+
+Camada 0: HeaderVitals com cores semânticas da FSM.
+
+Camada 1: HUD Financeiro com rendimento, meta e ranking usando useMemo.
+
+Camada 2: Canvas dinâmico alternando IdleView, EnRouteView (mapa com Mapbox/Leaflet), PodView (teclado numérico).
+
+Camada 3: Control Deck inferior com botões touch-friendly (mínimo 64px).
+Gere o código de cada componente incluindo props, states e hooks necessários, sem remover funcionalidades já descritas na documentação."
+Baseando-se na seção FSM e Ritos Principais do Cockpit do Entregador v24.0, crie um arquivo driverMachine.ts em TypeScript que implemente:
+
+Estados: OFFLINE, IDLE, ASSIGNED, EN_ROUTE, AT_DESTINATION.
+
+Guardas de transição (Battery > 10%, manifesto completo, geofencing > 50m).
+
+Eventos: SHIFT_START, ACCEPT_ROUTE, START_ROUTE, ARRIVE, CONFIRM_DELIVERY, INCIDENT.
+
+Logs forenses: cada transição registra device_timestamp e server_timestamp.
+Inclua validações de transição ilegal e tratamento de ACK do servidor com timeout de 5s (modo PENDING_SYNC)."
+"Implemente a camada de telemetria do Cockpit em React/TypeScript:
+
+WebSocket Heartbeat a cada 30s.
+
+GPS tracking com watchPosition({ enableHighAccuracy: true }).
+
+Auto-Zoom logarítmico conforme velocidade: 0-20km/h → Zoom 18, 20-60km/h → Zoom 15, >60km/h → Zoom 13.
+
+Cross Track Error para alertas de desvio offline (>500m).
+
+Batching de 5 coordenadas antes de enviar para o servidor.
+Inclua TypeScript types, hooks, debounce/throttle de updates e integração com IndexedDB para persistência."
+Crie componentes React/TypeScript para modais de comunicação e incidentes do Cockpit:
+
+IncidentModal: pausar SLA, selecionar motivo (Pneu Furado, Acidente, Área de Risco, Problema Veículo).
+
+CommunicationModal: templates de WhatsApp para mensagens rápidas, sanitização de caracteres especiais.
+
+Modal deve respeitar Z-index: 9999 (sobre Motion Lock).
+
+Botões com estado loading e animação de sucesso (Success Check) antes de fechar.
+
+Bloqueio de fechamento via ESC ou clique externo quando crítico."
+Crie um componente de Control Deck que suporte até 3 missões simultâneas.
+
+Polyline dinâmica no mapa via WebSocket.
+
+High Yield Auto-Calc: recalcula valor médio por KM do batch e destaca missão ativa.
+
+Motion Lock global enquanto qualquer missão estiver em movimento.
+
+Cada missão com seu próprio WaitTimer persistido no IndexedDB.
+Gere código completo em TypeScript/React, incluindo hooks de state, efeitos e context API se necessário."
+Sucesso: vibração 10ms.
+
+Erro: vibração 3x 50ms.
+
+Incidente: vibração contínua de 200ms.
+
+Sequenciamento de sons via AudioQueue para evitar sobreposição (500ms entre sons).
+
+Toasts animados com persistência de 3s usando biblioteca Sonner ou similar.
+Gere código React/TypeScript incluindo integração com estado global da FSM."
+| #  | Seção / Documento                       | Prompt Detalhado                                                                                                                                                                                                                                                                                         | Tecnologia Sugerida                           |
+| -- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| 1  | UI/UX e Camadas                         | Gere o código React/TypeScript para implementar a interface em camadas descrita na documentação: Header fixo, HUD financeiro translúcido, Canvas central alternando entre IdleView, EnRouteView e PodView, e Control Deck inferior. Inclua Z-index, pointer-events corretos e responsividade industrial. | React, TypeScript, CSS/SCSS                   |
+| 2  | Ações Principais e FSM                  | Crie a lógica em TypeScript para os ritos `SHIFT_START`, `Aceitar Rota`, `Iniciar Rota`, `Cheguei no Local` e `Confirmar Entrega`, incluindo validações de Battery API, driver_trace_id único, timers e transições de FSM seguras.                                                                       | TypeScript, Zustand/FSM                       |
+| 3  | Navegação e Menus                       | Implemente o Menu Lateral e o Modo Stealth com toggle de privacidade financeira. Inclua o Stealth Trigger (sequência TL->TR->BR->BL) para desbloqueio administrativo, e bloqueio do menu durante `EN_ROUTE`.                                                                                             | React, TypeScript, CSS/SCSS                   |
+| 4  | Exibição de Pedidos                     | Gere código para exibir informações do pedido: Nome do cliente, ID do pedido, endereço sanitizado, High Yield Indicator com brilho esmeralda, e manifesto expansível com itens críticos marcáveis antes da saída.                                                                                        | React, TypeScript, CSS/SCSS                   |
+| 5  | Comportamento de Clique e Motion Safety | Desenvolva lógica de Motion Lock que desabilita inputs de texto e teclado quando `GPS.speed > 15km/h`. Adicione Haptic Feedback para cliques bem-sucedidos e erros, e proteções contra ghost touches.                                                                                                    | TypeScript, React Native/Web APIs             |
+| 6  | Notificações e Alertas                  | Crie sistema de notificações sonoras e visuais para novas missões, incidentes e sucesso de ações. Inclua sons (`new_order.mp3`, `bump.mp3`), vibração háptica, overlays e alertas visuais de desvio de rota.                                                                                             | React, TypeScript, Web Audio API, Haptics API |
+| 7  | Indicadores de Status (FSM Transitions) | Implemente a FSM completa: OFFLINE → IDLE → ASSIGNED → EN_ROUTE → AT_DESTINATION. Inclua triggers de geofencing, validações de bateria, binding de pedidos, logs forenses e prevenção de saltos ilegais de estado.                                                                                       | TypeScript, XState ou Zustand                 |
+| 8  | Interações de Rota e Mapa               | Gere código para mapa interativo (Leaflet/Mapbox) com Auto-Zoom baseado em velocidade, Night Ops/Lanterna com brilho 100%, Polyline dinâmica de rotas múltiplas, e Deep Links para Waze/Google Maps.                                                                                                     | React, Leaflet/Mapbox, TypeScript             |
+| 9  | Modais de Confirmação e Segurança       | Crie IncidentModal e CommunicationModal com bloqueio de fechamento externo, botões de loading e Success Check animado. Inclua integração com WhatsApp Bridge e pause do SLA no backend.                                                                                                                  | React, TypeScript, CSS/SCSS                   |
+| 10 | Atualização de Status e Feedback        | Desenvolva lógica de atualização de status automática e manual, com ACK do servidor em 5s. Inclua modo PENDING_SYNC, toasts persistentes e reconciliação otimista do frontend com backend.                                                                                                               | React, TypeScript, WebSocket                  |
+| 11 | Dados Dinâmicos e Telemetria            | Implemente WebSocket para sincronização de missões, batching de coordenadas GPS, Telemetry HUD atualizando velocidade/distância a cada 1s, e persistência de pontos no IndexedDB.                                                                                                                        | TypeScript, WebSocket API, IndexedDB          |
+| 12 | Filtros e Busca de Missões              | Crie sistema de filtros para Skip Logic, High Yield Indicator, e Blacklist temporária de missões puladas. Garanta reaparecimento condicional e persistência offline de 15 minutos.                                                                                                                       | React, TypeScript, IndexedDB                  |
+| 13 | Resiliência de Conexão                  | Desenvolva suporte Offline-First usando IndexedDB (`MesaFlowDB`) para salvar estado, crash recovery rápido (<200ms), Hydration e sincronização de eventos offline com reconciliação segura de backend.                                                                                                   | TypeScript, IndexedDB, React                  |
+| 14 | Missões Múltiplas e Batching            | Implemente suporte a até 3 missões simultâneas, com Polyline otimizada, Stop Focus, High Yield recalculado e Active Stop Indicator no Control Deck. Inclua recálculo de rota via WebSocket e isolamento de timers.                                                                                       | React, TypeScript, Leaflet/Mapbox, WebSocket  |
+| 15 | Rito de Encerramento e Auto-Retorno     | Crie a rotina de Mission Complete com animação `canvas-confetti`, exibição de ganhos, contador regressivo de 5s, Auto-Retorno automático ao estado IDLE e interrupção manual ao tocar na tela.                                                                                                           | React, TypeScript, Canvas API/Framer Motion   |
+Você deve continuar a implementação do DriverCockpitPage e todos os componentes relacionados para a versão v24.0.0 seguindo estritamente a documentação da tela do entregador (Cockpit do Entregador v24.0).
+
+Instruções Estritas:
+
+Estamos em modo produção: não inclua comentários no código, console.logs ou mock data visível em produção, exceto onde explicitamente permitido para logs de auditoria FSM.
+
+Siga a arquitetura de camadas (Layered UI Architecture):
+
+Layer 0 (Z-10): Header Vitals – status, bateria, sinal, FSM. pointer-events-none exceto nos elementos interativos internos.
+
+Layer 1 (Z-20): Financial HUD – ganhos, metas, ranking, modo stealth. Wrapper pointer-events-none.
+
+Layer 2 (Z-0): Canvas – views de Idle, En Route, POD. Scrollable area, animações com Framer Motion.
+
+Layer 3 (Z-40): Control Deck – botões de ação, batching de missões, lock de movimento.
+
+Layer 4 (Z-50): Motion Lock Overlay – bloqueio de interações ao dirigir acima de threshold, botão de emergência sempre acessível.
+
+Layer 5 (Z-9999): Modais críticos – IncidentModal e quaisquer modais futuros.
+
+FSM (DriverStateMachine):
+
+Use transições otimizadas (Optimistic UI).
+
+Bloqueie ações em conflito com Motion Lock.
+
+Registre logs forenses via driverFSM sem expor dados sensíveis na UI.
+
+Telemetria:
+
+Use useDriverTelemetry com batching de 5 pontos.
+
+Ajuste zoom de forma logarítmica conforme velocidade.
+
+Inclua cálculo de CTE ou desvio de rota (simulado ou real via turf).
+
+Feedback:
+
+Use SensoryEngine para vibração, áudio e notificações de sucesso/erro.
+
+Toasts devem ser concisos e contextuais, integrados com o estado FSM.
+
+Modais:
+
+Bloqueio de ESC ativo para IncidentModal.
+
+Botões de fechamento/cancelamento claros para não frustrar o usuário.
+
+Z-index máximo (9999) para sobreposição crítica.
+
+UI/UX:
+
+As transições de views devem usar AnimatePresence e motion do Framer Motion.
+
+Respeite a hierarquia visual e pointer-events para prevenir ghost clicks.
+
+Layout responsivo: HUD e Vitals devem funcionar em todos os dispositivos da frota.
+
+Produção:
+
+Remova todos os console.log, comentários e dados de mock não essenciais.
+
+Certifique-se de que todos os hooks, FSM e telemetria funcionem com dados reais simulados para produção.
+
+Componentização e organização:
+
+Crie subcomponentes apenas quando necessário para manter o DriverCockpitPage limpo.
+
+Toda lógica de side-effects e hooks deve ser encapsulada corretamente.
+
+Componentes auxiliares como EnRouteView, PodView e IdleView devem ser integrados sem quebrar o layout em camadas.
+
+Entrega:
+
+Gere apenas o código final pronto para produção, sem placeholders ou comentários.
+
+Use tipagem TypeScript rigorosa sempre que possível.
+
+Certifique-se de que todos os estados FSM, batch de missões, motion lock e incident modal funcionem perfeitamente em conjunto.
+
+Mantenha a hierarquia de camadas (Layered UI Architecture) e Z-index exato.
+
+Objetivo Final:
+Criar uma versão completa e pronta para produção do DriverCockpitPage que funcione como dashboard operacional para entregadores, seguindo o protocolo da documentação, integrando FSM, telemetria, feedback sensorial, modais críticos e layout de camadas.

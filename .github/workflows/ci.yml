@@ -1,58 +1,66 @@
+# DOMAIN: CI_CD_PIPELINE
+# VERSION: 2.0.0 (Production Stable)
+# DESCRIPTION: Orquestrador de integridade para Kernel API e Web Interface.
 name: MesaFlow CI/CD Pipeline
 
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - 'mobile/**'
+      - 'docs/**'
+      - 'README.md'
   pull_request:
     branches: [ "main" ]
 
 jobs:
-  # ------------------------------------------------------------------
-  # JOB 1: BACKEND CHECK (Instalação Básica)
-  # ------------------------------------------------------------------
-  backend-check:
+  backend-integrity:
+    name: 🐍 Backend Core Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-    - uses: actions/checkout@v4
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
-        cache: 'pip'
+      - name: 🐍 Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: 'pip'
 
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        # Instala apenas se o arquivo existir para não dar erro
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: 📦 Install Core Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-  # ------------------------------------------------------------------
-  # JOB 2: FRONTEND WEB CHECK (Build do Next.js)
-  # ------------------------------------------------------------------
-  frontend-check:
+      - name: 🔍 Static Analysis & Syntax Check
+        run: |
+          python -m py_compile app/main.py
+          # Adicione linting aqui no futuro: flake8 app/
+
+  frontend-integrity:
+    name: ⚛️ Frontend Build Check
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
-        # Garante que roda na pasta frontend, e não na mobile
         working-directory: ./frontend
-
     steps:
-    - uses: actions/checkout@v4
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
+      - name: 🟢 Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
-    - name: Install Dependencies
-      # npm ci é mais rápido e seguro para CI do que npm install
-      run: npm ci
+      - name: 📦 Install Dependencies
+        run: npm ci
 
-    - name: Build Validation
-      env:
-        # Variáveis dummy para o build passar
-        NEXT_PUBLIC_API_URL: "http://localhost:8000/api"
-      run: npm run build
+      - name: 🏗️ Production Build Validation
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: "https://api.mesaflow.com.br/api"
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
